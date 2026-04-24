@@ -1,0 +1,34 @@
+# IDE
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Django
+*.log
+db.sqlite3
+media/
+
+# Ruff / tooling
+.ruff_cache/
+
+# Playwright
+test-results/
+playwright-report/
+
+# Environment variables
+.env
+.env.*
+
+# PyEnv
+.python-version
