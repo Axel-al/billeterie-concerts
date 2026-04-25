@@ -2,11 +2,18 @@
 
 ## Etat actuel
 
-Le depot ne contient pas encore d'architecture applicative executable. Aucun projet Django n'est initialise dans cette baseline documentaire.
+Le depot contient maintenant une application Django executable minimale.
+
+- `config` porte la configuration Django, les URLs racines, ASGI et WSGI.
+- `accounts` contient le modele utilisateur personnalise base sur l'email unique.
+- `concerts` et `orders` existent comme applications Django vides pour accueillir les prochains domaines.
+- `templates/` contient le gabarit de base Bootstrap CDN et une page d'accueil francaise minimale.
+
+Le stockage local est SQLite. Les migrations Django sont en place pour le modele utilisateur personnalise, mais la base locale `db.sqlite3` n'est pas versionnee.
 
 ## Architecture cible
 
-L'architecture cible est une application Django monolithe, organisee autour de domaines metier simples et testables :
+L'architecture cible reste une application Django monolithe, organisee autour de domaines metier simples et testables :
 
 - consultation des concerts ;
 - comptes et authentification ;
@@ -23,6 +30,7 @@ Le stockage local cible est SQLite pour le developpement. La persistance sera po
 - Isoler les regles sensibles dans du code testable, notamment le stock, les quantites, les statuts de concert et le paiement.
 - Utiliser les vues Django et les templates pour limiter la complexite frontend.
 - Introduire des services metier seulement quand une regle devient partagee entre plusieurs vues, formulaires ou commandes.
+- Utiliser `is_staff` et `is_superuser` pour les premiers droits administrateur ; un champ de role dedie sera ajoute seulement si un cas d'usage le justifie.
 
 ## Flux cible de reservation
 
@@ -39,3 +47,4 @@ Le stockage local cible est SQLite pour le developpement. La persistance sera po
 - La verification du stock devra etre faite au moment de la validation, pas seulement a l'ajout au panier.
 - Les commandes devront etre cloisonnees par utilisateur.
 - Les mots de passe seront geres par le systeme d'authentification Django, jamais stockes en clair.
+- Le modele utilisateur personnalise a ete cree des le depart afin d'eviter une migration tardive couteuse.

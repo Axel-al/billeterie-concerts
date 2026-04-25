@@ -1,8 +1,16 @@
-# Applications Django prevues
+# Applications Django
 
 ## Etat actuel
 
-Aucune application Django n'existe encore dans le depot. Cette page decrit le decoupage cible a valider lors de l'initialisation du projet.
+Trois applications Django sont initialisees :
+
+| Application | Etat actuel | Exigences liees |
+| --- | --- | --- |
+| `accounts` | Modele `User` personnalise avec email unique, manager et admin Django. | EF3 partiel, EM8, ENF3 |
+| `concerts` | Application creee, sans modele ni vue metier. | Non couvert dans cette etape |
+| `orders` | Application creee, sans modele ni vue metier. | Non couvert dans cette etape |
+
+Le module `config` porte les reglages, les URLs racines et le rendu de la page d'accueil.
 
 ## Decoupage cible
 
@@ -14,12 +22,14 @@ Aucune application Django n'existe encore dans le depot. Cette page decrit le de
 | `orders` | Commandes, billets achetes, historique et statuts. | EF8, EF9, EF10, EM6, EM10, RG4, RG5, RG8 |
 | `payments` | Paiement simule et resultat de paiement. | EF7, EF8, EF9, EM6, RG4, RG5 |
 
-## Alternative possible
+## Decisions appliquees
 
-Pour un projet d'ecole de taille limitee, le decoupage pourra etre reduit a moins d'applications si cela simplifie la maintenance et les tests. Toute reduction devra etre documentee dans `docs/repository/decisions.md`.
+- `cart` et `payments` ne sont pas crees dans cette etape, car la demande porte seulement sur la fondation technique.
+- Le role administrateur repose pour l'instant sur les champs Django `is_staff` et `is_superuser`.
+- Toute reduction ou extension du decoupage cible devra etre documentee dans `docs/repository/decisions.md`.
 
 ## Non fait dans cette etape
 
-- Pas de `django-admin startproject`.
-- Pas de `python manage.py startapp`.
-- Pas de modeles, vues, formulaires, URLs ou migrations.
+- Pas de liste ou detail de concerts.
+- Pas de panier, paiement, historique de commandes ou regle de stock.
+- Pas de formulaire d'inscription ou connexion utilisateur.

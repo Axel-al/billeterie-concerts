@@ -2,7 +2,11 @@
 
 ## Etat actuel
 
-Aucun frontend applicatif n'est present. Il n'existe pas encore de templates Django, de vues, de fichiers CSS ou de JavaScript versionnes.
+Le frontend applicatif minimal est initialise avec Django templates.
+
+- `templates/base.html` fournit le layout HTML, la navigation minimale et Bootstrap via CDN.
+- `templates/pages/home.html` fournit une page d'accueil francaise minimale.
+- La route `/` affiche cette page via `TemplateView`.
 
 ## Direction cible
 
@@ -32,6 +36,10 @@ Le frontend cible repose sur :
 - Confirmation ou refus de paiement.
 - Historique des commandes.
 - Administration des concerts et ventes.
+
+## Non couvert dans cette etape
+
+La page d'accueil ne constitue pas une implementation de la liste des concerts, du panier ou du paiement. Aucune couverture `EF1`, `EF2`, `EF5` a `EF12` ou `ENF1` n'est revendiquee.
 
 ## Contraintes
 

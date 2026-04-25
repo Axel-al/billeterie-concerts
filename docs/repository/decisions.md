@@ -2,6 +2,30 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-04-25 - Fondation Django technique
+
+Decision : initialiser Django avec le module `config`, les apps `accounts`, `concerts` et `orders`, une page d'accueil minimale, pytest, coverage, Ruff, GitHub Actions et SonarCloud.
+
+Motif : la demande courante porte sur une fondation technique executable et testable, pas sur les parcours metier complets.
+
+Impact : les exigences couvertes restent limitees a la fondation utilisateur et qualite (`EF3` partiel, `EM8`, `ENF3`, `ENF5`, `ENF6`, `ENF7`). Les exigences de concerts, panier, paiement, stock et commandes restent non couvertes.
+
+## 2026-04-25 - CustomUser email des le depart
+
+Decision : creer `accounts.User` comme modele utilisateur personnalise avec email unique comme identifiant.
+
+Motif : le cahier des charges impose l'unicite email (`EM8`) et l'utilisateur principal est defini autour de l'email. Le faire avant les premieres migrations evite une migration tardive complexe.
+
+Impact : `AUTH_USER_MODEL = "accounts.User"` est configure. Les mots de passe restent geres par le hachage Django (`ENF3`). Les roles specifiques ne sont pas ajoutes ; les premiers droits administrateur utilisent `is_staff` et `is_superuser`.
+
+## 2026-04-25 - SonarCloud conditionnel
+
+Decision : enrichir `sonar-project.properties` avec les chemins existants et declencher l'analyse CI seulement si `SONAR_TOKEN` est disponible.
+
+Motif : la configuration SonarCloud doit etre versionnee sans exposer de secret et ne doit pas referencer de chemins absents comme `e2e/`.
+
+Impact : la CI ne doit pas echouer uniquement parce que le secret SonarCloud est absent.
+
 ## 2026-04-25 - Baseline documentaire avant initialisation Django
 
 Decision : creer la documentation de depot et de validation avant d'initialiser le projet Django.

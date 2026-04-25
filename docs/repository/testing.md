@@ -2,7 +2,20 @@
 
 ## Etat actuel
 
-Les dependances de test sont declarees dans `requirements-dev.txt`, mais aucun test automatise n'est encore versionne. Il n'existe pas encore de projet Django a tester.
+Les dependances de test sont declarees dans `requirements-dev.txt` et pytest est configure dans `pyproject.toml` avec `DJANGO_SETTINGS_MODULE = config.settings`.
+
+Tests automatises versionnes :
+
+- `tests/test_homepage.py` : smoke test de la page `/`.
+- `tests/test_accounts.py` : email comme identifiant, unicite email et mot de passe hashe.
+
+Couverture officielle revendiquee dans cette etape :
+
+- `EM8` : email utilisateur unique.
+- `ENF3` : mot de passe gere par le hachage Django.
+- `ENF6` : tests automatises executables sur la fondation.
+
+`EF3` reste partiellement couvert seulement cote modele utilisateur ; il n'existe pas encore de parcours d'inscription.
 
 ## Couches prevues
 
@@ -22,6 +35,20 @@ pytest
 pytest --cov=. --cov-report=xml
 pytest e2e
 ```
+
+La commande `pytest e2e` reste cible future. La CI installe Chromium pour Playwright, mais saute proprement les tests e2e tant que le dossier `e2e/` n'existe pas.
+
+## Commandes verifiees localement
+
+```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
+ruff check .
+pytest
+pytest --cov=. --cov-report=xml
+```
+
+Resultat observe : OK, 4 tests passent et `coverage.xml` est genere.
 
 ## Regles de priorisation
 
