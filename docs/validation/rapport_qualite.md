@@ -61,6 +61,8 @@ SonarCloud est configure par `sonar-project.properties`. L'analyse CI s'execute 
 
 Le check externe SonarCloud du commit `4e68e25` a echoue car la couverture du nouveau code etait de 76,4 % pour un seuil de 80 %. La correction courante ajoute des tests et exclut seulement le boilerplate Django ASGI/WSGI de la couverture.
 
+Le check externe SonarCloud du correctif est passe avec 100,0 % de couverture sur le nouveau code. La pull request #1 affiche des checks passants via `gh pr checks`.
+
 ## Risques actuels
 
 - Les tests actuels couvrent seulement la fondation utilisateur et qualite.

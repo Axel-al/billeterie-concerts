@@ -16,6 +16,8 @@ Etat distant observe :
 - Le workflow GitHub Actions a ete execute avec succes sur la branche.
 - Le check externe SonarCloud du commit `4e68e25` a echoue au Quality Gate avec 76,4 % de couverture sur le nouveau code, pour un seuil requis de 80 %.
 - La correction courante augmente la couverture par des tests supplementaires et exclut seulement les entrypoints Django generes `config/asgi.py` et `config/wsgi.py` de la couverture.
+- Le check externe SonarCloud du correctif est passe avec 100,0 % de couverture sur le nouveau code.
+- La pull request #1 affiche des checks passants via `gh pr checks`.
 - L'analyse SonarQube Cloud s'execute seulement si le secret GitHub `SONAR_TOKEN` est disponible.
 - Les tests e2e ne sont pas encore versionnes ; la CI les ignore tant que `e2e/` n'existe pas.
 

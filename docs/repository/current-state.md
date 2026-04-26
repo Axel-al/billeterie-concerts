@@ -76,7 +76,8 @@ Etat distant observe :
 - le workflow GitHub Actions est passe ;
 - le check externe SonarCloud du commit `4e68e25` a echoue au Quality Gate car la couverture du nouveau code etait de 76,4 %, sous le seuil de 80 % ;
 - la correction courante ajoute des tests de fondation et exclut uniquement `config/asgi.py` et `config/wsgi.py` de la couverture, car ce sont des entrypoints Django generes ;
-- les checks distants doivent etre reverifies apres push avec `gh checks` et `gh check-detail` ;
+- le check externe SonarCloud du correctif est passe avec 100,0 % de couverture sur le nouveau code ;
+- la pull request #1 a ete creee et ses checks sont passes selon `gh pr checks` ;
 - l'analyse SonarCloud depend toujours du secret GitHub `SONAR_TOKEN` pour les futures executions ;
 - aucun scenario Playwright n'est encore present.
 
