@@ -14,6 +14,8 @@ Elements deja presents :
 Etat distant observe :
 
 - Le workflow GitHub Actions a ete execute avec succes sur la branche.
+- Le check externe SonarCloud du commit `4e68e25` a echoue au Quality Gate avec 76,4 % de couverture sur le nouveau code, pour un seuil requis de 80 %.
+- La correction courante augmente la couverture par des tests supplementaires et exclut seulement les entrypoints Django generes `config/asgi.py` et `config/wsgi.py` de la couverture.
 - L'analyse SonarQube Cloud s'execute seulement si le secret GitHub `SONAR_TOKEN` est disponible.
 - Les tests e2e ne sont pas encore versionnes ; la CI les ignore tant que `e2e/` n'existe pas.
 
@@ -53,3 +55,5 @@ python -m playwright install --with-deps chromium
 ## Statut SonarQube
 
 SonarQube Cloud est configure sans secret versionne. Les sources declarees sont limitees aux chemins existants apres cette etape : `config`, `accounts`, `concerts`, `orders` et `tests`.
+
+`config/asgi.py` et `config/wsgi.py` sont exclus uniquement de la couverture SonarCloud, car ce sont des fichiers Django generes et sans logique metier. Les verifier dans les tests n'apporterait pas de preuve fonctionnelle supplementaire.

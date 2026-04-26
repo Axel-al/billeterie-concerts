@@ -1,6 +1,6 @@
 # Rapport qualite
 
-Derniere mise a jour : 2026-04-25
+Derniere mise a jour : 2026-04-26
 
 ## Etat actuel
 
@@ -39,10 +39,17 @@ Coverage est configure dans `pyproject.toml`.
 Commande verifiee :
 
 ```bash
-pytest --cov=. --cov-report=xml
+pytest --cov=. --cov-report=term-missing --cov-report=xml
 ```
 
-Resultat observe : OK, `coverage.xml` est genere et reste non versionne.
+Resultat observe : OK, 16 tests passent, `coverage.xml` est genere et reste non versionne. La couverture locale affiche 100 % sur les chemins mesures.
+
+Exclusions justifiees :
+
+- `config/asgi.py`
+- `config/wsgi.py`
+
+Ces deux fichiers sont des entrypoints Django generes, sans logique applicative propre.
 
 ## CI
 
@@ -51,6 +58,8 @@ Le workflow `.github/workflows/ci.yml` est versionne et a ete execute avec succe
 ## SonarQube
 
 SonarCloud est configure par `sonar-project.properties`. L'analyse CI s'execute seulement si le secret GitHub `SONAR_TOKEN` est disponible.
+
+Le check externe SonarCloud du commit `4e68e25` a echoue car la couverture du nouveau code etait de 76,4 % pour un seuil de 80 %. La correction courante ajoute des tests et exclut seulement le boilerplate Django ASGI/WSGI de la couverture.
 
 ## Risques actuels
 

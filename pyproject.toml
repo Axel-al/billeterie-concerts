@@ -9,6 +9,8 @@ branch = true
 source = ["accounts", "concerts", "orders", "config"]
 omit = [
     "*/migrations/*",
+    "config/asgi.py",
+    "config/wsgi.py",
     "manage.py",
 ]
 

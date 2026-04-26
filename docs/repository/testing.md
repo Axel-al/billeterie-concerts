@@ -7,7 +7,8 @@ Les dependances de test sont declarees dans `requirements-dev.txt` et pytest est
 Tests automatises versionnes :
 
 - `tests/test_homepage.py` : smoke test de la page `/`.
-- `tests/test_accounts.py` : email comme identifiant, unicite email et mot de passe hashe.
+- `tests/test_accounts.py` : email comme identifiant, unicite email, hachage du mot de passe, authentification par email et branches du manager utilisateur.
+- `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
 
 Couverture officielle revendiquee dans cette etape :
 
@@ -45,10 +46,16 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 ruff check .
 pytest
-pytest --cov=. --cov-report=xml
+pytest --cov=. --cov-report=term-missing --cov-report=xml
 ```
 
-Resultat observe : OK, 4 tests passent et `coverage.xml` est genere.
+Resultat observe : OK, 16 tests passent et `coverage.xml` est genere. La couverture locale affiche 100 % sur les chemins mesures.
+
+## Exclusions de couverture
+
+Les fichiers `config/asgi.py` et `config/wsgi.py` sont exclus de la couverture coverage.py et SonarCloud. Ce sont des entrypoints Django generes par `startproject`, sans logique applicative propre.
+
+Les migrations restent exclues comme artefacts generes. Les fichiers applicatifs reels (`accounts`, `concerts`, `orders`, `config/settings.py`, `config/urls.py`) restent mesures.
 
 ## Regles de priorisation
 

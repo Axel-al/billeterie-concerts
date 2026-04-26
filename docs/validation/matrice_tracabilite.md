@@ -20,7 +20,7 @@ Le depot contient une fondation Django minimale, des tests automatises, Ruff, co
 | --- | --- | --- | --- | --- |
 | EF1 | Aucune | Aucun | Non couvert | Integration liste concerts, e2e consultation |
 | EF2 | Aucune | Aucun | Non couvert | Integration detail concert, e2e consultation |
-| EF3 | `accounts.User` avec email et mot de passe Django | `tests/test_accounts.py` | Partiel fondation modele | Integration inscription |
+| EF3 | `accounts.User` avec email et mot de passe Django | `tests/test_accounts.py` | Partiel fondation modele/auth | Integration inscription |
 | EF4 | Aucune | Aucun | Non couvert | Integration login/logout |
 | EF5 | Aucune | Aucun | Non couvert | Unitaire regles panier, integration ajout panier |
 | EF6 | Aucune | Aucun | Non couvert | Unitaire calcul total panier |
@@ -55,7 +55,7 @@ Le depot contient une fondation Django minimale, des tests automatises, Ruff, co
 | ENF3 | Mot de passe gere par Django auth | `tests/test_accounts.py::test_user_password_is_hashed` | Couvert fondation | Tests inscription et connexion |
 | ENF4 | Aucune saisie applicative | Aucun | Non couvert | Tests formulaires invalides |
 | ENF5 | Ruff configure dans `pyproject.toml` et CI | `ruff check .` local et CI | Couvert fondation | Suivi des futurs problemes Ruff/Sonar |
-| ENF6 | Tests pytest-django isoles pour accueil et compte | `pytest`, `pytest --cov=. --cov-report=xml` | Couvert fondation | Tests metier a ajouter |
+| ENF6 | Tests pytest-django isoles pour accueil, compte et settings | `pytest`, `pytest --cov=. --cov-report=term-missing --cov-report=xml` | Couvert fondation | Tests metier a ajouter |
 | ENF7 | Workflow GitHub Actions versionne | `.github/workflows/ci.yml` | Couvert fondation, CI distante a confirmer apres push | Suivi CI sur PR |
 
 ## Regles de gestion

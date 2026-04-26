@@ -1,6 +1,6 @@
 # Etat courant du depot
 
-Derniere mise a jour : 2026-04-25
+Derniere mise a jour : 2026-04-26
 
 ## Synthese
 
@@ -73,7 +73,10 @@ Le workflow CI :
 Etat distant observe :
 
 - le workflow GitHub Actions a ete declenche par le push de la branche ;
-- Ruff, checks Django, pytest avec couverture, skip e2e et SonarCloud sont passes ;
+- le workflow GitHub Actions est passe ;
+- le check externe SonarCloud du commit `4e68e25` a echoue au Quality Gate car la couverture du nouveau code etait de 76,4 %, sous le seuil de 80 % ;
+- la correction courante ajoute des tests de fondation et exclut uniquement `config/asgi.py` et `config/wsgi.py` de la couverture, car ce sont des entrypoints Django generes ;
+- les checks distants doivent etre reverifies apres push avec `gh checks` et `gh check-detail` ;
 - l'analyse SonarCloud depend toujours du secret GitHub `SONAR_TOKEN` pour les futures executions ;
 - aucun scenario Playwright n'est encore present.
 
@@ -86,7 +89,7 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 ruff check .
 pytest
-pytest --cov=. --cov-report=xml
+pytest --cov=. --cov-report=term-missing --cov-report=xml
 python manage.py runserver 127.0.0.1:8010
 curl -fsS http://127.0.0.1:8010/ | rg "Bienvenue sur la billetterie de concerts"
 ```
@@ -96,8 +99,8 @@ Resultats observes :
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
 - `ruff check .` : OK.
-- `pytest` : OK, 4 tests passent.
-- `pytest --cov=. --cov-report=xml` : OK, `coverage.xml` genere puis ignore par Git.
+- `pytest` : OK, 16 tests passent.
+- `pytest --cov=. --cov-report=term-missing --cov-report=xml` : OK, 100 % de couverture locale sur les chemins mesures, `coverage.xml` genere puis ignore par Git.
 - demarrage local : OK, la page `/` repond HTTP 200 ; Django signale seulement que les migrations locales doivent etre appliquees avec `python manage.py migrate` avant une utilisation persistante.
 
 ## Statut Git observe
