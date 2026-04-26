@@ -6,7 +6,12 @@ Prouver progressivement que l'application respecte le cahier des charges, avec d
 
 ## Etat actuel
 
-Aucun test automatise n'est encore versionne, car l'application Django n'est pas encore initialisee.
+Les premiers tests automatises sont versionnes dans `tests/`.
+
+- `tests/test_homepage.py` verifie que la page `/` repond.
+- `tests/test_accounts.py` verifie l'identifiant email, l'unicite email et le hachage des mots de passe.
+
+Ces tests couvrent la fondation `EF3` partielle, `EM8`, `ENF3`, `ENF6` et alimentent la CI `ENF7`.
 
 ## Types de tests prevus
 
@@ -33,3 +38,12 @@ Aucun test automatise n'est encore versionne, car l'application Django n'est pas
 - La matrice de tracabilite relie chaque test a un ID officiel.
 - Le pipeline CI execute les checks principaux.
 - Les echecs de paiement et de stock ne modifient pas l'etat de facon irreversible.
+
+## Commandes verifiees
+
+```bash
+pytest
+pytest --cov=. --cov-report=xml
+```
+
+Resultat observe : OK, 4 tests passent.

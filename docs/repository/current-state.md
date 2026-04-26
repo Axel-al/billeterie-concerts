@@ -1,127 +1,118 @@
 # Etat courant du depot
 
-Derniere mise a jour : 2026-04-25
+Derniere mise a jour : 2026-04-26
 
 ## Synthese
 
-Le depot contient actuellement la baseline de tooling et de documentation du projet de billetterie de concerts. Le projet Django n'est pas encore initialise : il n'existe pas de `manage.py`, pas de module de configuration Django, pas d'application Django, pas de migrations et pas de tests applicatifs versionnes.
+Le depot contient maintenant une fondation Django executable pour la billetterie de concerts.
 
-Le cahier des charges officiel est conserve dans `docs/brief/projet-validation-logiciel-e4a-2026.md`.
+Elements livres dans cette etape :
 
-## Fichiers suivis avant cette baseline
+- projet Django `config` ;
+- applications Django `accounts`, `concerts` et `orders` ;
+- modele utilisateur personnalise `accounts.User` avec email unique comme identifiant ;
+- page d'accueil francaise minimale sur `/` ;
+- template de base Bootstrap via CDN ;
+- configuration pytest, coverage et Ruff dans `pyproject.toml` ;
+- workflow GitHub Actions `.github/workflows/ci.yml` ;
+- configuration SonarCloud `sonar-project.properties` ;
+- premiers tests automatises et matrice de tracabilite mise a jour.
 
-- `.gitignore`
-- `requirements.txt`
-- `requirements-dev.txt`
-- `docs/brief/projet-validation-logiciel-e4a-2026.md`
+Le cahier des charges officiel reste conserve dans `docs/brief/projet-validation-logiciel-e4a-2026.md`.
 
-## Structure ajoutee
+## Exigences couvertes dans cette etape
 
-- `docs/repository/` : documentation du depot, des choix techniques, de l'architecture cible, du frontend, des tests et de la qualite.
-- `docs/validation/` : exigences, user stories, criteres d'acceptation, conception de tests et matrice de tracabilite.
+Couverture revendiquee :
 
-## Environnement local observe
+- `EF3` : couverture partielle seulement, via la fondation du modele utilisateur email + mot de passe. Aucun formulaire d'inscription n'est encore implemente.
+- `EM8` : email utilisateur unique, teste au niveau modele.
+- `ENF3` : mot de passe hashe via l'authentification Django, teste.
+- `ENF5` : Ruff configure et execute en local/CI.
+- `ENF6` : premiers tests automatises pytest-django et couverture.
+- `ENF7` : pipeline GitHub Actions versionne.
 
-- Branche locale : `main`.
-- Branche distante : `origin/main`.
-- Dernier commit observe avant changement : `002ead7 chore: initial project tooling setup`.
-- Remote Git : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Fichier `AGENTS.md` demande par le prompt : absent du depot.
-- Fichier local lu a la place car present : `AGENT.md`.
-- `AGENT.md` et `docs/prompts/` sont ignores via `.git/info/exclude`.
-- `.python-version` et `.vscode/` sont ignores via `.gitignore`.
+Non couvert volontairement :
 
-## Decisions de scope appliquees
+- `EF1`, `EF2`, `EF5` a `EF12` ;
+- `EM1` a `EM7`, `EM9`, `EM10` ;
+- toutes les regles `RG*` ;
+- `ENF1`, car la page d'accueil ne donne pas encore acces aux actions metier principales.
 
-- Aucun projet Django n'a ete initialise dans cette etape.
-- Aucun fichier de `docs/prompts/` n'a ete lu.
-- `.gitignore` n'a pas ete modifie car les exclusions utiles sont deja presentes.
-- La matrice de tracabilite indique explicitement que les exigences fonctionnelles, metier et regles de gestion ne sont pas encore couvertes par du code ou des tests.
+## Structure applicative
 
-## Fichiers crees ou modifies dans cette etape
+- `config/` : settings, URLs racines, ASGI et WSGI.
+- `accounts/` : modele utilisateur personnalise, manager, admin Django et migration initiale.
+- `concerts/` : application creee, domaine metier non implemente.
+- `orders/` : application creee, domaine metier non implemente.
+- `templates/` : layout de base et page d'accueil.
+- `tests/` : tests de smoke homepage et tests du modele utilisateur.
 
-- `docs/repository/README.md`
-- `docs/repository/current-state.md`
-- `docs/repository/architecture.md`
-- `docs/repository/apps.md`
-- `docs/repository/decisions.md`
-- `docs/repository/frontend.md`
-- `docs/repository/testing.md`
-- `docs/repository/quality-ci.md`
-- `docs/validation/exigences.md`
-- `docs/validation/user_stories.md`
-- `docs/validation/criteres_acceptation.md`
-- `docs/validation/plan_de_test.md`
-- `docs/validation/classes_equivalence.md`
-- `docs/validation/valeurs_limites.md`
-- `docs/validation/table_decision.md`
-- `docs/validation/diagrammes_etats.md`
-- `docs/validation/matrice_tracabilite.md`
-- `docs/validation/rapport_qualite.md`
+## Configuration locale
 
-## Commandes lancees
+- Python observe : 3.12.13.
+- Django observe : 5.2.13.
+- SQLite est utilise en developpement local.
+- `DJANGO_SECRET_KEY` est lu depuis l'environnement ; une valeur de developpement/test non-production est fournie par defaut.
+- `DJANGO_DEBUG` pilote `DEBUG`, avec `True` par defaut en local.
+- `DJANGO_ALLOWED_HOSTS` peut surcharger les hosts autorises ; la valeur par defaut couvre `localhost`, `127.0.0.1`, `[::1]` et `testserver`.
+- `AUTH_USER_MODEL = "accounts.User"` est defini avant les futurs modeles dependants de l'utilisateur.
 
-- `cat AGENTS.md`
-- `rg --files -g 'AGENTS.md' -g '!**/.venv/**' -g '!**/node_modules/**'`
-- `git status --short --branch`
-- `git log --oneline --decorate -5`
-- `rg --files -g '!**/.venv/**' -g '!**/node_modules/**'`
-- `git remote -v`
-- `ls -la`
-- `git ls-files`
-- `sed -n '1,240p' requirements.txt`
-- `sed -n '1,260p' requirements-dev.txt`
-- `sed -n '1,260p' docs/brief/projet-validation-logiciel-e4a-2026.md`
-- `sed -n '1,260p' AGENT.md`
-- `sed -n '1,240p' .gitignore`
-- `find docs -maxdepth 3 -type d -print`
-- `find docs -maxdepth 3 -type f -print`
-- `git check-ignore -v AGENT.md docs/prompts/prompt-0.md .python-version .vscode/settings.json`
-- `mkdir -p docs/repository docs/validation`
-- `git add -N docs/repository docs/validation`
-- `test -f docs/repository/README.md && test -f docs/repository/current-state.md && test -f docs/repository/architecture.md && test -f docs/repository/apps.md && test -f docs/repository/decisions.md && test -f docs/repository/frontend.md && test -f docs/repository/testing.md && test -f docs/repository/quality-ci.md && test -f docs/validation/exigences.md && test -f docs/validation/user_stories.md && test -f docs/validation/criteres_acceptation.md && test -f docs/validation/plan_de_test.md && test -f docs/validation/classes_equivalence.md && test -f docs/validation/valeurs_limites.md && test -f docs/validation/table_decision.md && test -f docs/validation/diagrammes_etats.md && test -f docs/validation/matrice_tracabilite.md && test -f docs/validation/rapport_qualite.md`
-- `git diff --check`
-- `git diff --stat`
-- `git diff --name-only`
-- `sed -n '1,260p' docs/repository/current-state.md`
+## Qualite et CI
 
-## Checks lances
+Le workflow CI :
 
-- Presence des 18 fichiers documentaires attendus : OK.
-- `git diff --check` : OK, aucune erreur de whitespace detectee.
-- Revue Git des fichiers ajoutes : OK, 18 fichiers documentaires ajoutes.
-- Les tests Python, Django, Playwright et couverture ne sont pas lances car cette etape est strictement documentaire et il n'existe pas encore de code applicatif ni de projet Django initialise.
+- se declenche sur toutes les branches et les pull requests ;
+- installe les dependances de developpement ;
+- installe Chromium pour Playwright ;
+- execute Ruff ;
+- execute `python manage.py check` ;
+- execute pytest avec generation `coverage.xml` ;
+- saute les tests e2e tant que le dossier `e2e/` n'existe pas ;
+- lance SonarCloud seulement si le secret `SONAR_TOKEN` est disponible.
 
-## Statut Git
+Etat distant observe :
 
-Statut observe avant staging final et commit :
+- le workflow GitHub Actions a ete declenche par le push de la branche ;
+- le workflow GitHub Actions est passe ;
+- le check externe SonarCloud du commit `4e68e25` a echoue au Quality Gate car la couverture du nouveau code etait de 76,4 %, sous le seuil de 80 % ;
+- la correction courante ajoute des tests de fondation et exclut uniquement `config/asgi.py` et `config/wsgi.py` de la couverture, car ce sont des entrypoints Django generes ;
+- le check externe SonarCloud du correctif est passe avec 100,0 % de couverture sur le nouveau code ;
+- la pull request #1 a ete creee et ses checks sont passes selon `gh pr checks` ;
+- l'analyse SonarCloud depend toujours du secret GitHub `SONAR_TOKEN` pour les futures executions ;
+- aucun scenario Playwright n'est encore present.
 
-```text
-## main...origin/main
- A docs/repository/README.md
- A docs/repository/apps.md
- A docs/repository/architecture.md
- A docs/repository/current-state.md
- A docs/repository/decisions.md
- A docs/repository/frontend.md
- A docs/repository/quality-ci.md
- A docs/repository/testing.md
- A docs/validation/classes_equivalence.md
- A docs/validation/criteres_acceptation.md
- A docs/validation/diagrammes_etats.md
- A docs/validation/exigences.md
- A docs/validation/matrice_tracabilite.md
- A docs/validation/plan_de_test.md
- A docs/validation/rapport_qualite.md
- A docs/validation/table_decision.md
- A docs/validation/user_stories.md
- A docs/validation/valeurs_limites.md
+## Verification locale
+
+Commandes lancees avec succes :
+
+```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
+ruff check .
+pytest
+pytest --cov=. --cov-report=term-missing --cov-report=xml
+python manage.py runserver 127.0.0.1:8010
+curl -fsS http://127.0.0.1:8010/ | rg "Bienvenue sur la billetterie de concerts"
 ```
 
-Commit prevu : `docs: add project documentation baseline`.
+Resultats observes :
 
-Etat attendu apres commit et push : branche `main` propre et synchronisee avec `origin/main`.
+- `python manage.py check` : OK.
+- `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
+- `ruff check .` : OK.
+- `pytest` : OK, 16 tests passent.
+- `pytest --cov=. --cov-report=term-missing --cov-report=xml` : OK, 100 % de couverture locale sur les chemins mesures, `coverage.xml` genere puis ignore par Git.
+- demarrage local : OK, la page `/` repond HTTP 200 ; Django signale seulement que les migrations locales doivent etre appliquees avec `python manage.py migrate` avant une utilisation persistante.
+
+## Statut Git observe
+
+- Branche de travail : `feature/django-technical-foundation`.
+- Branche distante cible : `origin/feature/django-technical-foundation` apres push.
+- Remote Git : `https://github.com/Axel-al/billeterie-concerts.git`.
+- `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
+- `docs/prompts/` n'a pas ete lu.
+- `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
 
 ## Prochaine etape recommandee
 
-Initialiser le projet Django seulement dans l'etape dediee, puis creer les premiers modules et tests en reliant chaque changement aux IDs officiels du cahier des charges dans `docs/validation/matrice_tracabilite.md`.
+Ajouter les premiers modeles et vues `concerts`, puis relier les tests aux exigences `EF1`, `EF2` et `RG1` sans introduire encore le panier ou le paiement.
