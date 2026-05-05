@@ -1,6 +1,6 @@
 # Valeurs limites
 
-## Quantite de billets
+## Quantite de billets par concert et commande
 
 | Valeur | Classe | Resultat attendu | Exigences |
 | --- | --- | --- | --- |
@@ -9,6 +9,8 @@
 | 1 | Minimum valide | Acceptation si stock suffisant | EM2, RG3 |
 | 6 | Maximum valide | Acceptation si stock suffisant | EM3, RG3 |
 | 7 | Juste au-dessus du maximum | Refus | EM3, RG3 |
+
+Cas agreges couverts : `3 + 3 = 6` accepte, `3 + 4 = 7` refuse pour un meme concert, meme avec deux categories.
 
 ## Stock
 
@@ -25,7 +27,7 @@
 | Situation | Resultat attendu | Exigences |
 | --- | --- | --- |
 | Date passee | Reservation refusee | EM4, RG1 |
-| Date actuelle ou future selon regle retenue | A preciser lors de l'implementation | EM4, RG1 |
+| Date actuelle | Reservation refusee | EM4, RG1 |
 | Date future | Reservation possible si autres conditions valides | EM4, RG1 |
 
 ## Performance

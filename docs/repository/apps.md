@@ -2,34 +2,37 @@
 
 ## Etat actuel
 
-Trois applications Django sont initialisees :
+Le depot contient cinq applications Django metier :
 
 | Application | Etat actuel | Exigences liees |
 | --- | --- | --- |
 | `accounts` | Modele `User` personnalise avec email unique, manager et admin Django. | EF3 partiel, EM8, ENF3 |
-| `concerts` | Application creee, sans modele ni vue metier. | Non couvert dans cette etape |
-| `orders` | Application creee, sans modele ni vue metier. | Non couvert dans cette etape |
+| `concerts` | Modeles `Concert` et `SeatCategory`, admin avec categories inline, commande `seed_demo_data`. | EF5 partiel, EF11 fondation admin, EF12, EM1, EM4, EM5, RG1, RG2, RG7 |
+| `cart` | Modeles `Cart` et `CartLine`, services d'ajout et validation de panier. | EF5 partiel service, EF6 partiel service, EM1, EM2, EM3, RG2, RG3 |
+| `orders` | Modeles `Order` et `OrderLine`, statuts et prix snapshots. | EF8/EF9 partiels service, EM6, EM7, EM10, RG4, RG5 |
+| `payments` | Modele `Payment` et service de paiement simule accepte/refuse. | EF7 partiel service, EF8/EF9 partiels service, EF12, EM6, RG4, RG5 |
 
-Le module `config` porte les reglages, les URLs racines et le rendu de la page d'accueil.
+Le module `config` porte les reglages, les URLs racines et le rendu de la page d'accueil. Aucune vue panier, paiement, confirmation ou historique n'est encore implementee.
 
-## Decoupage cible
+## Decoupage retenu
 
-| Application | Responsabilite | Exigences principales |
-| --- | --- | --- |
-| `concerts` | Concerts, lieux, categories de places, statut et stock affiche. | EF1, EF2, EF11, EF12, EM1, EM4, EM5, EM9, RG1, RG2, RG7 |
-| `accounts` | Creation de compte, connexion, deconnexion, espace personnel et roles. | EF3, EF4, EM8, ENF3, RG6 |
-| `cart` | Panier, lignes de panier, quantites et total. | EF5, EF6, EM2, EM3, RG2, RG3 |
-| `orders` | Commandes, billets achetes, historique et statuts. | EF8, EF9, EF10, EM6, EM10, RG4, RG5, RG8 |
-| `payments` | Paiement simule et resultat de paiement. | EF7, EF8, EF9, EM6, RG4, RG5 |
+| Application | Responsabilite |
+| --- | --- |
+| `concerts` | Donnees de concerts, categories de places, stock et statut de reservation. |
+| `cart` | Panier actif utilisateur, lignes de panier, quantites et total courant. |
+| `orders` | Commandes issues d'une tentative de paiement, lignes figeant prix et categorie. |
+| `payments` | Resultat du paiement simule et orchestration transactionnelle du paiement. |
 
 ## Decisions appliquees
 
-- `cart` et `payments` ne sont pas crees dans cette etape, car la demande porte seulement sur la fondation technique.
-- Le role administrateur repose pour l'instant sur les champs Django `is_staff` et `is_superuser`.
-- Toute reduction ou extension du decoupage cible devra etre documentee dans `docs/repository/decisions.md`.
+- `cart` et `payments` sont des applications separees pour correspondre a l'architecture cible.
+- Un panier actif et une commande ne portent qu'un seul concert. Cette limite simplifie la couverture de `EM10` et permet d'appliquer clairement le plafond de 6 billets par concert/commande.
+- `EF5`, `EF7`, `EF8` et `EF9` sont couvertes seulement au niveau domaine/service dans cette etape. Les pages, confirmations et messages utilisateur restent a implementer.
+- Le role administrateur repose pour l'instant sur l'admin Django et les champs `is_staff` / `is_superuser`.
 
 ## Non fait dans cette etape
 
 - Pas de liste ou detail de concerts.
-- Pas de panier, paiement, historique de commandes ou regle de stock.
+- Pas de pages panier, paiement, confirmation, refus de paiement ou historique.
 - Pas de formulaire d'inscription ou connexion utilisateur.
+- Pas de test de cloisonnement d'historique de commandes (`RG8`) ni de blocage paiement visiteur (`RG6`).

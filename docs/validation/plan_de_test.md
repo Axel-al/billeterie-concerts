@@ -10,8 +10,9 @@ Les premiers tests automatises sont versionnes dans `tests/`.
 
 - `tests/test_homepage.py` verifie que la page `/` repond.
 - `tests/test_accounts.py` verifie l'identifiant email, l'unicite email et le hachage des mots de passe.
+- `tests/test_core_domain.py` verifie les premieres regles domaine : quantites, stock, statut de concert, panier mono-concert, paiement simule accepte/refuse et prix snapshots.
 
-Ces tests couvrent la fondation `EF3` partielle, `EM8`, `ENF3`, `ENF6` et alimentent la CI `ENF7`.
+Ces tests couvrent la fondation `EF3` partielle, `EM8`, `ENF3`, `ENF6`, ainsi que les regles domaine `EM1` a `EM7`, `EM10` et `RG1` a `RG5`. `EF5`, `EF7`, `EF8` et `EF9` restent des couvertures partielles domaine/service, sans UI.
 
 ## Types de tests prevus
 
@@ -25,7 +26,7 @@ Ces tests couvrent la fondation `EF3` partielle, `EM8`, `ENF3`, `ENF6` et alimen
 ## Jeux de donnees cibles
 
 - Concert ouvert avec plusieurs categories de places.
-- Concert complet.
+- Concert complet ou stock insuffisant.
 - Concert annule.
 - Concert passe.
 - Client avec panier vide et panier rempli.
@@ -46,4 +47,4 @@ pytest
 pytest --cov=. --cov-report=xml
 ```
 
-Resultat observe : OK, 4 tests passent.
+Resultat observe lors de la derniere verification complete : voir `docs/repository/current-state.md`.

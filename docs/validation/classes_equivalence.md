@@ -1,6 +1,6 @@
 # Classes d'equivalence
 
-## Quantite de billets
+## Quantite de billets par concert et commande
 
 | Classe | Valeurs exemples | Resultat attendu | Exigences |
 | --- | --- | --- | --- |
@@ -11,6 +11,8 @@
 | Quantite trop haute | 7, 10 | Refus | EM3, RG3 |
 | Quantite non entiere | 1.5, texte, vide | Refus propre | ENF4, RG3 |
 
+Le plafond de 6 est valide sur la quantite totale du concert dans le panier ou la commande, meme si les billets sont repartis sur plusieurs categories.
+
 ## Stock disponible
 
 | Classe | Situation | Resultat attendu | Exigences |
@@ -19,6 +21,8 @@
 | Stock egal a la demande | stock 2, demande 2 | Acceptation | EF5, RG2 |
 | Stock inferieur a la demande | stock 1, demande 2 | Refus | EM1, RG2 |
 | Stock nul | stock 0 | Refus | EM1, RG1, RG2 |
+
+La contrainte de modele interdit aussi un stock restant negatif.
 
 ## Etat du concert
 
@@ -30,12 +34,16 @@
 | Annule | Statut annule | Reservation impossible | EM5, RG7 |
 | Termine ou passe | Date passee | Reservation impossible | EM4, RG1 |
 
+Dans l'implementation courante, une date egale a l'instant courant est consideree comme non reservable ; le concert doit etre strictement futur.
+
 ## Paiement
 
 | Classe | Situation | Resultat attendu | Exigences |
 | --- | --- | --- | --- |
 | Paiement accepte | Simulateur renvoie succes | Commande payee, stock decremente | EF8, EM6, RG5 |
 | Paiement refuse | Simulateur renvoie refus | Pas de commande validee, stock inchange | EF9, RG4 |
+
+La couverture actuelle est domaine/service : aucune page de confirmation ni message visible de refus n'est encore implemente.
 
 ## Authentification et droits
 

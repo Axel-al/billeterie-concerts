@@ -2,14 +2,17 @@
 
 ## Etat actuel
 
-Le depot contient maintenant une application Django executable minimale.
+Le depot contient maintenant une application Django executable avec un noyau domaine teste.
 
 - `config` porte la configuration Django, les URLs racines, ASGI et WSGI.
 - `accounts` contient le modele utilisateur personnalise base sur l'email unique.
-- `concerts` et `orders` existent comme applications Django vides pour accueillir les prochains domaines.
+- `concerts` contient les concerts, categories de places, statuts et stocks.
+- `cart` contient les paniers mono-concert et lignes de panier.
+- `orders` contient les commandes et lignes figeant les prix au moment du paiement.
+- `payments` contient le paiement simule accepte/refuse.
 - `templates/` contient le gabarit de base Bootstrap CDN et une page d'accueil francaise minimale.
 
-Le stockage local est SQLite. Les migrations Django sont en place pour le modele utilisateur personnalise, mais la base locale `db.sqlite3` n'est pas versionnee.
+Le stockage local est SQLite. Les migrations Django sont en place pour le modele utilisateur et le noyau domaine, mais la base locale `db.sqlite3` n'est pas versionnee.
 
 ## Architecture cible
 
@@ -17,9 +20,9 @@ L'architecture cible reste une application Django monolithe, organisee autour de
 
 - consultation des concerts ;
 - comptes et authentification ;
-- panier ;
+- panier mono-concert dans cette premiere version ;
 - commandes ;
-- paiement simule ;
+- paiement simule au niveau service ;
 - administration des concerts.
 
 Le stockage local cible est SQLite pour le developpement. La persistance sera portee par l'ORM Django et les migrations Django.
@@ -36,7 +39,7 @@ Le stockage local cible est SQLite pour le developpement. La persistance sera po
 
 1. Un visiteur consulte les concerts ouverts.
 2. Un utilisateur connecte ajoute une selection valide au panier.
-3. Le panier calcule son total a partir des prix applicables.
+3. Le panier calcule son total a partir des prix applicables et reste limite a un seul concert.
 4. Le paiement simule accepte ou refuse la validation.
 5. En cas de succes seulement, la commande devient payee et le stock est decremente.
 6. En cas de refus, la commande ne devient pas definitive et le stock reste inchange.
