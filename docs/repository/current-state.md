@@ -15,6 +15,7 @@ Elements livres dans cette etape :
 - administration Django pour les nouveaux modeles ;
 - commande idempotente `python manage.py seed_demo_data` ;
 - tests automatises des regles critiques ;
+- passe de couverture complementaire sur les branches utiles signalees par `coverage.xml` ;
 - documentation de donnees, regles domaine, validation et tracabilite mise a jour.
 
 Le cahier des charges officiel reste conserve dans `docs/brief/projet-validation-logiciel-e4a-2026.md`.
@@ -118,14 +119,16 @@ Resultats observes :
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
 - `python manage.py migrate --plan` : OK, plan de migrations affiche.
 - `ruff check .` : OK.
-- `pytest` : OK, 39 tests passent.
-- `pytest --cov=. --cov-report=term-missing --cov-report=xml` : OK, 39 tests passent, couverture totale 97 %, `concerts/models.py` et `orders/models.py` a 100 %, `coverage.xml` genere puis ignore par Git.
+- `pytest` : OK, 47 tests passent.
+- `pytest --cov=. --cov-report=term-missing --cov-report=xml` : OK, 47 tests passent, couverture totale 99 %, `cart/models.py`, `cart/services.py`, `concerts/models.py`, `orders/models.py` et `payments/models.py` a 100 %, `coverage.xml` genere puis ignore par Git.
+
+Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe.
 
 Aucun controle navigateur manuel n'a ete execute dans cette etape, car aucune interface panier, paiement ou historique n'a ete ajoutee.
 
 ## Statut Git observe
 
-- Branche de travail : `feature/core-domain-model`.
+- Branche de travail : `feature/domain-coverage-followup`.
 - Remote Git : `https://github.com/Axel-al/billeterie-concerts.git`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.

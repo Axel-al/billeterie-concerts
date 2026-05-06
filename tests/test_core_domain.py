@@ -12,6 +12,7 @@ from cart.models import Cart, CartLine, CartStatus
 from cart.services import (
     add_ticket_to_cart,
     validate_cart_for_checkout,
+    validate_concert_bookable,
     validate_ticket_quantity,
 )
 from concerts.models import Concert, ConcertStatus, SeatCategory
@@ -76,6 +77,11 @@ def test_quantity_six_accepted():
 def test_quantity_seven_rejected():
     with pytest.raises(ValidationError):
         validate_ticket_quantity(7)
+
+
+def test_non_integer_quantity_rejected():
+    with pytest.raises(ValidationError):
+        validate_ticket_quantity("2")
 
 
 @pytest.mark.django_db
@@ -164,6 +170,31 @@ def test_exact_stock_accepted(user):
 
 
 @pytest.mark.django_db
+def test_adding_same_category_updates_existing_cart_line(user):
+    concert = create_concert()
+    category = create_category(concert, stock=6)
+
+    line = add_ticket_to_cart(user, category, 2)
+    updated_line = add_ticket_to_cart(user, category, 3)
+
+    assert updated_line.pk == line.pk
+    assert updated_line.quantity == 5
+    assert CartLine.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_cart_string_quantity_and_line_string(user):
+    concert = create_concert()
+    category = create_category(concert, name="Balcon")
+    line = add_ticket_to_cart(user, category, 2)
+    cart = line.cart
+
+    assert str(cart) == f"Panier #{cart.pk} - client@example.com"
+    assert cart.total_quantity == 2
+    assert str(line) == "2 x Nuit de test - Balcon"
+
+
+@pytest.mark.django_db
 def test_cart_total_amount_uses_current_category_prices(user):
     concert = create_concert()
     fosse = create_category(concert, name="Fosse", price=Decimal("20.00"))
@@ -204,6 +235,26 @@ def test_future_open_concert_with_stock_is_bookable():
 
 
 @pytest.mark.django_db
+def test_draft_concert_not_bookable(user):
+    concert = create_concert(status=ConcertStatus.DRAFT)
+    category = create_category(concert)
+
+    assert not concert.is_bookable()
+    with pytest.raises(ValidationError):
+        add_ticket_to_cart(user, category, 1)
+
+
+@pytest.mark.django_db
+def test_future_open_concert_without_stock_not_bookable():
+    concert = create_concert()
+    create_category(concert, stock=0)
+
+    assert not concert.is_bookable()
+    with pytest.raises(ValidationError):
+        validate_concert_bookable(concert)
+
+
+@pytest.mark.django_db
 def test_concert_and_category_string_representations():
     concert = create_concert(title="Scene Claire")
     category = create_category(concert, name="Balcon")
@@ -237,6 +288,30 @@ def test_stock_cannot_become_negative():
 
 
 @pytest.mark.django_db
+def test_inactive_cart_rejected_for_checkout(user):
+    concert = create_concert()
+    category = create_category(concert)
+    cart = Cart.objects.create(
+        user=user,
+        concert=concert,
+        status=CartStatus.ABANDONED,
+    )
+    CartLine.objects.create(cart=cart, seat_category=category, quantity=1)
+
+    with pytest.raises(ValidationError):
+        validate_cart_for_checkout(cart)
+
+
+@pytest.mark.django_db
+def test_empty_cart_rejected_for_checkout(user):
+    concert = create_concert()
+    cart = Cart.objects.create(user=user, concert=concert)
+
+    with pytest.raises(ValidationError):
+        validate_cart_for_checkout(cart)
+
+
+@pytest.mark.django_db
 def test_accepted_payment_creates_paid_order_and_decrements_stock(user):
     concert = create_concert()
     category = create_category(concert, price=Decimal("40.00"), stock=8)
@@ -250,6 +325,7 @@ def test_accepted_payment_creates_paid_order_and_decrements_stock(user):
     order_line = order.lines.get()
     assert payment.result == PaymentResult.ACCEPTED
     assert payment.amount == Decimal("80.00")
+    assert str(payment) == f"Paiement #{payment.pk} - Accepte"
     assert order.status == OrderStatus.PAID
     assert order.is_final
     assert order.user == user
@@ -260,6 +336,16 @@ def test_accepted_payment_creates_paid_order_and_decrements_stock(user):
     assert order_line.category_name_snapshot == "Fosse"
     assert category.stock_remaining == 6
     assert line.cart.status == CartStatus.CHECKED_OUT
+
+
+@pytest.mark.django_db
+def test_invalid_simulated_payment_result_rejected(user):
+    concert = create_concert()
+    category = create_category(concert)
+    line = add_ticket_to_cart(user, category, 1)
+
+    with pytest.raises(ValidationError):
+        process_simulated_payment(line.cart, "unknown")
 
 
 @pytest.mark.django_db
