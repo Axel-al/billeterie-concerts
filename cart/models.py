@@ -8,89 +8,97 @@ from django.db.models import Q
 from concerts.models import Concert, SeatCategory
 
 
-class OrderStatus(models.TextChoices):
-    PENDING = "pending", "En attente de paiement"
-    PAID = "paid", "Payee"
-    REFUSED = "refused", "Refusee"
-    CANCELLED = "cancelled", "Annulee"
+class CartStatus(models.TextChoices):
+    ACTIVE = "active", "Actif"
+    CHECKED_OUT = "checked_out", "Valide"
+    ABANDONED = "abandoned", "Abandonne"
 
 
-class Order(models.Model):
+class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="orders",
+        related_name="carts",
         verbose_name="utilisateur",
     )
     concert = models.ForeignKey(
         Concert,
         on_delete=models.PROTECT,
-        related_name="orders",
+        related_name="carts",
         verbose_name="concert",
+        null=True,
+        blank=True,
     )
     status = models.CharField(
         "statut",
         max_length=20,
-        choices=OrderStatus.choices,
-        default=OrderStatus.PENDING,
-    )
-    total_amount = models.DecimalField(
-        "montant total",
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
+        choices=CartStatus.choices,
+        default=CartStatus.ACTIVE,
     )
     created_at = models.DateTimeField("date de creation", auto_now_add=True)
     updated_at = models.DateTimeField("date de mise a jour", auto_now=True)
 
     class Meta:
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user",),
+                condition=Q(status=CartStatus.ACTIVE),
+                name="unique_active_cart_per_user",
+            )
+        ]
 
     def __str__(self) -> str:
-        return f"Commande #{self.pk} - {self.user}"
+        return f"Panier #{self.pk} - {self.user}"
 
     @property
     def total_quantity(self) -> int:
         return sum(line.quantity for line in self.lines.all())
 
     @property
-    def is_final(self) -> bool:
-        return self.status == OrderStatus.PAID
+    def total_amount(self) -> Decimal:
+        return sum(
+            (line.line_total for line in self.lines.select_related("seat_category")),
+            Decimal("0.00"),
+        )
 
 
-class OrderLine(models.Model):
-    order = models.ForeignKey(
-        Order,
+class CartLine(models.Model):
+    cart = models.ForeignKey(
+        Cart,
         on_delete=models.CASCADE,
         related_name="lines",
-        verbose_name="commande",
+        verbose_name="panier",
     )
     seat_category = models.ForeignKey(
         SeatCategory,
         on_delete=models.PROTECT,
-        related_name="order_lines",
+        related_name="cart_lines",
         verbose_name="categorie de place",
     )
-    category_name_snapshot = models.CharField("categorie achetee", max_length=120)
-    unit_price = models.DecimalField("prix unitaire", max_digits=8, decimal_places=2)
     quantity = models.PositiveSmallIntegerField(
         "quantite",
         validators=[MinValueValidator(1), MaxValueValidator(6)],
     )
     created_at = models.DateTimeField("date de creation", auto_now_add=True)
+    updated_at = models.DateTimeField("date de mise a jour", auto_now=True)
 
     class Meta:
         ordering = ("id",)
         constraints = [
+            models.UniqueConstraint(
+                fields=("cart", "seat_category"),
+                name="unique_cart_line_per_seat_category",
+            ),
             models.CheckConstraint(
                 condition=Q(quantity__gte=1) & Q(quantity__lte=6),
-                name="order_line_quantity_between_1_and_6",
-            )
+                name="cart_line_quantity_between_1_and_6",
+            ),
         ]
 
     def __str__(self) -> str:
-        return f"{self.quantity} x {self.category_name_snapshot}"
+        return f"{self.quantity} x {self.seat_category}"
 
     @property
     def line_total(self) -> Decimal:
-        return self.unit_price * self.quantity
+        return self.seat_category.price * self.quantity

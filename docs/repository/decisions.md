@@ -2,6 +2,30 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-05-06 - Domaine billetterie isole en services testables
+
+Decision : implementer les modeles `Concert`, `SeatCategory`, `Cart`, `CartLine`, `Order`, `OrderLine` et `Payment`, avec des services pour l'ajout panier et le paiement simule.
+
+Motif : les regles de quantite, stock, date, statut de concert, paiement accepte/refuse et prix snapshots doivent etre testables sans attendre les vues.
+
+Impact : `EF5`, `EF7`, `EF8` et `EF9` sont documentees comme couvertures partielles domaine/service. Les confirmations, messages d'erreur visibles et parcours utilisateur restent a implementer plus tard.
+
+## 2026-05-06 - Applications `cart` et `payments` separees
+
+Decision : creer des applications Django dediees `cart` et `payments` plutot que de placer tout le domaine dans `orders`.
+
+Motif : ce decoupage correspond a l'architecture cible deja documentee et garde les responsabilites lisibles.
+
+Impact : `config.settings.INSTALLED_APPS` inclut maintenant `cart` et `payments` ; la couverture inclut aussi ces packages.
+
+## 2026-05-06 - Panier et commande limites a un concert
+
+Decision : un panier actif et une commande ne peuvent contenir qu'un seul concert.
+
+Motif : la regle `EM3` limite a 6 billets pour un meme concert et une meme commande. Cette limite rend la premiere implementation plus simple et explicite.
+
+Impact : les services refusent les paniers multi-concerts et appliquent le plafond de 6 billets sur la quantite agregee de toutes les categories du concert.
+
 ## 2026-04-25 - Fondation Django technique
 
 Decision : initialiser Django avec le module `config`, les apps `accounts`, `concerts` et `orders`, une page d'accueil minimale, pytest, coverage, Ruff, GitHub Actions et SonarCloud.

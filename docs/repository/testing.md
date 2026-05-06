@@ -9,14 +9,19 @@ Tests automatises versionnes :
 - `tests/test_homepage.py` : smoke test de la page `/`.
 - `tests/test_accounts.py` : email comme identifiant, unicite email, hachage du mot de passe, authentification par email et branches du manager utilisateur.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
+- `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, paiement simule accepte/refuse et prix snapshots.
 
 Couverture officielle revendiquee dans cette etape :
 
 - `EM8` : email utilisateur unique.
 - `ENF3` : mot de passe gere par le hachage Django.
-- `ENF6` : tests automatises executables sur la fondation.
+- `EM1` a `EM7`, `EM10`, `RG1` a `RG5` et `RG7` : couverture domaine/service.
+- `EF5`, `EF7`, `EF8`, `EF9` : couverture partielle domaine/service uniquement.
+- `EF12` : decrement de stock apres paiement accepte au niveau service.
+- `ENF6` : tests automatises executables sur la fondation technique et domaine.
 
 `EF3` reste partiellement couvert seulement cote modele utilisateur ; il n'existe pas encore de parcours d'inscription.
+Les confirmations, messages explicites, vues paiement et historique restent hors couverture.
 
 ## Couches prevues
 
@@ -49,13 +54,13 @@ pytest
 pytest --cov=. --cov-report=term-missing --cov-report=xml
 ```
 
-Resultat observe : OK, 16 tests passent et `coverage.xml` est genere. La couverture locale affiche 100 % sur les chemins mesures.
+Resultat observe : OK, 39 tests passent et `coverage.xml` est genere. La couverture locale affiche 97 % sur les chemins mesures.
 
 ## Exclusions de couverture
 
 Les fichiers `config/asgi.py` et `config/wsgi.py` sont exclus de la couverture coverage.py et SonarCloud. Ce sont des entrypoints Django generes par `startproject`, sans logique applicative propre.
 
-Les migrations restent exclues comme artefacts generes. Les fichiers applicatifs reels (`accounts`, `concerts`, `orders`, `config/settings.py`, `config/urls.py`) restent mesures.
+Les migrations restent exclues comme artefacts generes. Les fichiers applicatifs reels (`accounts`, `concerts`, `cart`, `orders`, `payments`, `config/settings.py`, `config/urls.py`) restent mesures.
 
 ## Regles de priorisation
 
