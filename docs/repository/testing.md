@@ -9,7 +9,7 @@ Tests automatises versionnes :
 - `tests/test_homepage.py` : smoke test de la page `/`.
 - `tests/test_accounts.py` : email comme identifiant, unicite email, hachage du mot de passe, authentification par email et branches du manager utilisateur.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
-- `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, paiement simule accepte/refuse et prix snapshots.
+- `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse et prix snapshots.
 
 Couverture officielle revendiquee dans cette etape :
 
@@ -54,7 +54,7 @@ pytest
 pytest --cov=. --cov-report=term-missing --cov-report=xml
 ```
 
-Resultat observe : OK, 39 tests passent et `coverage.xml` est genere. La couverture locale affiche 97 % sur les chemins mesures.
+Resultat observe : OK, 47 tests passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures.
 
 ## Exclusions de couverture
 

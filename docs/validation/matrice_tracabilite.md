@@ -34,7 +34,7 @@ Le depot contient une fondation Django, le modele utilisateur email, le noyau do
 | ID | Implementation actuelle | Tests actuels | Statut | Limite connue |
 | --- | --- | --- | --- | --- |
 | EM1 | Validation stock + decrement transactionnel + contrainte stock non negatif | `test_insufficient_stock_rejected`, `test_stock_cannot_become_negative`, `test_accepted_payment_creates_paid_order_and_decrements_stock` | Couvert domaine/service | Tests de concurrence multi-processus futurs |
-| EM2 | Quantite minimale 1 | `test_quantity_zero_rejected`, `test_quantity_one_accepted` | Couvert domaine/service | UI non couverte |
+| EM2 | Quantite minimale 1 et panier non vide | `test_quantity_zero_rejected`, `test_quantity_one_accepted`, `test_empty_cart_rejected_for_checkout` | Couvert domaine/service | UI non couverte |
 | EM3 | Maximum 6 billets agrege par concert/commande | `test_quantity_six_accepted`, `test_quantity_seven_rejected`, `test_checkout_rejects_preexisting_cart_above_six_tickets` | Couvert domaine/service | Panier limite a un concert |
 | EM4 | Concert passe refuse | `test_past_concert_not_bookable` | Couvert domaine/service | UI non couverte |
 | EM5 | Concert annule refuse | `test_cancelled_concert_not_bookable` | Couvert domaine/service | Annulation admin non testee |
@@ -51,7 +51,7 @@ Le depot contient une fondation Django, le modele utilisateur email, le noyau do
 | ENF1 | Page d'accueil minimale seulement | Aucun | Non couvert | Actions metier non exposees |
 | ENF2 | Aucune mesure performance applicative | Aucun | Non couvert | A mesurer avec vues |
 | ENF3 | Mot de passe gere par Django auth | `tests/test_accounts.py::test_user_password_is_hashed` | Couvert fondation | Tests inscription et connexion futurs |
-| ENF4 | Services rejettent les saisies invalides par `ValidationError` | `test_quantity_zero_rejected`, `test_quantity_seven_rejected`, tests stock/statut | Couvert domaine/service | Messages UI futurs |
+| ENF4 | Services rejettent les saisies invalides par `ValidationError` | `test_quantity_zero_rejected`, `test_quantity_seven_rejected`, `test_non_integer_quantity_rejected`, `test_invalid_simulated_payment_result_rejected`, tests stock/statut | Couvert domaine/service | Messages UI futurs |
 | ENF5 | Ruff configure dans `pyproject.toml` et CI | `ruff check .` local et CI | Couvert fondation | Suivi Sonar futur |
 | ENF6 | Regles metier isolees en services testables | `tests/test_core_domain.py`, `pytest` | Couvert | A maintenir avec les vues |
 | ENF7 | Workflow GitHub Actions versionne | `.github/workflows/ci.yml` | Couvert fondation | CI distante a verifier apres push |
@@ -60,9 +60,9 @@ Le depot contient une fondation Django, le modele utilisateur email, le noyau do
 
 | ID | Implementation actuelle | Tests actuels | Statut | Limite connue |
 | --- | --- | --- | --- | --- |
-| RG1 | `Concert.is_bookable` et validation service | `test_future_open_concert_with_stock_is_bookable`, `test_past_concert_not_bookable`, `test_cancelled_concert_not_bookable` | Couvert domaine/service | Liste concerts future |
+| RG1 | `Concert.is_bookable` et validation service | `test_future_open_concert_with_stock_is_bookable`, `test_past_concert_not_bookable`, `test_cancelled_concert_not_bookable`, `test_draft_concert_not_bookable`, `test_future_open_concert_without_stock_not_bookable` | Couvert domaine/service | Liste concerts future |
 | RG2 | `validate_category_stock` | `test_insufficient_stock_rejected`, `test_exact_stock_accepted` | Couvert domaine/service | UI future |
-| RG3 | `validate_ticket_quantity`, contraintes lignes | `test_quantity_zero_rejected`, `test_quantity_one_accepted`, `test_quantity_six_accepted`, `test_quantity_seven_rejected` | Couvert domaine/service | Champs formulaire futurs |
+| RG3 | `validate_ticket_quantity`, contraintes lignes | `test_quantity_zero_rejected`, `test_quantity_one_accepted`, `test_quantity_six_accepted`, `test_quantity_seven_rejected`, `test_non_integer_quantity_rejected` | Couvert domaine/service | Champs formulaire futurs |
 | RG4 | Paiement refuse cree commande non finale et stock inchange | `test_refused_payment_records_refused_order_and_leaves_stock` | Couvert domaine/service | Message UI futur |
 | RG5 | Paiement accepte cree commande payee et decremente stock | `test_accepted_payment_creates_paid_order_and_decrements_stock` | Couvert domaine/service | Confirmation UI future |
 | RG6 | Aucun controle d'acces paiement cote vue | Aucun | Non couvert | A implementer avec checkout UI |
