@@ -10,9 +10,10 @@ Les premiers tests automatises sont versionnes dans `tests/`.
 
 - `tests/test_homepage.py` verifie que la page `/` repond.
 - `tests/test_accounts.py` verifie l'identifiant email, l'unicite email et le hachage des mots de passe.
+- `tests/test_authentication_views.py` verifie les labels francais, l'inscription, le rejet d'email duplique, le hachage via formulaire, la connexion, l'echec de connexion, la deconnexion POST, la protection de `Mon espace` et la fondation de role utilisateur standard.
 - `tests/test_core_domain.py` verifie les premieres regles domaine : quantites, stock, statut de concert, panier mono-concert, paiement simule accepte/refuse et prix snapshots.
 
-Ces tests couvrent la fondation `EF3` partielle, `EM8`, `ENF3`, `ENF6`, ainsi que les regles domaine `EM1` a `EM7`, `EM10` et `RG1` a `RG5`. `EF5`, `EF7`, `EF8` et `EF9` restent des couvertures partielles domaine/service, sans UI.
+Ces tests couvrent `EF3`, `EF4`, `EM8`, `ENF3`, `ENF4`, `ENF6`, ainsi que les regles domaine `EM1` a `EM7`, `EM10` et `RG1` a `RG5`. `EF5`, `EF7`, `EF8` et `EF9` restent des couvertures partielles domaine/service, sans UI. `EM9` reste une fondation de role seulement et n'est pas revendiquee comme couverte.
 
 ## Types de tests prevus
 
@@ -30,6 +31,8 @@ Ces tests couvrent la fondation `EF3` partielle, `EM8`, `ENF3`, `ENF6`, ainsi qu
 - Concert annule.
 - Concert passe.
 - Client avec panier vide et panier rempli.
+- Visiteur creant un compte avec email unique ou email deja utilise.
+- Client connecte puis deconnecte via POST.
 - Administrateur.
 - Paiement simule accepte et refuse.
 
@@ -43,7 +46,10 @@ Ces tests couvrent la fondation `EF3` partielle, `EM8`, `ENF3`, `ENF6`, ainsi qu
 ## Commandes verifiees
 
 ```bash
+ruff check .
 pytest
+python manage.py check
+python manage.py makemigrations --check --dry-run
 pytest --cov=. --cov-report=xml
 ```
 

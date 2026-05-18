@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Mon espace - Billetterie concerts{% endblock %}
+
+{% block content %}
+  <section class="py-4">
+    <p class="text-uppercase text-secondary small fw-semibold mb-2">Compte client</p>
+    <h1 class="display-6 fw-semibold mb-3">Mon espace</h1>
+    <p class="lead text-secondary mb-4">
+      Bienvenue, {{ user.first_name|default:user.email }}.
+    </p>
+    <dl class="row">
+      <dt class="col-sm-3">Adresse email</dt>
+      <dd class="col-sm-9">{{ user.email }}</dd>
+      <dt class="col-sm-3">Statut</dt>
+      <dd class="col-sm-9">Compte client</dd>
+    </dl>
+  </section>
+{% endblock %}

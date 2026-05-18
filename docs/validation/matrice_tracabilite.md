@@ -4,13 +4,14 @@ Source officielle : `docs/brief/projet-validation-logiciel-e4a-2026.md`.
 
 ## Etat de couverture actuel
 
-Le depot contient une fondation Django, le modele utilisateur email, le noyau domaine de billetterie, des services testables, Ruff, coverage, GitHub Actions et une configuration SonarCloud.
+Le depot contient une fondation Django, le modele utilisateur email, les pages d'inscription/connexion/deconnexion/espace personnel, le noyau domaine de billetterie, des services testables, Ruff, coverage, GitHub Actions et une configuration SonarCloud.
 
+- `EF3`, `EF4`, `EM8`, `ENF3` et `ENF4` sont couverts pour le perimetre compte utilisateur et authentification ;
 - `EF5`, `EF7`, `EF8` et `EF9` sont couvertes partiellement au niveau domaine/service seulement ;
 - aucune couverture n'est revendiquee pour les confirmations affichees, les messages explicites de refus, les pages panier/paiement ou le parcours checkout complet ;
 - `EF12`, `EM1` a `EM7`, `EM10`, `RG1` a `RG5` et la partie reservation de `RG7` sont couvertes par les modeles/services et tests domaine ;
 - `EF1`, `EF2`, `EF10`, `RG6` et `RG8` restent non couverts par absence de vues et de controle d'acces utilisateur ;
-- `EF11` et `EM9` ont une fondation via l'admin Django, sans couverture fonctionnelle complete.
+- `EF11` a une fondation via l'admin Django ; `EM9` reste une fondation de role seulement et n'est pas revendiquee comme couverte.
 
 ## Exigences fonctionnelles
 
@@ -18,8 +19,8 @@ Le depot contient une fondation Django, le modele utilisateur email, le noyau do
 | --- | --- | --- | --- | --- |
 | EF1 | Aucune vue liste concerts | Aucun | Non couvert | Modeles seulement |
 | EF2 | Donnees `Concert`/`SeatCategory` disponibles | Aucun test de fiche | Non couvert | Pas de vue detail |
-| EF3 | `accounts.User` avec email et mot de passe Django | `tests/test_accounts.py` | Partiel fondation modele/auth | Pas d'interface d'inscription |
-| EF4 | Aucune vue login/logout | Aucun | Non couvert | A implementer |
+| EF3 | `accounts.User`, `accounts.forms.RegistrationForm`, `accounts.views.SignUpView` | `tests/test_accounts.py`, `tests/test_authentication_views.py::test_account_creation_succeeds_with_unique_email`, `test_duplicate_email_registration_is_rejected_with_french_message`, `test_registered_password_is_not_stored_in_plain_text` | Couvert | Pas de verification email ni profil avance, hors scope |
+| EF4 | `accounts.views.LoginView`, `LogoutView`, `PersonalAreaView`, navigation auth | `tests/test_authentication_views.py::test_login_succeeds_with_valid_credentials`, `test_login_fails_with_invalid_credentials`, `test_logout_clears_session_through_post_logout_view`, `test_personal_area_requires_authentication`, `test_authenticated_user_can_access_personal_area`, `test_navigation_uses_post_logout_form_for_authenticated_user` | Couvert | `Mon espace` ne contient pas encore l'historique |
 | EF5 | `cart.services.add_ticket_to_cart`, `Cart`, `CartLine` | `test_aggregate_quantity_six_accepted_across_categories`, `test_aggregate_quantity_seven_rejected_across_categories`, `test_insufficient_stock_rejected`, `test_active_cart_rejects_adding_another_concert` | Partiel domaine/service | Pas de formulaire ni UI panier |
 | EF6 | `Cart.total_amount` | `test_cart_total_amount_uses_current_category_prices` | Partiel domaine | Pas d'affichage panier |
 | EF7 | `payments.services.process_simulated_payment` | `test_accepted_payment_creates_paid_order_and_decrements_stock`, `test_refused_payment_records_refused_order_and_leaves_stock` | Partiel domaine/service | Pas de page paiement |
@@ -40,8 +41,8 @@ Le depot contient une fondation Django, le modele utilisateur email, le noyau do
 | EM5 | Concert annule refuse | `test_cancelled_concert_not_bookable` | Couvert domaine/service | Annulation admin non testee |
 | EM6 | Commande finale seulement si paiement accepte | `test_accepted_payment_creates_paid_order_and_decrements_stock`, `test_refused_payment_records_refused_order_and_leaves_stock` | Couvert domaine/service | Parcours UI futur |
 | EM7 | Prix snapshot au paiement | `test_price_snapshot_is_kept_after_category_price_changes` | Couvert domaine/service | Promotions/remises hors scope |
-| EM8 | `accounts.User.email` unique | `tests/test_accounts.py::test_user_email_must_be_unique` | Couvert modele | Formulaire inscription futur |
-| EM9 | Admin Django base sur `is_staff`/`is_superuser` | Tests superuser existants seulement | Fondation partielle | Permissions concert admin non testees |
+| EM8 | `accounts.User.email` unique et rejet formulaire des doublons email | `tests/test_accounts.py::test_user_email_must_be_unique`, `tests/test_authentication_views.py::test_duplicate_email_registration_is_rejected_with_french_message` | Couvert | Unicite renforcee cote formulaire pour les variantes de casse |
+| EM9 | Admin Django base sur `is_staff`/`is_superuser` | `tests/test_accounts.py::test_superuser_defaults_to_staff_and_superuser_flags`, `tests/test_authentication_views.py::test_registered_standard_user_has_no_admin_privileges` | Non couvert, fondation role seulement | Permissions concert admin hors scope |
 | EM10 | `Order` lie a utilisateur, concert, date, statut | `test_accepted_payment_creates_paid_order_and_decrements_stock` | Couvert domaine/service | Historique utilisateur futur |
 
 ## Exigences non fonctionnelles
@@ -50,8 +51,8 @@ Le depot contient une fondation Django, le modele utilisateur email, le noyau do
 | --- | --- | --- | --- | --- |
 | ENF1 | Page d'accueil minimale seulement | Aucun | Non couvert | Actions metier non exposees |
 | ENF2 | Aucune mesure performance applicative | Aucun | Non couvert | A mesurer avec vues |
-| ENF3 | Mot de passe gere par Django auth | `tests/test_accounts.py::test_user_password_is_hashed` | Couvert fondation | Tests inscription et connexion futurs |
-| ENF4 | Services rejettent les saisies invalides par `ValidationError` | `test_quantity_zero_rejected`, `test_quantity_seven_rejected`, `test_non_integer_quantity_rejected`, `test_invalid_simulated_payment_result_rejected`, tests stock/statut | Couvert domaine/service | Messages UI futurs |
+| ENF3 | Mot de passe gere par Django auth et formulaire d'inscription Django | `tests/test_accounts.py::test_user_password_is_hashed`, `tests/test_authentication_views.py::test_registered_password_is_not_stored_in_plain_text` | Couvert | Aucun stockage en clair attendu |
+| ENF4 | Services rejettent les saisies invalides par `ValidationError`; formulaire inscription et connexion affichent des labels et erreurs en francais | `test_quantity_zero_rejected`, `test_quantity_seven_rejected`, `test_non_integer_quantity_rejected`, `test_invalid_simulated_payment_result_rejected`, tests stock/statut, `tests/test_authentication_views.py::test_authentication_pages_use_french_labels`, `test_duplicate_email_registration_is_rejected_with_french_message`, `test_login_fails_with_invalid_credentials` | Couvert pour le perimetre implemente | Messages paiement/UI panier futurs |
 | ENF5 | Ruff configure dans `pyproject.toml` et CI | `ruff check .` local et CI | Couvert fondation | Suivi Sonar futur |
 | ENF6 | Regles metier isolees en services testables | `tests/test_core_domain.py`, `pytest` | Couvert | A maintenir avec les vues |
 | ENF7 | Workflow GitHub Actions versionne | `.github/workflows/ci.yml` | Couvert fondation | CI distante a verifier apres push |
