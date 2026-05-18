@@ -2,6 +2,14 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-05-18 - Authentification utilisateur par Django
+
+Decision : implementer l'inscription, la connexion, la deconnexion POST et `Mon espace` avec les mecanismes Django auth et des templates Django en francais.
+
+Motif : les exigences `EF3`, `EF4`, `EM8`, `ENF3` et `ENF4` doivent etre couvertes sans introduire de framework frontend separe ni contourner le hachage et la gestion de session de Django.
+
+Impact : les URLs `/inscription/`, `/connexion/`, `/deconnexion/` et `/mon-espace/` sont disponibles. L'inscription connecte automatiquement l'utilisateur et le redirige vers `Mon espace`. La deconnexion passe par un formulaire POST dans la navigation. `EM9` reste une fondation de role seulement, car les permissions d'administration des concerts sont hors de cette etape.
+
 ## 2026-05-06 - Domaine billetterie isole en services testables
 
 Decision : implementer les modeles `Concert`, `SeatCategory`, `Cart`, `CartLine`, `Order`, `OrderLine` et `Payment`, avec des services pour l'ajout panier et le paiement simule.

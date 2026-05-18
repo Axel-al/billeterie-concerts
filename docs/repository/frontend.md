@@ -6,7 +6,11 @@ Le frontend applicatif minimal est initialise avec Django templates.
 
 - `templates/base.html` fournit le layout HTML, la navigation minimale et Bootstrap via CDN.
 - `templates/pages/home.html` fournit une page d'accueil francaise minimale.
+- `templates/accounts/signup.html` fournit le formulaire d'inscription en francais.
+- `templates/accounts/login.html` fournit le formulaire de connexion en francais.
+- `templates/accounts/personal_area.html` fournit la page protegee `Mon espace`.
 - La route `/` affiche cette page via `TemplateView`.
+- La navigation affiche `Inscription` et `Connexion` aux visiteurs, puis `Mon espace` et un bouton POST `Deconnexion` aux utilisateurs connectes.
 
 ## Direction cible
 
@@ -31,6 +35,7 @@ Le frontend cible repose sur :
 - Liste des concerts ouverts a la vente.
 - Detail d'un concert avec categories, prix et stock restant.
 - Creation de compte et connexion.
+- Espace personnel protege.
 - Panier.
 - Paiement simule.
 - Confirmation ou refus de paiement.
@@ -39,7 +44,9 @@ Le frontend cible repose sur :
 
 ## Non couvert dans cette etape
 
-La page d'accueil ne constitue pas une implementation de la liste des concerts, du panier ou du paiement. Aucune couverture `EF1`, `EF2`, `EF5` a `EF12` ou `ENF1` n'est revendiquee.
+La page d'accueil ne constitue pas une implementation de la liste des concerts, du panier ou du paiement. Aucune couverture frontend `EF1`, `EF2`, `EF5` a `EF12` ou `ENF1` n'est revendiquee, hors couvertures domaine/service deja documentees pour le panier, le paiement et le stock.
+
+`Mon espace` est une page de compte de base. Elle ne constitue pas encore l'historique de commandes attendu par `EF10` et ne revendique pas `RG8`.
 
 ## Contraintes
 

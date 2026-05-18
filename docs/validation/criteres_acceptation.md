@@ -14,7 +14,16 @@
 
 - Etant donne un email non utilise, quand un visiteur cree un compte avec un mot de passe valide, alors le compte est cree.
 - Etant donne un email deja utilise, quand un visiteur tente de creer un compte, alors la creation est refusee avec un message explicite.
+- Etant donne un compte cree, quand l'inscription reussit, alors l'utilisateur est connecte et redirige vers `Mon espace`.
 - Exigences : EF3, EM8, ENF3, ENF4.
+
+## CA3 bis - Authentification
+
+- Etant donne un utilisateur enregistre, quand il saisit des identifiants valides, alors il est connecte.
+- Etant donne un utilisateur enregistre, quand il saisit un mot de passe invalide, alors la connexion est refusee avec un message explicite en francais.
+- Etant donne un utilisateur connecte, quand il utilise la deconnexion, alors sa session est fermee par une requete POST.
+- Etant donne un visiteur non connecte, quand il accede a `Mon espace`, alors il est redirige vers la connexion.
+- Exigences : EF4, ENF4.
 
 ## CA4 - Ajout au panier
 

@@ -8,19 +8,23 @@ Tests automatises versionnes :
 
 - `tests/test_homepage.py` : smoke test de la page `/`.
 - `tests/test_accounts.py` : email comme identifiant, unicite email, hachage du mot de passe, authentification par email et branches du manager utilisateur.
+- `tests/test_authentication_views.py` : labels francais, inscription, rejet email duplique, hachage via formulaire, connexion, echec de connexion, deconnexion POST, acces protege a `Mon espace` et fondation role utilisateur standard.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
 - `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse et prix snapshots.
 
 Couverture officielle revendiquee dans cette etape :
 
-- `EM8` : email utilisateur unique.
+- `EF3` : creation de compte avec email unique et mot de passe.
+- `EF4` : connexion, deconnexion et acces a un espace personnel protege.
+- `EM8` : email utilisateur unique, y compris rejet formulaire.
 - `ENF3` : mot de passe gere par le hachage Django.
+- `ENF4` : rejet propre d'un email deja utilise pendant l'inscription.
 - `EM1` a `EM7`, `EM10`, `RG1` a `RG5` et `RG7` : couverture domaine/service.
 - `EF5`, `EF7`, `EF8`, `EF9` : couverture partielle domaine/service uniquement.
 - `EF12` : decrement de stock apres paiement accepte au niveau service.
 - `ENF6` : tests automatises executables sur la fondation technique et domaine.
 
-`EF3` reste partiellement couvert seulement cote modele utilisateur ; il n'existe pas encore de parcours d'inscription.
+`EM9` reste une fondation de role via `is_staff` / `is_superuser`, sans couverture revendiquee des permissions de gestion des concerts.
 Les confirmations, messages explicites, vues paiement et historique restent hors couverture.
 
 ## Couches prevues
@@ -51,10 +55,11 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 ruff check .
 pytest
-pytest --cov=. --cov-report=term-missing --cov-report=xml
+pytest --cov=. --cov-report=xml
+coverage report
 ```
 
-Resultat observe : OK, 47 tests passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures.
+Resultat observe : OK, 58 tests passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures, avec les nouveaux fichiers `accounts/forms.py`, `accounts/urls.py` et `accounts/views.py` a 100 %.
 
 ## Exclusions de couverture
 
@@ -71,6 +76,7 @@ Les premiers tests devront couvrir les exigences qui portent le plus de risque m
 - EM6 / RG4 / RG5 : commande definitive seulement apres paiement accepte.
 - RG8 : un utilisateur ne consulte que ses propres commandes.
 - ENF3 : mots de passe jamais stockes en clair.
+- EF3 / EF4 : parcours inscription, connexion, deconnexion et acces protege.
 
 ## Documentation des tests
 
