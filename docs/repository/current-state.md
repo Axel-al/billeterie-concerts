@@ -211,7 +211,7 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 
 - Branche de travail : `feature/booking-checkout-flow`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Pull request : a creer apres verification locale.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/10`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
