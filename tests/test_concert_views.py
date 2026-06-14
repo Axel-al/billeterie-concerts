@@ -151,7 +151,7 @@ def test_bookable_concert_prompts_anonymous_visitor_to_log_in(client):
 
 
 @pytest.mark.django_db
-def test_bookable_concert_has_no_reservation_cta_for_authenticated_user(client):
+def test_bookable_concert_displays_add_to_cart_form_for_authenticated_user(client):
     concert = create_concert()
     create_category(concert)
     user = get_user_model().objects.create_user(
@@ -164,7 +164,9 @@ def test_bookable_concert_has_no_reservation_cta_for_authenticated_user(client):
 
     content = response.content.decode()
     assert response.status_code == 200
-    assert "La réservation en ligne n’est pas encore disponible." in content
+    assert "Ajouter au panier" in content
+    assert f'action="{reverse("cart:add_ticket", args=[concert.pk])}"' in content
+    assert "Quantité" in content
     assert "Se connecter pour réserver" not in content
 
 

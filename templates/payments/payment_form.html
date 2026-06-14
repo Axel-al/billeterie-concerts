@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Paiement - Billetterie concerts{% endblock %}
+
+{% block content %}
+  <header class="mb-4">
+    <p class="text-uppercase text-secondary small fw-semibold mb-2">Paiement</p>
+    <h1 class="display-6 fw-semibold mb-2">Paiement simulé</h1>
+  </header>
+
+  {% if payment_error %}
+    <div class="alert alert-warning" role="alert">
+      {{ payment_error }}
+    </div>
+    <a class="btn btn-primary" href="{% url 'cart:detail' %}">
+      Retour au panier
+    </a>
+  {% else %}
+    <section class="mb-4">
+      <h2 class="h4 mb-3">{{ cart_validation.concert.title }}</h2>
+      <p class="fs-5 mb-0">
+        Total à payer :
+        <strong>{{ cart.total_amount|floatformat:2 }} €</strong>
+      </p>
+    </section>
+
+    <form method="post" class="border rounded bg-white p-4">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ form.card_number.id_for_label }}">
+          {{ form.card_number.label }}
+        </label>
+        {{ form.card_number }}
+        {% if form.card_number.errors %}
+          <div class="invalid-feedback d-block">
+            {{ form.card_number.errors|join:" " }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="d-flex flex-column flex-sm-row gap-2">
+        <button type="submit" class="btn btn-primary">Payer</button>
+        <a class="btn btn-outline-secondary" href="{% url 'cart:checkout' %}">
+          Retour à la validation
+        </a>
+      </div>
+    </form>
+  {% endif %}
+{% endblock %}

@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Le modele courant couvre le noyau domaine de la billetterie sans interface de checkout.
+Le modele courant couvre le noyau domaine de la billetterie et le parcours panier/checkout/paiement simule.
 
 | Concept | Application | Role |
 | --- | --- | --- |
@@ -19,9 +19,10 @@ Le modele courant couvre le noyau domaine de la billetterie sans interface de ch
 - `SeatCategory` est unique par couple concert/nom et son stock restant ne peut pas etre negatif.
 - `CartLine` et `OrderLine` imposent une quantite ligne entre 1 et 6.
 - Les services imposent en plus le plafond de 6 billets au total pour le concert du panier ou de la commande.
-- Un utilisateur ne peut avoir qu'un seul panier actif.
+- Un utilisateur ne peut avoir qu'un seul panier actif. Les vues panier et checkout ne consultent que le panier actif de l'utilisateur connecte.
 - Un panier actif ne peut contenir qu'un seul concert ; une commande reference aussi un seul concert.
 - `Payment` est en relation un-a-un avec `Order`.
+- Les pages de confirmation et de refus filtrent les commandes par utilisateur connecte.
 
 ## Snapshots
 
@@ -32,3 +33,10 @@ Les prix affiches dans le panier restent les prix courants des categories. Lors 
 - la quantite.
 
 Une modification ulterieure du prix d'une categorie ne change donc pas les commandes deja creees.
+
+## Paiement simule
+
+Le numero de carte n'est pas stocke. La vue de paiement transmet seulement le resultat determine au service :
+
+- `4242424242424242` apres normalisation des espaces : paiement accepte ;
+- toute autre valeur saisie : paiement refuse.

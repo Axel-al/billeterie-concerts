@@ -12,6 +12,8 @@
 
 Cas agreges couverts : `3 + 3 = 6` accepte, `3 + 4 = 7` refuse pour un meme concert, meme avec deux categories.
 
+Les valeurs `0`, `1`, `6` et `7` sont aussi verifiees dans le flux d'ajout au panier depuis la fiche concert.
+
 ## Stock
 
 | Stock | Quantite | Resultat attendu | Exigences |
@@ -35,3 +37,10 @@ Cas agreges couverts : `3 + 3 = 6` accepte, `3 + 4 = 7` refuse pour un meme conc
 | Mesure | Limite | Resultat attendu | Exigences |
 | --- | --- | --- | --- |
 | Temps d'affichage page standard | 2 secondes | Rester sous la limite en conditions normales | ENF2 |
+
+## Paiement simule
+
+| Valeur | Resultat attendu | Exigences |
+| --- | --- | --- |
+| `4242424242424242` | Paiement accepte, commande payee, stock decremente | EF7, EF8, EF12, RG5 |
+| Toute autre valeur non vide | Paiement refuse, aucune commande payee, stock inchange | EF7, EF9, RG4 |

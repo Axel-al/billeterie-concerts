@@ -10,6 +10,22 @@ from concerts.models import SeatCategory
 from orders.models import Order, OrderLine, OrderStatus
 from payments.models import Payment, PaymentResult
 
+ACCEPTED_SIMULATED_CARD_NUMBER = "4242424242424242"
+
+
+def simulated_payment_result_for_card(card_number: str) -> str:
+    normalized_card_number = "".join(str(card_number).split())
+    if normalized_card_number == ACCEPTED_SIMULATED_CARD_NUMBER:
+        return PaymentResult.ACCEPTED
+    return PaymentResult.REFUSED
+
+
+def process_simulated_card_payment(cart: Cart, card_number: str) -> Payment:
+    return process_simulated_payment(
+        cart,
+        simulated_payment_result_for_card(card_number),
+    )
+
 
 @transaction.atomic
 def process_simulated_payment(cart: Cart, result: str) -> Payment:

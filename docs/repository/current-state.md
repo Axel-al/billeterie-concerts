@@ -9,6 +9,7 @@ Le depot contient une application Django executable avec :
 - un modele utilisateur personnalise base sur l'email ;
 - des pages francaises d'inscription, connexion, deconnexion et espace personnel ;
 - un catalogue public de concerts et des fiches detaillees ;
+- un parcours panier, checkout, paiement simule, confirmation et refus ;
 - un noyau domaine teste pour la billetterie de concerts ;
 - une documentation de validation et de tracabilite mise a jour.
 
@@ -19,8 +20,16 @@ Elements livres dans cette etape :
 - fiches avec titre, artiste, date, lieu, description, categories, prix et stock restant ;
 - explications francaises pour les concerts annules, passes, complets ou fermes a la vente ;
 - lien de connexion avec retour vers la fiche pour les visiteurs d'un concert reservable ;
+- formulaire categorie/quantite sur les fiches reservables pour les utilisateurs connectes ;
+- route `/panier/` avec lignes, sous-totaux et total ;
+- route `/panier/validation/` protegee par authentification et limitee au panier actif de l'utilisateur ;
+- route `/paiement/` avec paiement simule ;
+- carte `4242424242424242` acceptee et toute autre carte refusee, sans stockage du numero ;
+- creation d'une commande `paid`, prix snapshots et decrement du stock apres paiement accepte ;
+- creation d'une commande `refused` non finale et stock inchange apres paiement refuse ;
+- pages de confirmation et refus filtrees par utilisateur connecte ;
 - navigation et accueil orientes vers la consultation des concerts ;
-- tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite et les reponses HTTP ;
+- tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite, les reponses HTTP et le parcours panier/paiement ;
 - routes `/inscription/`, `/connexion/`, `/deconnexion/` et `/mon-espace/` ;
 - formulaire d'inscription avec email unique, mot de passe Django et rejet explicite des doublons ;
 - formulaire de connexion en francais et deconnexion par requete POST ;
@@ -51,24 +60,23 @@ Couverture revendiquee pour le catalogue :
 
 Couverture existante conservee :
 
-- `EF5` : couverture partielle domaine/service pour l'ajout de billets au panier, sans formulaire ni UI ;
-- `EF6` : couverture partielle domaine pour le total de panier, sans affichage ;
-- `EF7` : couverture partielle domaine/service pour le paiement simule, sans page paiement ;
-- `EF8` : couverture partielle domaine/service pour la commande payee, sans confirmation affichee ;
-- `EF9` : couverture partielle domaine/service pour la commande refusee et le stock inchange, sans message explicite affiche ;
-- `EF12` : stock decremente apres paiement accepte au niveau service ;
-- `EM1` a `EM7` et `EM10` : regles couvertes au niveau domaine/service ;
-- `RG1` a `RG5` : regles couvertes au niveau domaine/service ;
+- `EF5` : ajout de billets au panier depuis une fiche concert reservable pour un utilisateur connecte ;
+- `EF6` : total du panier affiche et calcule a partir des lignes ;
+- `EF7` : validation du panier par paiement simule ;
+- `EF8` : paiement accepte, commande payee et confirmation affichee ;
+- `EF9` : paiement refuse, aucune commande validee et message explicite ;
+- `EF12` : stock decremente apres paiement accepte ;
+- `EM1` a `EM7` et `EM10` : regles couvertes au niveau domaine/service et parcours UI ;
+- `RG1` a `RG6` : regles couvertes au niveau domaine/service et parcours UI ;
 - `RG7` : couverture partielle domaine par refus des concerts annules ;
+- `RG8` : couverture partielle par isolation du panier/checkout courant et des pages resultat de paiement ;
 - `ENF5`, `ENF6` et `ENF7` : Ruff, tests automatises, coverage et GitHub Actions versionnes.
 
 Non couvert volontairement dans ce lot :
 
 - `EF10` ;
-- pages panier, paiement, confirmation et refus de paiement ;
-- formulaire categorie/quantite, endpoint panier et ajout de billet dans les vues ;
-- confirmation affichee de `EF8` et message explicite affiche de `EF9` ;
-- `RG6` et `RG8` ;
+- historique complet des commandes dans `Mon espace` ;
+- couverture complete de `RG8` sur un historique de commandes ;
 - couverture fonctionnelle complete de `EF11` ;
 - `EM9`, qui reste une fondation de role seulement via `is_staff` / `is_superuser`.
 
@@ -77,11 +85,11 @@ Non couvert volontairement dans ce lot :
 - `config/` : settings, URLs racines, redirections d'authentification, ASGI et WSGI.
 - `accounts/` : modele utilisateur personnalise, manager, admin Django, formulaires, vues et URLs d'authentification.
 - `concerts/` : concerts, categories de places, statuts, stock, vues publiques, admin et commande `seed_demo_data`.
-- `cart/` : panier actif mono-concert, lignes de panier et services de validation/ajout.
+- `cart/` : panier actif mono-concert, lignes de panier, services de validation/ajout, vues panier et checkout.
 - `orders/` : commandes, lignes de commandes et prix snapshots.
-- `payments/` : paiement simule et service transactionnel.
-- `templates/` : layout, accueil, catalogue, fiches concerts et templates de comptes.
-- `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts et domaine billetterie.
+- `payments/` : paiement simule, regle de carte, service transactionnel et vues paiement/resultat.
+- `templates/` : layout, accueil, catalogue, fiches concerts, comptes, panier et paiement.
+- `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts, domaine billetterie et parcours panier/paiement.
 
 ## Comportement catalogue
 
@@ -90,7 +98,19 @@ Non couvert volontairement dans ce lot :
 - Les fiches brouillon et les identifiants inconnus renvoient `404`.
 - Toutes les categories sont affichees sur la fiche, y compris les categories epuisees.
 - Un visiteur voit `Se connecter pour reserver` seulement pour un concert reservable ; le parametre `next` conserve l'URL de la fiche.
-- Un utilisateur connecte ne voit aucun bouton sans destination. Aucun ajout panier n'est implemente ou revendique au titre de `EF5`.
+- Un utilisateur connecte voit un formulaire d'ajout au panier sur les fiches reservables.
+
+## Comportement panier et paiement
+
+- Un utilisateur connecte peut ajouter une categorie et une quantite de billets depuis la fiche d'un concert reservable.
+- La quantite est rejetee si elle n'est pas comprise entre 1 et 6.
+- Les concerts passes, annules, fermes a la vente ou sans stock ne peuvent pas etre ajoutes au panier.
+- Le panier actif affiche les lignes, les sous-totaux et le total.
+- Le checkout et le paiement exigent une session authentifiee et utilisent uniquement le panier actif de l'utilisateur courant.
+- Le paiement simule accepte la carte `4242424242424242` et refuse toute autre valeur.
+- En cas de paiement accepte, une commande `paid` est creee, les prix de lignes sont figes, le stock est decremente et le panier passe a `checked_out`.
+- En cas de paiement refuse, une commande `refused` non finale est creee, le stock ne change pas et le panier reste actif.
+- Les pages de confirmation et de refus ne sont accessibles qu'au proprietaire de la commande.
 
 ## Comportement authentification
 
@@ -163,21 +183,21 @@ pytest --cov=. --cov-report=xml
 coverage report
 ```
 
-Resultats observes :
+Resultats observes pour cette implementation :
 
 - `ruff check .` : OK.
-- `pytest` : OK, 69 tests passent.
+- `pytest` : OK, 81 tests passent.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest --cov=. --cov-report=xml` : OK, 69 tests passent et `coverage.xml` est genere puis ignore par Git.
-- `coverage report` : couverture totale 99 %, avec `concerts/views.py`, `concerts/urls.py` et `tests/test_concert_views.py` a 100 %.
+- `pytest --cov=. --cov-report=xml` : OK, 81 tests passent et `coverage.xml` est genere puis ignore par Git.
+- `coverage report` : couverture totale 98 %, avec `cart/forms.py`, `cart/services.py`, `concerts/views.py`, `payments/forms.py` et `tests/test_booking_flow.py` a 100 %.
 - `git diff --check` : OK.
 
-Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe.
-
-La mise a jour documentaire des resultats CI ne modifie aucun code ; la suite locale complete deja verte n'a donc pas ete relancee apres cette seule modification.
+Decision couverture : les lignes restantes non couvertes dans `payments/services.py`, `payments/views.py` et `cart/views.py` correspondent principalement aux chemins defensifs de panier invalide, resultat invalide ou validation impossible apres controle initial. Les regles critiques demandees sont couvertes par `tests/test_core_domain.py` et `tests/test_booking_flow.py`.
 
 ## Verification navigateur
+
+Aucun nouveau controle navigateur manuel n'a ete execute pour le parcours panier/paiement dans cette passe ; la verification repose sur les tests d'integration Django.
 
 Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` :
 
@@ -189,13 +209,13 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 
 ## Statut Git observe
 
-- Branche de travail : `feature/public-concert-catalog`.
+- Branche de travail : `feature/booking-checkout-flow`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/9`.
+- Pull request : a creer apres verification locale.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
 
 ## Prochaine etape recommandee
 
-Ajouter le parcours panier/paiement UI (`EF5`, `EF7`, `EF8`, `EF9`) en reutilisant les services domaine existants.
+Ajouter l'historique des commandes dans `Mon espace` pour couvrir completement `EF10` et renforcer `RG8`.

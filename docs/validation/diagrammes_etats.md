@@ -35,6 +35,8 @@ stateDiagram-v2
 
 Exigences liees : EF5, EF6, EF7, EF8, EF9, EM1, EM2, EM3, RG2, RG3, RG4, RG5.
 
+Statuts implementes : `active`, `checked_out`, `abandoned`. Un paiement refuse laisse le panier `active`.
+
 ## Commande
 
 ```mermaid
@@ -53,8 +55,14 @@ Exigences liees : EF7, EF8, EF9, EF10, EF12, EM6, EM10, RG4, RG5.
 
 Statuts implementes : `pending`, `paid`, `refused`, `cancelled`.
 
+Dans le parcours simule, la carte `4242424242424242` provoque la transition vers `paid`; toute autre carte provoque la transition vers `refused`.
+
 ## Cas de test derive
 
 Le premier cas derive du cycle de vie de commande verifie la transition vers `refused` : un paiement refuse ne cree pas de commande payee et ne modifie pas le stock.
 
 Exigences : EF9, EM6, RG4.
+
+Le second cas derive verifie la transition vers `paid` : un paiement accepte cree une commande payee, fige les prix et decremente le stock.
+
+Exigences : EF8, EF12, EM6, EM7, RG5.

@@ -1,6 +1,6 @@
 # User stories
 
-Les stories ci-dessous servent a organiser les tests et l'implementation future. Elles ne constituent pas encore une preuve d'implementation.
+Les stories ci-dessous servent a organiser les tests et l'implementation. La preuve detaillee reste dans `docs/validation/matrice_tracabilite.md`.
 
 | ID | Acteur | Story | Exigences liees |
 | --- | --- | --- | --- |
@@ -19,4 +19,7 @@ Les stories ci-dessous servent a organiser les tests et l'implementation future.
 
 - `US3` est couverte pour l'inscription avec email unique, rejet d'un doublon et mot de passe hache.
 - `US4` est couverte pour connexion, deconnexion POST et acces protege a `Mon espace`.
+- `US1` et `US2` sont couvertes par le catalogue public et les fiches detaillees.
+- `US5`, `US6`, `US9` et `US10` sont couvertes par le parcours panier/checkout/paiement simule et les tests domaine/integration.
+- `US7` reste hors scope : l'historique complet des commandes n'est pas encore implemente.
 - `US8` conserve seulement une fondation de role via Django admin et les indicateurs `is_staff` / `is_superuser`; la couverture de `EM9` n'est pas revendiquee.
