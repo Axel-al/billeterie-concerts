@@ -141,14 +141,14 @@ declares separement dans `tests`.
 
 Etat distant du catalogue :
 
-- le depot amont est accessible en lecture seule au compte GitHub actif ;
-- la branche `feature/public-concert-catalog` est poussee sur le fork `yanismary/billeterie-concerts` ;
-- la pull request #7 a ete fermee et son commit vide de relance d'analyse a ete retire de la branche ;
-- la pull request amont #8 `Implement public concert catalog` est ouverte vers `Axel-al/billeterie-concerts:main` et signalee fusionnable ;
-- le workflow CI amont `27509529948` a demarre sans approbation manuelle et le job `Django checks` a reussi en 56 secondes ;
-- l'installation Chromium, Ruff, les checks Django, les tests avec couverture et l'etape e2e conditionnelle ont reussi ;
-- l'etape SonarQube Cloud du workflow a ete ignoree, car le secret `SONAR_TOKEN` du depot amont n'est pas transmis aux workflows de pull requests provenant d'un fork ;
-- aucun check externe SonarCloud n'est attache au commit `dc129f3`.
+- le compte GitHub actif dispose maintenant des droits d'ecriture sur `Axel-al/billeterie-concerts` ;
+- les pull requests #7 et #8 provenant du fork ont ete fermees, leur commit vide de relance a ete retire et le fork `yanismary/billeterie-concerts` a ete supprime ;
+- la branche `feature/public-concert-catalog` est poussee directement sur le depot amont ;
+- la pull request #9 `Implement public concert catalog` est ouverte vers `main` et signalee fusionnable ;
+- les workflows GitHub Actions declenches par le push et la pull request ont reussi ;
+- l'installation Chromium, Ruff, les checks Django, les 69 tests avec couverture et l'etape e2e conditionnelle ont reussi dans la CI ;
+- l'etape SonarQube Cloud a ete executee avec le secret du depot amont dans les deux workflows ;
+- le check externe `SonarCloud Code Analysis` a reussi.
 
 ## Verification locale
 
@@ -190,9 +190,8 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 ## Statut Git observe
 
 - Branche de travail : `feature/public-concert-catalog`.
-- Remote amont en lecture seule : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Remote de push : `https://github.com/yanismary/billeterie-concerts.git`.
-- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/8`.
+- Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/9`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
