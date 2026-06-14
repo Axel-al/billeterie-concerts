@@ -8,18 +8,22 @@ Les diagrammes sont des modeles de validation cibles. Ils devront etre ajustes s
 stateDiagram-v2
     [*] --> Brouillon
     Brouillon --> Ouvert: publication
+    Ouvert --> Cloture: cloture admin
     Ouvert --> Complet: stock epuise
     Ouvert --> Annule: annulation admin
     Ouvert --> Termine: date passee
     Complet --> Ouvert: stock ajoute
+    Complet --> Cloture: cloture admin
     Complet --> Annule: annulation admin
+    Cloture --> Annule: annulation admin
     Annule --> [*]
+    Cloture --> [*]
     Termine --> [*]
 ```
 
 Exigences liees : EF1, EF2, EF11, EM4, EM5, EM9, RG1, RG7.
 
-Statuts implementes : `draft`, `open`, `sold_out`, `cancelled`, `finished`.
+Statuts implementes : `draft`, `open`, `closed`, `sold_out`, `cancelled`, `finished`.
 
 ## Panier
 
@@ -66,3 +70,11 @@ Exigences : EF9, EM6, RG4.
 Le second cas derive verifie la transition vers `paid` : un paiement accepte cree une commande payee, fige les prix et decremente le stock.
 
 Exigences : EF8, EF12, EM6, EM7, RG5.
+
+Le troisieme cas derive du cycle de vie de concert verifie l'annulation admin : un concert passe en `cancelled`, ne peut plus recevoir de reservation et conserve les commandes payees existantes.
+
+Exigences : EF11, EM5, EM9, RG7.
+
+Le quatrieme cas derive verifie la cloture admin : un concert passe en `closed`, reste consultable, ne peut plus recevoir de reservation et conserve son stock restant.
+
+Exigences : EF11, EM9, RG1.

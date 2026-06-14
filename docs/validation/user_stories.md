@@ -11,7 +11,7 @@ Les stories ci-dessous servent a organiser les tests et l'implementation. La pre
 | US5 | Client | En tant que client, je veux ajouter une quantite valide de billets au panier afin de preparer mon achat. | EF5, EF6, EM1, EM2, EM3, RG2, RG3 |
 | US6 | Client | En tant que client, je veux payer mon panier avec un paiement simule afin de finaliser ma commande. | EF7, EF8, EF9, EM6, RG4, RG5 |
 | US7 | Client | En tant que client, je veux consulter mes commandes passees afin de retrouver mes billets. | EF10, RG8 |
-| US8 | Administrateur | En tant qu'administrateur, je veux gerer les concerts afin de controler les ventes. | EF11, EM9, RG7 |
+| US8 | Administrateur | En tant qu'administrateur, je veux gerer les concerts et consulter les ventes afin de controler la billetterie. | EF11, EM9, RG7 |
 | US9 | Systeme | En tant que systeme, je veux decrementer le stock seulement apres paiement accepte afin d'eviter la survendue. | EF12, EM1, EM6, RG5 |
 | US10 | Client | En tant que client, je veux recevoir un message clair en cas de saisie ou paiement invalide afin de comprendre l'erreur. | EF9, ENF4 |
 
@@ -22,4 +22,4 @@ Les stories ci-dessous servent a organiser les tests et l'implementation. La pre
 - `US1` et `US2` sont couvertes par le catalogue public et les fiches detaillees.
 - `US5`, `US6`, `US9` et `US10` sont couvertes par le parcours panier/checkout/paiement simule et les tests domaine/integration.
 - `US7` est couverte pour l'historique des commandes payees et le detail de commande filtres par proprietaire (`EF10`, `RG8`).
-- `US8` conserve seulement une fondation de role via Django admin et les indicateurs `is_staff` / `is_superuser`; la couverture de `EM9` n'est pas revendiquee.
+- `US8` est couverte par l'admin Django enrichi, la synthese admin des ventes, les actions d'annulation/cloture et les tests de permissions. Le suivi admin des ventes est distinct de `RG8`, qui reste l'isolation des commandes des utilisateurs standards.
