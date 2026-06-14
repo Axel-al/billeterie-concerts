@@ -56,6 +56,8 @@ python -m playwright install --with-deps chromium
 
 ## Statut SonarQube
 
-SonarQube Cloud est configure sans secret versionne. Les sources declarees sont limitees aux chemins existants apres cette etape : `config`, `accounts`, `concerts`, `orders` et `tests`.
+SonarQube Cloud est configure sans secret versionne. Les sources declarees couvrent
+tous les modules applicatifs existants : `config`, `accounts`, `concerts`, `cart`,
+`orders` et `payments`. Les tests restent declares separement dans `tests`.
 
 `config/asgi.py` et `config/wsgi.py` sont exclus uniquement de la couverture SonarCloud, car ce sont des fichiers Django generes et sans logique metier. Les verifier dans les tests n'apporterait pas de preuve fonctionnelle supplementaire.

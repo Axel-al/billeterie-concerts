@@ -1,6 +1,6 @@
 # Etat courant du depot
 
-Derniere mise a jour : 2026-05-18
+Derniere mise a jour : 2026-06-14
 
 ## Synthese
 
@@ -109,6 +109,10 @@ Le workflow CI existant reste configure pour :
 - sauter les tests e2e tant que le dossier `e2e/` n'existe pas ;
 - lancer SonarCloud seulement si le secret `SONAR_TOKEN` est disponible.
 
+La configuration SonarCloud analyse tous les modules applicatifs existants :
+`config`, `accounts`, `concerts`, `cart`, `orders` et `payments`. Les tests restent
+declares separement dans `tests`.
+
 Etat distant observe :
 
 - la branche `feature/user-authentication` a ete poussee sur `origin` ;
@@ -143,9 +147,28 @@ Decision couverture : les lignes restantes non couvertes dans `payments/services
 
 Aucun controle navigateur manuel n'a ete execute dans cette etape, car les parcours comptes ajoutes sont couverts par des tests d'integration Django automatises.
 
+### Verification locale de la configuration SonarCloud
+
+Commandes lancees le 2026-06-14 :
+
+```bash
+python manage.py check
+ruff check .
+pytest --cov=. --cov-report=xml
+git diff --check
+```
+
+Resultats observes :
+
+- `python manage.py check` : OK, aucun probleme detecte.
+- `ruff check .` : OK, tous les controles passent.
+- `pytest --cov=. --cov-report=xml` : OK, 58 tests passent en 8,34 secondes et
+  `coverage.xml` est genere.
+- `git diff --check` : OK, aucune erreur d'espacement detectee.
+
 ## Statut Git observe
 
-- Branche de travail : `feature/user-authentication`.
+- Branche de travail : `fix/sonar-source-directories`.
 - Remote Git : `https://github.com/Axel-al/billeterie-concerts.git`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
