@@ -35,6 +35,15 @@ Le service `process_simulated_payment` valide le panier dans une transaction.
 - Paiement refuse : une commande `refused` et un paiement `refused` sont crees, aucun stock n'est decremente et le panier reste actif pour permettre une nouvelle tentative future.
 - Si une regle de quantite, stock, date, statut ou concert unique echoue, aucune commande validee n'est creee.
 
+## Consultation des commandes
+
+Les pages `Mes commandes` et detail de commande sont reservees aux utilisateurs connectes.
+
+- L'historique affiche uniquement les commandes `paid` du client courant.
+- Le detail de commande est filtre par proprietaire et par statut `paid`.
+- Un utilisateur ne peut pas consulter la commande payee d'un autre utilisateur.
+- Une commande `refused` reste non finale et exclue de l'historique des achats payes.
+
 ## Portee actuelle
 
-Les regles de date, statut et stock sont aussi appliquees par le catalogue, les fiches publiques, l'ajout au panier et la validation du paiement. Les vues de confirmation/refus filtrent les commandes par utilisateur connecte. L'historique complet des commandes reste hors de cette etape.
+Les regles de date, statut et stock sont aussi appliquees par le catalogue, les fiches publiques, l'ajout au panier et la validation du paiement. Les vues de confirmation/refus filtrent les commandes par utilisateur connecte. `EF10` et `RG8` sont couverts par l'historique paye et le detail de commande filtre par proprietaire.

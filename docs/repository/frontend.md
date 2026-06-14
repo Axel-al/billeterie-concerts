@@ -13,12 +13,14 @@ Le frontend applicatif minimal est initialise avec Django templates.
 - `templates/payments/payment_form.html` affiche le formulaire de paiement simule.
 - `templates/payments/confirmation.html` affiche une commande payee avec les prix snapshots.
 - `templates/payments/refused.html` affiche le refus explicite et permet de retenter le paiement.
+- `templates/orders/list.html` affiche l'historique des commandes payees du client connecte.
+- `templates/orders/detail.html` affiche le detail d'une commande payee du client connecte avec les prix snapshots.
 - `templates/accounts/signup.html` fournit le formulaire d'inscription en francais.
 - `templates/accounts/login.html` fournit le formulaire de connexion en francais.
-- `templates/accounts/personal_area.html` fournit la page protegee `Mon espace`.
+- `templates/accounts/personal_area.html` fournit la page protegee `Mon espace` avec un acces a `Mes commandes`.
 - La route `/` affiche la page d'accueil via `TemplateView`.
 - Les routes `/concerts/` et `/concerts/<id>/` fournissent le catalogue et les fiches publiques.
-- La navigation fournit un lien `Concerts`, puis affiche `Inscription` et `Connexion` aux visiteurs ou `Panier`, `Mon espace` et un bouton POST `Deconnexion` aux utilisateurs connectes.
+- La navigation fournit un lien `Concerts`, puis affiche `Inscription` et `Connexion` aux visiteurs ou `Panier`, `Mes commandes`, `Mon espace` et un bouton POST `Deconnexion` aux utilisateurs connectes.
 
 ## Direction cible
 
@@ -44,21 +46,23 @@ Le frontend cible repose sur :
 - Detail d'un concert avec categories, prix et stock restant.
 - Creation de compte et connexion.
 - Espace personnel protege.
+- Historique des commandes.
 
 ## Ecrans cibles restants
 
-- Historique des commandes.
 - Administration des concerts et ventes.
 
 ## Non couvert dans cette etape
 
 Le catalogue et les fiches couvrent `EF1` et `EF2`. La navigation directe depuis l'accueil et entre liste et detail apporte une couverture partielle de `ENF1`.
 
-Le lien `Se connecter pour reserver` est affiche seulement au visiteur lorsqu'un concert est reservable et conserve la fiche dans le parametre `next`. Il ne constitue pas une implementation de `EF5` : aucun formulaire de categorie ou quantite, endpoint panier ou ajout de billet n'est expose.
+Le lien `Se connecter pour reserver` est affiche seulement au visiteur lorsqu'un concert est reservable et conserve la fiche dans le parametre `next`. Pour un utilisateur connecte, la fiche reservable expose le formulaire categorie/quantite permettant d'ajouter au panier.
 
 Les concerts non reservables affichent un motif explicite en francais et aucune action de reservation. Les brouillons ne sont pas accessibles publiquement.
 
-Le parcours panier/paiement couvre maintenant l'ajout au panier, le total, le checkout, la confirmation et le refus explicite. Les pages de resultat de paiement sont filtrees par utilisateur connecte, mais `Mon espace` reste une page de compte de base et ne constitue pas encore l'historique de commandes attendu par `EF10`.
+Le parcours panier/paiement couvre maintenant l'ajout au panier, le total, le checkout, la confirmation et le refus explicite. Les pages de resultat de paiement sont filtrees par utilisateur connecte.
+
+`EF10` et `RG8` sont couverts par les pages `Mes commandes` et detail de commande, limitees aux commandes payees du client connecte. Les commandes refusees restent tracees comme non finales et sont exclues de l'historique des achats payes.
 
 ## Contraintes
 

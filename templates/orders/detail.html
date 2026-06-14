@@ -1,25 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}Commande confirmée - Billetterie concerts{% endblock %}
+{% block title %}Detail de commande - Billetterie concerts{% endblock %}
 
 {% block content %}
   <header class="mb-4">
-    <p class="text-uppercase text-secondary small fw-semibold mb-2">Confirmation</p>
-    <h1 class="display-6 fw-semibold mb-2">Commande confirmée</h1>
-    <p class="text-secondary mb-0">
-      Votre paiement est accepté et votre commande est enregistrée.
-    </p>
+    <p class="text-uppercase text-secondary small fw-semibold mb-2">Commande</p>
+    <h1 class="display-6 fw-semibold mb-2">Commande #{{ order.pk }}</h1>
   </header>
 
   <section class="mb-4">
-    <h2 class="h4 mb-3">{{ order.concert.title }}</h2>
+    <dl class="row bg-white border rounded p-3 mb-0">
+      <dt class="col-sm-3">Date</dt>
+      <dd class="col-sm-9">{{ order.created_at|date:"d/m/Y H:i" }}</dd>
+      <dt class="col-sm-3">Statut</dt>
+      <dd class="col-sm-9">Payee</dd>
+      <dt class="col-sm-3">Concert</dt>
+      <dd class="col-sm-9">{{ order.concert.title }}</dd>
+      <dt class="col-sm-3">Total</dt>
+      <dd class="col-sm-9">{{ order.total_amount|floatformat:2 }} €</dd>
+    </dl>
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h4 mb-3">Billets achetes</h2>
     <div class="table-responsive bg-white border rounded">
       <table class="table align-middle mb-0">
         <thead>
           <tr>
-            <th scope="col">Catégorie</th>
-            <th scope="col">Prix payé</th>
-            <th scope="col">Quantité</th>
+            <th scope="col">Categorie</th>
+            <th scope="col">Prix paye</th>
+            <th scope="col">Quantite</th>
             <th scope="col" class="text-end">Total</th>
           </tr>
         </thead>
@@ -35,7 +45,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <th scope="row" colspan="3" class="text-end">Total payé</th>
+            <th scope="row" colspan="3" class="text-end">Total paye</th>
             <td class="text-end fw-semibold">{{ order.total_amount|floatformat:2 }} €</td>
           </tr>
         </tfoot>
@@ -44,10 +54,7 @@
   </section>
 
   <div class="d-flex flex-column flex-sm-row gap-2">
-    <a class="btn btn-primary" href="{% url 'orders:detail' order.pk %}">
-      Voir le detail de la commande
-    </a>
-    <a class="btn btn-outline-primary" href="{% url 'orders:list' %}">
+    <a class="btn btn-primary" href="{% url 'orders:list' %}">
       Mes commandes
     </a>
     <a class="btn btn-outline-secondary" href="{% url 'concerts:list' %}">

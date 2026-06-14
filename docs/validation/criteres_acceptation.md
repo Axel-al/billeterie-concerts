@@ -49,6 +49,10 @@
 ## CA8 - Historique de commandes
 
 - Etant donne deux utilisateurs avec des commandes distinctes, quand l'un consulte son historique, alors seules ses propres commandes sont visibles.
+- Etant donne une commande payee, quand son proprietaire ouvre le detail, alors la date, le statut, le total, le concert, la categorie, la quantite et le prix paye sont visibles.
+- Etant donne une commande payee d'un autre utilisateur, quand un client tente d'ouvrir son detail, alors l'acces est refuse.
+- Etant donne un visiteur non connecte, quand il tente d'ouvrir l'historique ou un detail de commande, alors une connexion est demandee.
+- Etant donne une commande refusee, quand le client consulte `Mes commandes`, alors elle n'apparait pas dans l'historique des achats payes.
 - Exigences : EF10, RG8.
 
 ## CA9 - Administration concerts

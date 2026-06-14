@@ -65,11 +65,10 @@ Le check externe SonarCloud du correctif est passe avec 100,0 % de couverture su
 
 ## Risques actuels
 
-- L'historique complet des commandes (`EF10`) reste a implementer.
+- Les tests de consultation de commandes couvrent l'historique paye et le detail filtre par proprietaire ; les tentatives refusees restent exclues de l'historique des achats.
 - Les tests de concurrence multi-processus sur le stock restent a approfondir.
 
 ## Prochaines actions qualite
 
-1. Ajouter l'historique des commandes (`EF10`) et renforcer `RG8`.
-2. Ajouter un premier scenario Playwright couvrant consultation, panier et paiement accepte.
-3. Approfondir les tests de concurrence autour du stock.
+1. Ajouter un premier scenario Playwright couvrant consultation, panier, paiement accepte et historique.
+2. Approfondir les tests de concurrence autour du stock.
