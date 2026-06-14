@@ -227,6 +227,16 @@ def test_cancelled_concert_not_bookable(user):
 
 
 @pytest.mark.django_db
+def test_closed_concert_not_bookable(user):
+    concert = create_concert(status=ConcertStatus.CLOSED)
+    category = create_category(concert)
+
+    assert not concert.is_bookable()
+    with pytest.raises(ValidationError):
+        add_ticket_to_cart(user, category, 1)
+
+
+@pytest.mark.django_db
 def test_future_open_concert_with_stock_is_bookable():
     concert = create_concert()
     create_category(concert, stock=1)

@@ -9,6 +9,7 @@ from django.utils import timezone
 class ConcertStatus(models.TextChoices):
     DRAFT = "draft", "Brouillon"
     OPEN = "open", "Ouvert a la vente"
+    CLOSED = "closed", "Vente cloturee"
     SOLD_OUT = "sold_out", "Complet"
     CANCELLED = "cancelled", "Annule"
     FINISHED = "finished", "Termine"
