@@ -68,7 +68,12 @@
       <section class="border rounded bg-white p-4 mt-4" aria-label="Réservation">
         {% if user.is_authenticated %}
           <h2 class="h4 mb-3">Ajouter au panier</h2>
-          <form method="post" action="{% url 'cart:add_ticket' concert.pk %}" class="row g-3 align-items-end">
+          <form
+            method="post"
+            action="{% url 'cart:add_ticket' concert.pk %}"
+            class="row g-3 align-items-end"
+            data-testid="booking-form"
+          >
             {% csrf_token %}
             <div class="col-12 col-md-6">
               <label class="form-label" for="{{ add_ticket_form.seat_category.id_for_label }}">
@@ -83,14 +88,22 @@
               {{ add_ticket_form.quantity }}
             </div>
             <div class="col-12 col-md-3">
-              <button type="submit" class="btn btn-primary w-100">
+              <button
+                type="submit"
+                class="btn btn-primary w-100"
+                data-testid="add-to-cart-submit"
+              >
                 Ajouter
               </button>
             </div>
           </form>
         {% else %}
           <p class="mb-3">Connectez-vous pour préparer votre réservation.</p>
-          <a class="btn btn-primary" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">
+          <a
+            class="btn btn-primary"
+            href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}"
+            data-testid="login-to-book-link"
+          >
             Se connecter pour réserver
           </a>
         {% endif %}

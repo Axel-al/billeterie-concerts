@@ -25,7 +25,11 @@
                 <dt class="visually-hidden">Lieu</dt>
                 <dd class="text-secondary mb-0">{{ concert.venue }}</dd>
               </dl>
-              <a class="btn btn-outline-primary mt-auto" href="{% url 'concerts:detail' concert.pk %}">
+              <a
+                class="btn btn-outline-primary mt-auto"
+                href="{% url 'concerts:detail' concert.pk %}"
+                data-testid="concert-detail-link-{{ concert.pk }}"
+              >
                 Voir le concert
               </a>
             </div>

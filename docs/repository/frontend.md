@@ -23,6 +23,7 @@ Le frontend applicatif minimal est initialise avec Django templates.
 - Les routes `/concerts/` et `/concerts/<id>/` fournissent le catalogue et les fiches publiques.
 - La navigation fournit un lien `Concerts`, puis affiche `Inscription` et `Connexion` aux visiteurs ou `Panier`, `Mes commandes`, `Mon espace` et un bouton POST `Deconnexion` aux utilisateurs connectes.
 - Le lien `Administration ventes` est affiche seulement aux utilisateurs disposant de `concerts.view_concert` et `orders.view_order`.
+- Des attributs `data-testid` stables existent sur les controles du parcours nominal pour Playwright, sans modifier les libelles visibles en francais.
 
 ## Direction cible
 
@@ -53,7 +54,7 @@ Le frontend cible repose sur :
 
 ## Ecrans cibles restants
 
-- Scenario fonctionnel Playwright de demonstration complete.
+- Parcours d'erreur Playwright optionnels : paiement refuse, quantite invalide ou redirection anonyme. Ces cas restent couverts par les tests d'integration Django.
 
 ## Couverture fonctionnelle
 
@@ -68,6 +69,8 @@ Le parcours panier/paiement couvre maintenant l'ajout au panier, le total, le ch
 `EF10` et `RG8` sont couverts par les pages `Mes commandes` et detail de commande, limitees aux commandes payees du client connecte. Les commandes refusees restent tracees comme non finales et sont exclues de l'historique des achats payes.
 
 `EF11`, `EM9` et `RG7` sont couverts par une page d'administration Django template : synthese des ventes, annulation et cloture. Cette page est une fonctionnalite privilegiee et ne remplace pas l'historique normal des commandes utilisateur.
+
+Le scenario `e2e/test_nominal_booking_flow.py` couvre le chemin utilisateur principal en navigateur : liste des concerts, fiche reservable, connexion, choix de categorie, quantite valide, panier, validation, paiement accepte, confirmation et historique.
 
 ## Contraintes
 

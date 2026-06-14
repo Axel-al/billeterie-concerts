@@ -12,7 +12,10 @@
   </header>
 
   {% if orders %}
-    <div class="table-responsive bg-white border rounded">
+    <div
+      class="table-responsive bg-white border rounded"
+      data-testid="order-history-table"
+    >
       <table class="table align-middle mb-0">
         <thead>
           <tr>
@@ -26,7 +29,7 @@
         </thead>
         <tbody>
           {% for order in orders %}
-            <tr>
+            <tr data-testid="order-history-row">
               <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
               <td>Payee</td>
               <th scope="row">{{ order.concert.title }}</th>

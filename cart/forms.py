@@ -8,7 +8,12 @@ class AddTicketForm(forms.Form):
         label="Catégorie",
         queryset=None,
         empty_label="Choisir une catégorie",
-        widget=forms.Select(attrs={"class": "form-select"}),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "data-testid": "seat-category-select",
+            }
+        ),
         error_messages={
             "required": "Choisissez une catégorie de place.",
             "invalid_choice": "La catégorie sélectionnée est invalide.",
@@ -22,6 +27,7 @@ class AddTicketForm(forms.Form):
         widget=forms.NumberInput(
             attrs={
                 "class": "form-control",
+                "data-testid": "ticket-quantity-input",
                 "min": MIN_TICKETS_PER_CONCERT,
                 "max": MAX_TICKETS_PER_CONCERT,
             }

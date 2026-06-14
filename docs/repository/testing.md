@@ -15,6 +15,7 @@ Tests automatises versionnes :
 - `tests/test_admin_concert_management.py` : permissions d'administration, synthese des ventes payees, annulation, cloture, preservation des commandes payees et creation/modification admin de concerts avec categories.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
 - `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse et prix snapshots.
+- `e2e/test_nominal_booking_flow.py` : scenario Playwright nominal avec `live_server`, connexion, ajout de 2 billets, panier, checkout, paiement accepte, confirmation, historique et assertions ORM dans la base de test.
 
 Couverture officielle revendiquee dans cette etape :
 
@@ -32,9 +33,10 @@ Couverture officielle revendiquee dans cette etape :
 - `EF10` et `RG8` : couverture par l'historique des commandes payees et le detail de commande filtres par utilisateur.
 - `EF11` et `EM9` : couverture par les vues admin protegees par permissions et l'admin Django.
 - `ENF6` : tests automatises executables sur la fondation technique et domaine.
+- `EF1`, `EF2`, `EF4`, `EF5`, `EF6`, `EF7`, `EF8`, `EF10`, `EF12`, `EM1`, `EM2`, `EM3`, `EM6`, `EM7`, `EM10`, `RG1`, `RG2`, `RG3`, `RG5`, `ENF1`, `ENF6` et `ENF7` : preuve Playwright de bout en bout pour le parcours nominal.
 
 Le suivi admin des ventes ne releve pas de `RG8`; `RG8` reste limite a l'acces des utilisateurs standards a leurs propres commandes.
-`ENF1` est partiellement couvert pour la consultation directe et le parcours fiche -> panier -> paiement -> commandes.
+`ENF1` est couvert pour le parcours nominal fiche -> panier -> paiement -> commandes par le scenario Playwright.
 
 ## Couches prevues
 
@@ -52,14 +54,15 @@ Le suivi admin des ventes ne releve pas de `RG8`; `RG8` reste limite a l'acces d
 ruff check .
 pytest
 pytest --cov=. --cov-report=xml
-pytest e2e
+pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 ```
 
-La commande `pytest e2e` reste cible future. La CI installe Chromium pour Playwright, mais saute proprement les tests e2e tant que le dossier `e2e/` n'existe pas.
+La commande e2e utilise `pytest-django` et `live_server`. Les fixtures creent leurs donnees dans la base de test transactionnelle ; elles ne dependent pas de `db.sqlite3`.
 
 ## Commandes verifiees localement
 
 ```bash
+pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 python manage.py check
 python manage.py makemigrations --check --dry-run
 ruff check .
@@ -68,7 +71,7 @@ pytest --cov=. --cov-report=xml
 coverage report
 ```
 
-Resultat observe : OK, 105 tests passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
+Resultat observe : OK, 1 scenario Playwright passe, 105 tests Django passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
 
 ## Exclusions de couverture
 
@@ -87,9 +90,10 @@ Les premiers tests devront couvrir les exigences qui portent le plus de risque m
 - EF11 / EM9 / RG7 : seules les permissions admin adaptees permettent de gerer ou annuler un concert.
 - ENF3 : mots de passe jamais stockes en clair.
 - EF3 / EF4 : parcours inscription, connexion, deconnexion et acces protege.
+- EF1 / EF2 / EF5 / EF7 / EF8 / EF10 / ENF1 : parcours fonctionnel Playwright nominal.
 
 ## Documentation des tests
 
 Chaque test automatise devra etre relie a un ou plusieurs IDs officiels dans `docs/validation/matrice_tracabilite.md`.
 
-Pour l'historique, `EF10` et `RG8` sont couverts par les pages de commandes payees et detail filtrees par proprietaire. Pour l'administration, `EF11`, `EM9` et `RG7` sont couverts par `tests/test_admin_concert_management.py`. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur reste porte par le parcours checkout/paiement.
+Pour l'historique, `EF10` et `RG8` sont couverts par les pages de commandes payees et detail filtrees par proprietaire. Pour l'administration, `EF11`, `EM9` et `RG7` sont couverts par `tests/test_admin_concert_management.py`. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur reste porte par le parcours checkout/paiement. Le scenario Playwright nominal est trace dans `docs/validation/matrice_tracabilite.md` et documente dans `docs/validation/scenario_fonctionnel.md`.

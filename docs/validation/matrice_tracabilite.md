@@ -15,7 +15,14 @@ Le depot contient une fondation Django, un catalogue public de concerts, des fic
 - `EF12`, `EM1` a `EM7`, `EM10`, `RG1` a `RG5` sont couverts par les modeles/services et tests domaine ;
 - `RG6` est couvert par les vues de checkout et paiement protegees ;
 - `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement ;
+- `e2e/test_nominal_booking_flow.py::test_nominal_booking_flow_accepted_payment_appears_in_history` couvre le parcours nominal complet en navigateur avec `live_server` et des fixtures de base de test ;
 - le suivi admin des ventes est une fonctionnalite privilegiee et ne change pas la portee de `RG8`, qui reste l'isolation des commandes des utilisateurs standards.
+
+## Preuve Playwright nominale
+
+| Test | Exigences couvertes | Implementation exercee | Statut | Limite connue |
+| --- | --- | --- | --- | --- |
+| `e2e/test_nominal_booking_flow.py::test_nominal_booking_flow_accepted_payment_appears_in_history` | `EF1`, `EF2`, `EF4`, `EF5`, `EF6`, `EF7`, `EF8`, `EF10`, `EF12`, `EM1`, `EM2`, `EM3`, `EM6`, `EM7`, `EM10`, `ENF1`, `ENF6`, `ENF7`, `RG1`, `RG2`, `RG3`, `RG5` | Catalogue, fiche concert, connexion, formulaire panier, checkout, paiement simule accepte, confirmation, historique et assertions ORM sur commande/stock/prix | Couvert | Les parcours paiement refuse, quantite invalide et redirection anonyme restent couverts par les tests d'integration Django |
 
 ## Exigences fonctionnelles
 
@@ -53,7 +60,7 @@ Le depot contient une fondation Django, un catalogue public de concerts, des fic
 
 | ID | Implementation actuelle | Tests actuels | Statut | Limite connue |
 | --- | --- | --- | --- | --- |
-| ENF1 | Acces direct accueil → catalogue → fiche → panier → checkout → paiement → commandes | `tests/test_homepage.py`, tests concert, `tests/test_booking_flow.py`, `tests/test_order_history.py::test_paid_order_appears_in_history_after_successful_payment` | Partiel | Parcours e2e Playwright futur |
+| ENF1 | Acces direct accueil -> catalogue -> fiche -> panier -> checkout -> paiement -> commandes | `tests/test_homepage.py`, tests concert, `tests/test_booking_flow.py`, `tests/test_order_history.py::test_paid_order_appears_in_history_after_successful_payment`, `e2e/test_nominal_booking_flow.py::test_nominal_booking_flow_accepted_payment_appears_in_history` | Couvert pour le parcours nominal | Les parcours d'erreur e2e restent optionnels |
 | ENF2 | Aucune mesure performance applicative | Aucun | Non couvert | A mesurer avec vues |
 | ENF3 | Mot de passe gere par Django auth et formulaire d'inscription Django | `tests/test_accounts.py::test_user_password_is_hashed`, `tests/test_authentication_views.py::test_registered_password_is_not_stored_in_plain_text` | Couvert | Aucun stockage en clair attendu |
 | ENF4 | Services et formulaires rejettent les saisies invalides proprement | Tests quantite/stock/statut domaine, tests authentification, `tests/test_booking_flow.py` | Couvert pour le perimetre implemente |  |

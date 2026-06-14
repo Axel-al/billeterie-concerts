@@ -63,6 +63,7 @@ class EmailAuthenticationForm(AuthenticationForm):
                 "autofocus": True,
                 "autocomplete": "email",
                 "class": "form-control",
+                "data-testid": "login-email",
             }
         ),
     )
@@ -76,5 +77,9 @@ class EmailAuthenticationForm(AuthenticationForm):
         super().__init__(request, *args, **kwargs)
         self.fields["password"].label = "Mot de passe"
         self.fields["password"].widget.attrs.update(
-            {"autocomplete": "current-password", "class": "form-control"}
+            {
+                "autocomplete": "current-password",
+                "class": "form-control",
+                "data-testid": "login-password",
+            }
         )

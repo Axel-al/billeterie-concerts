@@ -11,7 +11,7 @@
   {% if cart and cart.lines.all %}
     <section class="mb-4">
       <h2 class="h4 mb-3">{{ cart.concert.title }}</h2>
-      <div class="table-responsive bg-white border rounded">
+      <div class="table-responsive bg-white border rounded" data-testid="cart-table">
         <table class="table align-middle mb-0">
           <thead>
             <tr>
@@ -42,7 +42,11 @@
     </section>
 
     <div class="d-flex flex-column flex-sm-row gap-2">
-      <a class="btn btn-primary" href="{% url 'cart:checkout' %}">
+      <a
+        class="btn btn-primary"
+        href="{% url 'cart:checkout' %}"
+        data-testid="cart-checkout-link"
+      >
         Valider le panier
       </a>
       <a class="btn btn-outline-secondary" href="{% url 'concerts:list' %}">
