@@ -186,14 +186,14 @@ coverage report
 Resultats observes pour cette implementation :
 
 - `ruff check .` : OK.
-- `pytest` : OK, 81 tests passent.
+- `pytest` : OK, 88 tests passent.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest --cov=. --cov-report=xml` : OK, 81 tests passent et `coverage.xml` est genere puis ignore par Git.
-- `coverage report` : couverture totale 98 %, avec `cart/forms.py`, `cart/services.py`, `concerts/views.py`, `payments/forms.py` et `tests/test_booking_flow.py` a 100 %.
+- `pytest --cov=. --cov-report=xml` : OK, 88 tests passent et `coverage.xml` est genere puis ignore par Git.
+- `coverage report` : couverture totale 99 %, avec `cart/forms.py`, `cart/services.py`, `cart/views.py`, `concerts/views.py`, `payments/forms.py`, `payments/views.py` et `tests/test_booking_flow.py` a 100 %.
 - `git diff --check` : OK.
 
-Decision couverture : les lignes restantes non couvertes dans `payments/services.py`, `payments/views.py` et `cart/views.py` correspondent principalement aux chemins defensifs de panier invalide, resultat invalide ou validation impossible apres controle initial. Les regles critiques demandees sont couvertes par `tests/test_core_domain.py` et `tests/test_booking_flow.py`.
+Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement sont couvertes par `tests/test_core_domain.py` et `tests/test_booking_flow.py`.
 
 ## Verification navigateur
 

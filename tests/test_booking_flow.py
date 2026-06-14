@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 
-from cart.models import CartLine, CartStatus
+from cart.models import Cart, CartLine, CartStatus
 from cart.services import add_ticket_to_cart
 from concerts.models import Concert, ConcertStatus, SeatCategory
 from orders.models import Order, OrderStatus
@@ -177,6 +177,123 @@ def test_cart_display_calculates_total(client, user):
     assert response.status_code == 200
     assert "Total du panier" in content
     assert "70,00" in content
+
+
+@pytest.mark.django_db
+def test_checkout_page_with_valid_active_cart_displays_checkout_context(client, user):
+    concert = create_concert()
+    category = create_category(concert, price=Decimal("25.00"))
+    add_ticket_to_cart(user, category, 2)
+    client.force_login(user)
+
+    response = client.get(reverse("cart:checkout"))
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert "Valider le panier" in content
+    assert concert.title in content
+    assert "Total à payer" in content
+    assert "50,00" in content
+    assert "Passer au paiement" in content
+
+
+@pytest.mark.django_db
+def test_checkout_page_with_invalid_active_cart_displays_validation_error(
+    client,
+    user,
+):
+    concert = create_concert()
+    Cart.objects.create(user=user, concert=concert)
+    client.force_login(user)
+
+    response = client.get(reverse("cart:checkout"))
+
+    assert response.status_code == 200
+    assert "Le panier doit contenir au moins un billet." in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_payment_page_with_valid_active_cart_displays_form_and_total(client, user):
+    concert = create_concert()
+    category = create_category(concert, price=Decimal("25.00"))
+    add_ticket_to_cart(user, category, 2)
+    client.force_login(user)
+
+    response = client.get(reverse("payments:simulate"))
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert "Paiement simulé" in content
+    assert "Numéro de carte" in content
+    assert concert.title in content
+    assert "Total à payer" in content
+    assert "50,00" in content
+
+
+@pytest.mark.django_db
+def test_payment_page_with_no_active_cart_displays_empty_cart_message(client, user):
+    client.force_login(user)
+
+    response = client.get(reverse("payments:simulate"))
+
+    assert response.status_code == 200
+    assert "Votre panier est vide." in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_payment_page_with_invalid_active_cart_displays_validation_error(
+    client,
+    user,
+):
+    concert = create_concert()
+    Cart.objects.create(user=user, concert=concert)
+    client.force_login(user)
+
+    response = client.get(reverse("payments:simulate"))
+
+    assert response.status_code == 200
+    assert "Le panier doit contenir au moins un billet." in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_payment_post_with_no_active_cart_redirects_to_cart_with_error(
+    client,
+    user,
+):
+    client.force_login(user)
+
+    response = client.post(
+        reverse("payments:simulate"),
+        data={"card_number": "4242424242424242"},
+        follow=True,
+    )
+
+    assert response.redirect_chain[-1][0] == reverse("cart:detail")
+    assert "Votre panier est vide." in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_payment_post_when_active_cart_becomes_invalid_redirects_to_checkout(
+    client,
+    user,
+):
+    concert = create_concert()
+    category = create_category(concert, stock=3)
+    add_ticket_to_cart(user, category, 2)
+    category.stock_remaining = 1
+    category.save(update_fields=("stock_remaining", "updated_at"))
+    client.force_login(user)
+
+    response = client.post(
+        reverse("payments:simulate"),
+        data={"card_number": "4242424242424242"},
+        follow=True,
+    )
+
+    assert response.redirect_chain[-1][0] == reverse("cart:checkout")
+    assert "Le stock restant est insuffisant." in response.content.decode()
+    assert Order.objects.count() == 0
+    assert Payment.objects.count() == 0
 
 
 @pytest.mark.django_db
