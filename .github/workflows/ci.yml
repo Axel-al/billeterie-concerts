@@ -50,12 +50,15 @@ jobs:
         run: pytest --cov=. --cov-report=xml
 
       - name: End-to-end tests
-        run: |
-          if [ -d e2e ]; then
-            pytest e2e
-          else
-            echo "No e2e directory yet; skipping Playwright tests."
-          fi
+        run: pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: test-results/
+          if-no-files-found: ignore
 
       - name: SonarQube Cloud
         if: ${{ env.SONAR_TOKEN != '' }}

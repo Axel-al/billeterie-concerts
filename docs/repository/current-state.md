@@ -45,6 +45,9 @@ Elements livres dans cette etape :
 - navigation et accueil orientes vers la consultation des concerts ;
 - tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite, les reponses HTTP, le parcours panier/paiement et l'historique de commandes ;
 - tests d'integration Django pour les permissions d'administration, l'annulation, la cloture, le suivi des ventes et la creation/modification admin de concerts avec categories ;
+- scenario Playwright `e2e/test_nominal_booking_flow.py` pour le parcours nominal catalogue -> fiche -> connexion -> panier -> checkout -> paiement accepte -> confirmation -> historique ;
+- fixtures e2e basees sur `pytest-django`, `transactional_db` et `live_server`, sans dependance a `db.sqlite3` ni aux donnees demo locales ;
+- selecteurs stables `data-testid` sur les controles et liens du parcours nominal ;
 - routes `/inscription/`, `/connexion/`, `/deconnexion/` et `/mon-espace/` ;
 - formulaire d'inscription avec email unique, mot de passe Django et rejet explicite des doublons ;
 - formulaire de connexion en francais et deconnexion par requete POST ;
@@ -92,11 +95,18 @@ Couverture existante conservee :
 - `EF10` et `RG8` : historique des commandes payees et detail de commande filtres par proprietaire ;
 - `ENF5`, `ENF6` et `ENF7` : Ruff, tests automatises, coverage et GitHub Actions versionnes.
 
+Couverture e2e ajoutee :
+
+- `EF1`, `EF2`, `EF4`, `EF5`, `EF6`, `EF7`, `EF8`, `EF10` et `EF12` sont couverts de bout en bout par le scenario Playwright nominal.
+- `EM1`, `EM2`, `EM3`, `EM6`, `EM7`, `EM10`, `RG1`, `RG2`, `RG3` et `RG5` sont verifies dans ce scenario par le choix d'un concert reservable, une quantite valide, le paiement accepte, les snapshots de prix et le decrement du stock.
+- `ENF1`, `ENF6` et `ENF7` sont renforces par un parcours fonctionnel automatise et execute en CI.
+
 Traceabilite de cette etape :
 
 - `EF10` et `RG8` sont couverts par le nouvel historique paye et les pages detail filtrees par proprietaire.
 - `EF11`, `EM9` et `RG7` sont couverts par les vues d'administration, les actions de statut et les tests de permissions.
 - `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement.
+- Le scenario Playwright nominal ajoute une preuve fonctionnelle de bout en bout pour le parcours attendu du cahier des charges, sans couvrir les parcours d'erreur optionnels.
 
 Non couvert volontairement dans ce lot :
 
@@ -112,6 +122,7 @@ Non couvert volontairement dans ce lot :
 - `payments/` : paiement simule, regle de carte, service transactionnel et vues paiement/resultat.
 - `templates/` : layout, accueil, catalogue, fiches concerts, comptes, panier, paiement, commandes et synthese admin des ventes.
 - `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts, domaine billetterie, parcours panier/paiement, historique de commandes et administration concerts/ventes.
+- `e2e/` : scenario Playwright nominal avec fixtures `pytest-django` et `live_server`.
 
 ## Comportement catalogue
 
@@ -198,7 +209,8 @@ Le workflow CI existant reste configure pour :
 - executer Ruff ;
 - executer `python manage.py check` ;
 - executer pytest avec generation `coverage.xml` ;
-- sauter les tests e2e tant que le dossier `e2e/` n'existe pas ;
+- executer `pytest e2e --tracing=retain-on-failure --output=test-results/playwright` ;
+- publier `test-results/` comme artefact GitHub Actions en cas d'echec ;
 - lancer SonarCloud seulement si le secret `SONAR_TOKEN` est disponible.
 
 La configuration SonarCloud analyse tous les modules applicatifs existants :
@@ -208,26 +220,28 @@ declares separement dans `tests`.
 Etat distant de la branche courante :
 
 - le compte GitHub actif dispose de droits d'ecriture sur `Axel-al/billeterie-concerts` ;
-- la branche `feature/admin-concert-management` est poussee directement sur le depot amont ;
-- la pull request #12 `Implement admin concert management` est ouverte vers `main` ;
-- le workflow distant `CI` declenche par push a reussi ;
-- `gh checks HEAD` signale `Django checks` et `SonarCloud Code Analysis` en succes.
+- la branche locale courante est `feature/e2e-nominal-booking-flow` ;
+- la branche e2e doit etre poussee puis verifiee par CI avant fusion ;
+- une pull request sera ouverte apres les commits locaux.
 
 ## Verification locale
 
 Commandes lancees avec succes :
 
 ```bash
+pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 ruff check .
 pytest
 python manage.py check
 python manage.py makemigrations --check --dry-run
 pytest --cov=. --cov-report=xml
 coverage report
+git check-ignore -v test-results/ playwright-report/
 ```
 
 Resultats observes pour la derniere implementation complete :
 
+- `pytest e2e --tracing=retain-on-failure --output=test-results/playwright` : OK, 1 scenario Playwright passe.
 - `ruff check .` : OK.
 - `pytest` : OK, 105 tests passent.
 - `python manage.py check` : OK.
@@ -235,12 +249,18 @@ Resultats observes pour la derniere implementation complete :
 - `pytest --cov=. --cov-report=xml` : OK, 105 tests passent et `coverage.xml` est genere puis ignore par Git.
 - `coverage report` : couverture totale 99 %, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
 - `git diff --check` : OK.
+- `git check-ignore -v test-results/ playwright-report/` : OK, les deux chemins sont ignores par `.gitignore`.
 
 Decision couverture : les lignes restantes non couvertes concernent uniquement des incoherences defensives dans `payments/services.py` : categorie de panier incoherente apres validation, stock devenu insuffisant entre validation et snapshot, ou echec concurrent de l'update conditionnel. Les couvrir demanderait des donnees volontairement incoherentes ou du monkeypatch interne, donc elles ne sont pas ajoutees a cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement/commandes/administration sont couvertes par `tests/test_core_domain.py`, `tests/test_booking_flow.py`, `tests/test_order_history.py` et `tests/test_admin_concert_management.py`.
 
 ## Verification navigateur
 
 Aucun nouveau controle navigateur manuel n'a ete execute pour l'administration concerts/ventes dans cette passe ; la verification repose sur les tests d'integration Django.
+
+Controle Playwright automatise ajoute :
+
+- le scenario nominal ouvre la liste des concerts, consulte une fiche ouverte, se connecte, ajoute 2 places au panier, valide le panier, paie avec la carte acceptee, verifie la confirmation et retrouve la commande dans `Mes commandes` ;
+- les donnees du scenario sont creees par fixtures dans la base de test `pytest-django` exposee par `live_server`, sans lire `db.sqlite3`.
 
 Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` :
 
@@ -252,13 +272,13 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 
 ## Statut Git observe
 
-- Branche de travail : `feature/admin-concert-management`.
+- Branche de travail : `feature/e2e-nominal-booking-flow`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/12`.
+- Pull request : a creer apres push de la branche e2e.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
-- `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
+- `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest, `test-results/`, `playwright-report/` et environnements virtuels restent non versionnes.
 
 ## Prochaine etape recommandee
 
-Ajouter un premier scenario Playwright couvrant consultation, panier, paiement accepte et historique de commandes.
+Verifier les checks distants de la pull request e2e, y compris GitHub Actions et SonarCloud si le secret est disponible.
