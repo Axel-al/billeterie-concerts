@@ -221,8 +221,10 @@ Etat distant de la branche courante :
 
 - le compte GitHub actif dispose de droits d'ecriture sur `Axel-al/billeterie-concerts` ;
 - la branche locale courante est `feature/e2e-nominal-booking-flow` ;
-- la branche e2e doit etre poussee puis verifiee par CI avant fusion ;
-- une pull request sera ouverte apres les commits locaux.
+- la branche `feature/e2e-nominal-booking-flow` est poussee directement sur le depot amont ;
+- la pull request #13 `Add nominal booking e2e scenario` est ouverte vers `main` ;
+- les deux executions `Django checks` declenchees par push et pull request sont en succes ;
+- `gh pr checks 13` signale aussi `SonarCloud Code Analysis` en succes.
 
 ## Verification locale
 
@@ -281,4 +283,4 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 
 ## Prochaine etape recommandee
 
-Verifier les checks distants de la pull request e2e, y compris GitHub Actions et SonarCloud si le secret est disponible.
+Relire puis fusionner la pull request #13 si son perimetre convient.
