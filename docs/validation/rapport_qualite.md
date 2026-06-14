@@ -1,10 +1,10 @@
 # Rapport qualite
 
-Derniere mise a jour : 2026-04-26
+Derniere mise a jour : 2026-06-14
 
 ## Etat actuel
 
-Le depot contient une fondation Django executable, des premiers tests automatises, Ruff, coverage, GitHub Actions et une configuration SonarCloud sans secret versionne.
+Le depot contient une application Django executable avec comptes, catalogue, panier, checkout, paiement simule, tests automatises, Ruff, coverage, GitHub Actions et une configuration SonarCloud sans secret versionne.
 
 ## Outillage declare
 
@@ -42,7 +42,7 @@ Commande verifiee :
 pytest --cov=. --cov-report=term-missing --cov-report=xml
 ```
 
-Resultat observe : OK, 16 tests passent, `coverage.xml` est genere et reste non versionne. La couverture locale affiche 100 % sur les chemins mesures.
+Resultat observe le plus recent : voir `docs/repository/current-state.md`.
 
 Exclusions justifiees :
 
@@ -65,11 +65,11 @@ Le check externe SonarCloud du correctif est passe avec 100,0 % de couverture su
 
 ## Risques actuels
 
-- Les tests actuels couvrent seulement la fondation utilisateur et qualite.
-- Les exigences metier de concerts, stock, panier, paiement et commandes restent a implementer et tester.
+- L'historique complet des commandes (`EF10`) reste a implementer.
+- Les tests de concurrence multi-processus sur le stock restent a approfondir.
 
 ## Prochaines actions qualite
 
-1. Ajouter les premiers tests des concerts (`EF1`, `EF2`, `RG1`).
-2. Ajouter progressivement les tests metier critiques de stock, quantite et paiement.
-3. Ajouter un premier scenario Playwright quand un parcours utilisateur existe.
+1. Ajouter l'historique des commandes (`EF10`) et renforcer `RG8`.
+2. Ajouter un premier scenario Playwright couvrant consultation, panier et paiement accepte.
+3. Approfondir les tests de concurrence autour du stock.

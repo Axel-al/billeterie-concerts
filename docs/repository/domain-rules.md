@@ -16,7 +16,7 @@ Le catalogue public affiche uniquement les concerts ouverts, strictement futurs 
 
 Une fiche detaillee publique peut rester consultable lorsqu'un concert est annule, passe, termine ou complet afin d'expliquer son indisponibilite. Les brouillons ne sont pas publies et renvoient une reponse `404`.
 
-La fiche affiche toutes les categories, y compris celles dont le stock est nul. Un visiteur voit un lien de connexion avec retour vers la fiche seulement si le concert est reservable. Aucun formulaire panier ni ajout de billet n'est expose dans cette etape.
+La fiche affiche toutes les categories, y compris celles dont le stock est nul. Un visiteur voit un lien de connexion avec retour vers la fiche seulement si le concert est reservable. Un utilisateur connecte voit un formulaire categorie/quantite permettant d'ajouter des billets au panier.
 
 ## Quantites
 
@@ -28,10 +28,13 @@ Le modele courant limite volontairement un panier actif et une commande a un seu
 
 Le service `process_simulated_payment` valide le panier dans une transaction.
 
+- La carte simulee `4242424242424242` est acceptee.
+- Toute autre valeur de carte est refusee.
+- Le numero de carte n'est pas stocke.
 - Paiement accepte : une commande `paid` et un paiement `accepted` sont crees, les prix sont snapshots et le stock est decremente.
 - Paiement refuse : une commande `refused` et un paiement `refused` sont crees, aucun stock n'est decremente et le panier reste actif pour permettre une nouvelle tentative future.
 - Si une regle de quantite, stock, date, statut ou concert unique echoue, aucune commande validee n'est creee.
 
 ## Portee actuelle
 
-Les regles de date, statut et stock sont aussi appliquees par le catalogue et les fiches publiques. Il n'existe pas encore de vue de panier, paiement, confirmation, refus explicite ou historique de commandes.
+Les regles de date, statut et stock sont aussi appliquees par le catalogue, les fiches publiques, l'ajout au panier et la validation du paiement. Les vues de confirmation/refus filtrent les commandes par utilisateur connecte. L'historique complet des commandes reste hors de cette etape.

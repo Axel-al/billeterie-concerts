@@ -2,6 +2,14 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-06-14 - Parcours panier et paiement simule Django
+
+Decision : exposer le parcours panier, checkout, paiement simule, confirmation et refus avec des vues/templates Django, en reutilisant les services domaine existants.
+
+Motif : les exigences `EF5` a `EF9`, `EF12`, `RG6` et les regles critiques de stock/quantite/paiement doivent etre couvertes sans introduire de frontend separe. La carte `4242424242424242` est acceptee ; toute autre valeur est refusee.
+
+Impact : les URLs `/panier/`, `/panier/validation/` et `/paiement/` sont disponibles. Les commandes payees decrementent le stock et figent les prix. Les commandes refusees restent non finales et ne modifient pas le stock. L'historique complet de commandes (`EF10`) reste hors scope.
+
 ## 2026-05-18 - Authentification utilisateur par Django
 
 Decision : implementer l'inscription, la connexion, la deconnexion POST et `Mon espace` avec les mecanismes Django auth et des templates Django en francais.

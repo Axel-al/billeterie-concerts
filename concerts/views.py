@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
+from cart.forms import AddTicketForm
 from concerts.models import Concert, ConcertStatus
 
 
@@ -44,8 +45,11 @@ class ConcertDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["is_bookable"] = self.object.is_bookable()
+        is_bookable = self.object.is_bookable()
+        context["is_bookable"] = is_bookable
         context["booking_unavailability_reason"] = (
             booking_unavailability_reason(self.object)
         )
+        if is_bookable and self.request.user.is_authenticated:
+            context["add_ticket_form"] = AddTicketForm(self.object)
         return context

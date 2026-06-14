@@ -40,15 +40,17 @@ Dans l'implementation courante, une date egale a l'instant courant est considere
 
 | Classe | Situation | Resultat attendu | Exigences |
 | --- | --- | --- | --- |
-| Paiement accepte | Simulateur renvoie succes | Commande payee, stock decremente | EF8, EM6, RG5 |
-| Paiement refuse | Simulateur renvoie refus | Pas de commande validee, stock inchange | EF9, RG4 |
+| Paiement accepte | Carte `4242424242424242` | Commande payee, confirmation affichee, stock decremente | EF7, EF8, EF12, EM6, RG5 |
+| Paiement refuse | Toute autre carte | Pas de commande validee, message explicite, stock inchange | EF7, EF9, EM6, RG4 |
+| Panier invalide | Panier vide, inactif ou devenu non reservable | Paiement bloque proprement | ENF4, RG1, RG2, RG3, RG6 |
 
-La couverture actuelle est domaine/service : aucune page de confirmation ni message visible de refus n'est encore implemente.
+Le numero de carte n'est pas stocke ; seule la decision acceptee/refusee est conservee dans `Payment`.
 
 ## Authentification et droits
 
 | Classe | Situation | Resultat attendu | Exigences |
 | --- | --- | --- | --- |
 | Visiteur | Non connecte | Consultation autorisee, paiement bloque | EF1, EF2, RG6 |
-| Client | Connecte sans droits admin | Reservation autorisee, administration bloquee | EF5, EM9 |
+| Client | Connecte sans droits admin | Reservation, panier, checkout et paiement autorises pour son propre panier | EF5, EF6, EF7, RG6 |
+| Client tiers | Connecte avec un autre compte | Panier/checkout personnels uniquement ; pages resultat d'une autre commande inaccessibles | RG8 |
 | Administrateur | Connecte avec droits admin | Gestion concerts autorisee | EF11, EM9 |

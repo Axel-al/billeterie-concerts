@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Paiement refusé - Billetterie concerts{% endblock %}
+
+{% block content %}
+  <header class="mb-4">
+    <p class="text-uppercase text-secondary small fw-semibold mb-2">Paiement</p>
+    <h1 class="display-6 fw-semibold mb-2">Paiement refusé</h1>
+  </header>
+
+  <div class="alert alert-danger" role="alert">
+    Paiement refusé. Votre commande n’a pas été validée.
+  </div>
+
+  <section class="mb-4">
+    <h2 class="h4 mb-3">{{ order.concert.title }}</h2>
+    <p class="mb-0">
+      Montant refusé : <strong>{{ order.total_amount|floatformat:2 }} €</strong>
+    </p>
+  </section>
+
+  <div class="d-flex flex-column flex-sm-row gap-2">
+    <a class="btn btn-primary" href="{{ retry_payment_url }}">
+      Réessayer le paiement
+    </a>
+    <a class="btn btn-outline-secondary" href="{% url 'cart:detail' %}">
+      Retour au panier
+    </a>
+  </div>
+{% endblock %}

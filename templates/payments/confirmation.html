@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Commande confirmée - Billetterie concerts{% endblock %}
+
+{% block content %}
+  <header class="mb-4">
+    <p class="text-uppercase text-secondary small fw-semibold mb-2">Confirmation</p>
+    <h1 class="display-6 fw-semibold mb-2">Commande confirmée</h1>
+    <p class="text-secondary mb-0">
+      Votre paiement est accepté et votre commande est enregistrée.
+    </p>
+  </header>
+
+  <section class="mb-4">
+    <h2 class="h4 mb-3">{{ order.concert.title }}</h2>
+    <div class="table-responsive bg-white border rounded">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Catégorie</th>
+            <th scope="col">Prix payé</th>
+            <th scope="col">Quantité</th>
+            <th scope="col" class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line in order.lines.all %}
+            <tr>
+              <th scope="row">{{ line.category_name_snapshot }}</th>
+              <td>{{ line.unit_price|floatformat:2 }} €</td>
+              <td>{{ line.quantity }}</td>
+              <td class="text-end">{{ line.line_total|floatformat:2 }} €</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" colspan="3" class="text-end">Total payé</th>
+            <td class="text-end fw-semibold">{{ order.total_amount|floatformat:2 }} €</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <a class="btn btn-primary" href="{% url 'concerts:list' %}">
+    Voir les concerts
+  </a>
+{% endblock %}

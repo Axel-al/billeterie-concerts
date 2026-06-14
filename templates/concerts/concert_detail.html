@@ -67,7 +67,27 @@
     {% if is_bookable %}
       <section class="border rounded bg-white p-4 mt-4" aria-label="Réservation">
         {% if user.is_authenticated %}
-          <p class="mb-0">La réservation en ligne n’est pas encore disponible.</p>
+          <h2 class="h4 mb-3">Ajouter au panier</h2>
+          <form method="post" action="{% url 'cart:add_ticket' concert.pk %}" class="row g-3 align-items-end">
+            {% csrf_token %}
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ add_ticket_form.seat_category.id_for_label }}">
+                {{ add_ticket_form.seat_category.label }}
+              </label>
+              {{ add_ticket_form.seat_category }}
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label" for="{{ add_ticket_form.quantity.id_for_label }}">
+                {{ add_ticket_form.quantity.label }}
+              </label>
+              {{ add_ticket_form.quantity }}
+            </div>
+            <div class="col-12 col-md-3">
+              <button type="submit" class="btn btn-primary w-100">
+                Ajouter
+              </button>
+            </div>
+          </form>
         {% else %}
           <p class="mb-3">Connectez-vous pour préparer votre réservation.</p>
           <a class="btn btn-primary" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">
