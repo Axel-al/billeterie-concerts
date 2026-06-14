@@ -209,6 +209,7 @@ Etat distant de la branche courante :
 
 - le compte GitHub actif dispose de droits d'ecriture sur `Axel-al/billeterie-concerts` ;
 - la branche `feature/admin-concert-management` est poussee directement sur le depot amont ;
+- la pull request #12 `Implement admin concert management` est ouverte vers `main` ;
 - le workflow distant `CI` declenche par push a reussi ;
 - `gh checks HEAD` signale `Django checks` et `SonarCloud Code Analysis` en succes.
 
@@ -253,7 +254,7 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 
 - Branche de travail : `feature/admin-concert-management`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Pull request : aucune pull request creee dans cette passe.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/12`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
