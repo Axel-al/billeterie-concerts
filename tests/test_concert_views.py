@@ -60,6 +60,12 @@ def test_concert_list_returns_200_and_only_displays_bookable_concerts(client):
     )
     create_category(cancelled)
 
+    closed = create_concert(
+        title="Concert cloture",
+        status=ConcertStatus.CLOSED,
+    )
+    create_category(closed)
+
     past = create_concert(
         title="Concert passe",
         starts_at=timezone.now() - timedelta(days=1),
@@ -83,6 +89,7 @@ def test_concert_list_returns_200_and_only_displays_bookable_concerts(client):
     assert visible.artist in content
     assert visible.venue in content
     assert cancelled.title not in content
+    assert closed.title not in content
     assert past.title not in content
     assert stockless.title not in content
     assert draft.title not in content
@@ -180,6 +187,22 @@ def test_cancelled_concert_detail_explains_unavailability_without_cta(client):
     content = response.content.decode()
     assert response.status_code == 200
     assert "Ce concert est annulé. Aucune réservation n’est possible." in content
+    assert "Se connecter pour réserver" not in content
+
+
+@pytest.mark.django_db
+def test_closed_concert_detail_explains_unavailability_without_cta(client):
+    concert = create_concert(status=ConcertStatus.CLOSED)
+    create_category(concert)
+
+    response = client.get(reverse("concerts:detail", args=[concert.pk]))
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert (
+        "Les ventes de ce concert sont clôturées. Aucune réservation n’est possible."
+        in content
+    )
     assert "Se connecter pour réserver" not in content
 
 

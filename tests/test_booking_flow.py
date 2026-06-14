@@ -163,6 +163,18 @@ def test_cancelled_concert_is_rejected_through_add_to_cart_flow(client, user):
 
 
 @pytest.mark.django_db
+def test_closed_concert_is_rejected_through_add_to_cart_flow(client, user):
+    concert = create_concert(status=ConcertStatus.CLOSED)
+    category = create_category(concert)
+    client.force_login(user)
+
+    response = post_add_to_cart(client, concert, category, 1)
+
+    assert CartLine.objects.count() == 0
+    assert "Les ventes de ce concert sont cloturees." in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_cart_display_calculates_total(client, user):
     concert = create_concert()
     fosse = create_category(concert, name="Fosse", price=Decimal("20.00"))

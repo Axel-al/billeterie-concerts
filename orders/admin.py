@@ -6,9 +6,17 @@ from orders.models import Order, OrderLine
 class OrderLineInline(admin.TabularInline):
     model = OrderLine
     extra = 0
-    autocomplete_fields = ("seat_category",)
-    readonly_fields = ("category_name_snapshot", "unit_price", "quantity")
+    readonly_fields = (
+        "seat_category",
+        "category_name_snapshot",
+        "unit_price",
+        "quantity",
+        "created_at",
+    )
     can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Order)
@@ -24,8 +32,22 @@ class OrderAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "created_at")
     search_fields = ("user__email", "concert__title", "concert__artist")
-    autocomplete_fields = ("user", "concert")
+    readonly_fields = (
+        "user",
+        "concert",
+        "status",
+        "total_amount",
+        "total_quantity",
+        "created_at",
+        "updated_at",
+    )
     inlines = (OrderLineInline,)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(OrderLine)
@@ -43,4 +65,17 @@ class OrderLineAdmin(admin.ModelAdmin):
         "order__concert__title",
         "category_name_snapshot",
     )
-    autocomplete_fields = ("order", "seat_category")
+    readonly_fields = (
+        "order",
+        "seat_category",
+        "category_name_snapshot",
+        "unit_price",
+        "quantity",
+        "created_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
