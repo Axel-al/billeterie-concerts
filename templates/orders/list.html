@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Mes commandes - Billetterie concerts{% endblock %}
+
+{% block content %}
+  <header class="mb-4">
+    <p class="text-uppercase text-secondary small fw-semibold mb-2">Compte client</p>
+    <h1 class="display-6 fw-semibold mb-2">Mes commandes</h1>
+    <p class="text-secondary mb-0">
+      Retrouvez ici vos commandes payees.
+    </p>
+  </header>
+
+  {% if orders %}
+    <div class="table-responsive bg-white border rounded">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Statut</th>
+            <th scope="col">Concert</th>
+            <th scope="col">Billets</th>
+            <th scope="col" class="text-end">Total</th>
+            <th scope="col" class="text-end">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+              <td>Payee</td>
+              <th scope="row">{{ order.concert.title }}</th>
+              <td>{{ order.total_quantity }}</td>
+              <td class="text-end">{{ order.total_amount|floatformat:2 }} €</td>
+              <td class="text-end">
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'orders:detail' order.pk %}">
+                  Voir le detail
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info" role="status">
+      Aucune commande payee pour le moment.
+    </div>
+    <a class="btn btn-primary" href="{% url 'concerts:list' %}">
+      Voir les concerts
+    </a>
+  {% endif %}
+{% endblock %}

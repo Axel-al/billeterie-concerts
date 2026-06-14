@@ -11,6 +11,7 @@ Tests automatises versionnes :
 - `tests/test_authentication_views.py` : labels francais, inscription, rejet email duplique, hachage via formulaire, connexion, echec de connexion, deconnexion POST, acces protege a `Mon espace` et fondation role utilisateur standard.
 - `tests/test_concert_views.py` : filtrage du catalogue, informations des fiches, prix et stocks, CTA de connexion, motifs d'indisponibilite et reponses `404`.
 - `tests/test_booking_flow.py` : ajout au panier via la fiche, bornes de quantite, rejet stock/date/statut, affichage du total, paiement accepte/refuse, decrement de stock, prix snapshots et cloisonnement utilisateur des pages panier/checkout/resultat.
+- `tests/test_order_history.py` : historique des commandes payees, detail de commande, redirection des visiteurs, cloisonnement proprietaire, exclusion des commandes refusees et liens post-paiement.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
 - `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse et prix snapshots.
 
@@ -23,22 +24,22 @@ Couverture officielle revendiquee dans cette etape :
 - `EM8` : email utilisateur unique, y compris rejet formulaire.
 - `ENF3` : mot de passe gere par le hachage Django.
 - `ENF4` : rejet propre d'un email deja utilise pendant l'inscription.
-- `EM1` a `EM7`, `EM10`, `RG1` a `RG5` et `RG7` : couverture domaine/service, completee par les vues pour les etats de concert et le parcours panier/paiement.
+- `EM1` a `EM7`, `EM10`, `RG1` a `RG5` et `RG7` : couverture domaine/service, completee par les vues pour les etats de concert, le parcours panier/paiement et l'affichage des commandes.
 - `EF5`, `EF6`, `EF7`, `EF8`, `EF9` : couverture par services et vues Django.
 - `EF12` : decrement de stock apres paiement accepte au niveau service.
 - `RG6` : checkout et paiement proteges par authentification.
-- `RG8` : couverture partielle par les pages confirmation/refus filtrees par utilisateur ; l'historique complet reste hors scope.
+- `EF10` et `RG8` : couverture par l'historique des commandes payees et le detail de commande filtres par utilisateur.
 - `ENF6` : tests automatises executables sur la fondation technique et domaine.
 
 `EM9` reste une fondation de role via `is_staff` / `is_superuser`, sans couverture revendiquee des permissions de gestion des concerts.
-`ENF1` est partiellement couvert pour la consultation directe et le parcours fiche -> panier -> paiement. L'historique reste hors couverture.
+`ENF1` est partiellement couvert pour la consultation directe et le parcours fiche -> panier -> paiement -> commandes.
 
 ## Couches prevues
 
 | Couche | Objectif | Exemples cibles |
 | --- | --- | --- |
 | Tests unitaires | Valider les regles metier isolees. | quantite 1 a 6, stock disponible, prix fige a la validation |
-| Tests d'integration Django | Valider modeles, vues, formulaires, ORM et permissions. | creation de compte unique, ajout panier, paiement accepte/refuse, pages resultat filtrees par utilisateur |
+| Tests d'integration Django | Valider modeles, vues, formulaires, ORM et permissions. | creation de compte unique, ajout panier, paiement accepte/refuse, pages resultat et historique filtres par utilisateur |
 | Tests fonctionnels Playwright | Valider un parcours utilisateur complet. | consultation, connexion, ajout panier, paiement accepte, historique |
 | Couverture | Mesurer la part du code exercee. | rapport XML pour CI et SonarQube |
 | Analyse statique | Detecter les erreurs et problemes de style. | `ruff check .` |
@@ -65,7 +66,7 @@ pytest --cov=. --cov-report=xml
 coverage report
 ```
 
-Resultat observe : OK, 88 tests passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures, avec `cart/views.py`, `payments/views.py` et `tests/test_booking_flow.py` a 100 %.
+Resultat observe : OK, 94 tests passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures, avec `cart/views.py`, `orders/views.py`, `payments/views.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
 
 ## Exclusions de couverture
 
@@ -87,3 +88,5 @@ Les premiers tests devront couvrir les exigences qui portent le plus de risque m
 ## Documentation des tests
 
 Chaque test automatise devra etre relie a un ou plusieurs IDs officiels dans `docs/validation/matrice_tracabilite.md`.
+
+Pour l'historique, `EF10` et `RG8` sont couverts par les nouvelles pages de commandes payees et detail filtrees par proprietaire. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur reste porte par le parcours checkout/paiement.

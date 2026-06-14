@@ -10,6 +10,7 @@ Le depot contient une application Django executable avec :
 - des pages francaises d'inscription, connexion, deconnexion et espace personnel ;
 - un catalogue public de concerts et des fiches detaillees ;
 - un parcours panier, checkout, paiement simule, confirmation et refus ;
+- un historique des commandes payees et un detail de commande filtres par utilisateur ;
 - un noyau domaine teste pour la billetterie de concerts ;
 - une documentation de validation et de tracabilite mise a jour.
 
@@ -28,8 +29,13 @@ Elements livres dans cette etape :
 - creation d'une commande `paid`, prix snapshots et decrement du stock apres paiement accepte ;
 - creation d'une commande `refused` non finale et stock inchange apres paiement refuse ;
 - pages de confirmation et refus filtrees par utilisateur connecte ;
+- routes `/commandes/` et `/commandes/<id>/` protegees par authentification ;
+- historique `Mes commandes` limite aux commandes payees du client connecte ;
+- detail de commande affichant date, statut, total, concert, categorie, quantite et prix paye ;
+- commandes refusees exclues de l'historique des achats payes ;
+- navigation post-paiement vers le detail de commande et l'historique ;
 - navigation et accueil orientes vers la consultation des concerts ;
-- tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite, les reponses HTTP et le parcours panier/paiement ;
+- tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite, les reponses HTTP, le parcours panier/paiement et l'historique de commandes ;
 - routes `/inscription/`, `/connexion/`, `/deconnexion/` et `/mon-espace/` ;
 - formulaire d'inscription avec email unique, mot de passe Django et rejet explicite des doublons ;
 - formulaire de connexion en francais et deconnexion par requete POST ;
@@ -69,14 +75,16 @@ Couverture existante conservee :
 - `EM1` a `EM7` et `EM10` : regles couvertes au niveau domaine/service et parcours UI ;
 - `RG1` a `RG6` : regles couvertes au niveau domaine/service et parcours UI ;
 - `RG7` : couverture partielle domaine par refus des concerts annules ;
-- `RG8` : couverture partielle par isolation du panier/checkout courant et des pages resultat de paiement ;
+- `EF10` et `RG8` : historique des commandes payees et detail de commande filtres par proprietaire ;
 - `ENF5`, `ENF6` et `ENF7` : Ruff, tests automatises, coverage et GitHub Actions versionnes.
+
+Traceabilite de cette etape :
+
+- `EF10` et `RG8` sont couverts par le nouvel historique paye et les pages detail filtrees par proprietaire.
+- `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement.
 
 Non couvert volontairement dans ce lot :
 
-- `EF10` ;
-- historique complet des commandes dans `Mon espace` ;
-- couverture complete de `RG8` sur un historique de commandes ;
 - couverture fonctionnelle complete de `EF11` ;
 - `EM9`, qui reste une fondation de role seulement via `is_staff` / `is_superuser`.
 
@@ -88,8 +96,8 @@ Non couvert volontairement dans ce lot :
 - `cart/` : panier actif mono-concert, lignes de panier, services de validation/ajout, vues panier et checkout.
 - `orders/` : commandes, lignes de commandes et prix snapshots.
 - `payments/` : paiement simule, regle de carte, service transactionnel et vues paiement/resultat.
-- `templates/` : layout, accueil, catalogue, fiches concerts, comptes, panier et paiement.
-- `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts, domaine billetterie et parcours panier/paiement.
+- `templates/` : layout, accueil, catalogue, fiches concerts, comptes, panier, paiement et commandes.
+- `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts, domaine billetterie, parcours panier/paiement et historique de commandes.
 
 ## Comportement catalogue
 
@@ -111,6 +119,15 @@ Non couvert volontairement dans ce lot :
 - En cas de paiement accepte, une commande `paid` est creee, les prix de lignes sont figes, le stock est decremente et le panier passe a `checked_out`.
 - En cas de paiement refuse, une commande `refused` non finale est creee, le stock ne change pas et le panier reste actif.
 - Les pages de confirmation et de refus ne sont accessibles qu'au proprietaire de la commande.
+- La confirmation de paiement propose un acces au detail de commande et a `Mes commandes`.
+
+## Comportement commandes
+
+- `Mes commandes` exige une session authentifiee et redirige les visiteurs vers `/connexion/?next=/commandes/`.
+- L'historique affiche uniquement les commandes `paid` du client connecte.
+- Le detail `/commandes/<id>/` exige une session authentifiee, filtre par proprietaire et par statut `paid`, et renvoie `404` pour la commande payee d'un autre utilisateur ou une commande refusee.
+- Le detail affiche la date, le statut, le montant total, le concert, la categorie achetee, la quantite, le prix paye et le total de ligne.
+- Les commandes refusees restent tracees comme non finales, ne decrementent pas le stock et sont exclues de l'historique des achats payes.
 
 ## Comportement authentification
 
@@ -121,6 +138,7 @@ Non couvert volontairement dans ce lot :
 - Une erreur de connexion affiche un message francais explicite.
 - La deconnexion utilise un formulaire POST dans la navigation.
 - `Mon espace` exige une session authentifiee et redirige les visiteurs vers `/connexion/?next=/mon-espace/`.
+- `Mon espace` et la navigation authentifiee donnent acces a `Mes commandes`.
 - Un utilisateur standard cree par le parcours public n'a pas les droits `is_staff` ni `is_superuser`.
 
 ## Regles domaine implementees
@@ -133,6 +151,7 @@ Non couvert volontairement dans ce lot :
 - Le stock restant ne peut pas devenir negatif.
 - Un paiement accepte cree une commande `paid`, cree un paiement `accepted`, snapshot les prix et decremente le stock.
 - Un paiement refuse cree une commande `refused`, cree un paiement `refused`, ne decremente pas le stock et laisse le panier actif.
+- Un utilisateur ne peut consulter que ses propres commandes payees dans l'historique et le detail de commande.
 
 ## Donnees demo
 
@@ -186,18 +205,18 @@ coverage report
 Resultats observes pour cette implementation :
 
 - `ruff check .` : OK.
-- `pytest` : OK, 88 tests passent.
+- `pytest` : OK, 94 tests passent.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest --cov=. --cov-report=xml` : OK, 88 tests passent et `coverage.xml` est genere puis ignore par Git.
-- `coverage report` : couverture totale 99 %, avec `cart/forms.py`, `cart/services.py`, `cart/views.py`, `concerts/views.py`, `payments/forms.py`, `payments/views.py` et `tests/test_booking_flow.py` a 100 %.
+- `pytest --cov=. --cov-report=xml` : OK, 94 tests passent et `coverage.xml` est genere puis ignore par Git.
+- `coverage report` : couverture totale 99 %, avec `cart/forms.py`, `cart/services.py`, `cart/views.py`, `concerts/views.py`, `orders/views.py`, `orders/urls.py`, `payments/forms.py`, `payments/views.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
 - `git diff --check` : OK.
 
-Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement sont couvertes par `tests/test_core_domain.py` et `tests/test_booking_flow.py`.
+Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement/commandes sont couvertes par `tests/test_core_domain.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py`.
 
 ## Verification navigateur
 
-Aucun nouveau controle navigateur manuel n'a ete execute pour le parcours panier/paiement dans cette passe ; la verification repose sur les tests d'integration Django.
+Aucun nouveau controle navigateur manuel n'a ete execute pour l'historique de commandes dans cette passe ; la verification repose sur les tests d'integration Django.
 
 Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` :
 
@@ -209,13 +228,13 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 
 ## Statut Git observe
 
-- Branche de travail : `feature/booking-checkout-flow`.
+- Branche de travail : `feature/order-history`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/10`.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/11`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
 
 ## Prochaine etape recommandee
 
-Ajouter l'historique des commandes dans `Mon espace` pour couvrir completement `EF10` et renforcer `RG8`.
+Ajouter un premier scenario Playwright couvrant consultation, panier, paiement accepte et historique de commandes.

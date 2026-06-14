@@ -51,4 +51,4 @@ Exigences : EF7, EF8, EF9, EF12, EM6, EM7, RG4, RG5, RG6.
 
 Exigences : EF10, RG8.
 
-La couverture actuelle de `RG8` porte sur les pages de confirmation/refus d'une commande. L'historique complet de `EF10` reste a implementer.
+`EF10` et `RG8` sont couverts par l'historique des commandes payees et le detail de commande filtre par proprietaire. Les commandes refusees restent non finales et sont exclues de l'historique des achats payes.
