@@ -143,11 +143,12 @@ Etat distant du catalogue :
 
 - le depot amont est accessible en lecture seule au compte GitHub actif ;
 - la branche `feature/public-concert-catalog` est poussee sur le fork `yanismary/billeterie-concerts` ;
-- la pull request amont #7 `Implement public concert catalog` est ouverte vers `Axel-al/billeterie-concerts:main` ;
-- la PR est signalee fusionnable par GitHub ;
-- le workflow CI amont `27508739067` est bloque avec la conclusion `action_required` avant creation des jobs, car les workflows d'un premier contributeur externe exigent une approbation ;
-- la tentative d'approbation avec `gh` est refusee en `403`, les droits administrateur du depot amont etant requis ;
-- aucun resultat GitHub Actions ou SonarCloud n'est donc encore disponible pour le commit `2bd6056`.
+- la pull request #7 a ete fermee et son commit vide de relance d'analyse a ete retire de la branche ;
+- la pull request amont #8 `Implement public concert catalog` est ouverte vers `Axel-al/billeterie-concerts:main` et signalee fusionnable ;
+- le workflow CI amont `27509529948` a demarre sans approbation manuelle et le job `Django checks` a reussi en 56 secondes ;
+- l'installation Chromium, Ruff, les checks Django, les tests avec couverture et l'etape e2e conditionnelle ont reussi ;
+- l'etape SonarQube Cloud du workflow a ete ignoree, car le secret `SONAR_TOKEN` du depot amont n'est pas transmis aux workflows de pull requests provenant d'un fork ;
+- aucun check externe SonarCloud n'est attache au commit `dc129f3`.
 
 ## Verification locale
 
@@ -174,6 +175,8 @@ Resultats observes :
 
 Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe.
 
+La mise a jour documentaire des resultats CI ne modifie aucun code ; la suite locale complete deja verte n'a donc pas ete relancee apres cette seule modification.
+
 ## Verification navigateur
 
 Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` :
@@ -189,7 +192,7 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 - Branche de travail : `feature/public-concert-catalog`.
 - Remote amont en lecture seule : `https://github.com/Axel-al/billeterie-concerts.git`.
 - Remote de push : `https://github.com/yanismary/billeterie-concerts.git`.
-- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/7`.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/8`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
