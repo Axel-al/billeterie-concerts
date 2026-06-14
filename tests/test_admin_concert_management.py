@@ -2,18 +2,24 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from django.contrib import admin as django_admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.exceptions import ValidationError
+from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 
 from cart.models import CartStatus
 from cart.services import add_ticket_to_cart
+from concerts.admin import ConcertAdmin
 from concerts.models import Concert, ConcertStatus, SeatCategory
-from orders.models import Order, OrderStatus
-from payments.models import PaymentResult
+from orders.admin import OrderAdmin, OrderLineAdmin, OrderLineInline
+from orders.models import Order, OrderLine, OrderStatus
+from payments.admin import PaymentAdmin
+from payments.models import Payment, PaymentResult
 from payments.services import process_simulated_payment
 
 VALID_PASSWORD = "MotDePasseTresSolide2026!"
@@ -88,6 +94,13 @@ def create_paid_order(user, concert, category, quantity=2):
     line = add_ticket_to_cart(user, category, quantity)
     payment = process_simulated_payment(line.cart, PaymentResult.ACCEPTED)
     return payment.order
+
+
+def build_admin_action_request():
+    request = RequestFactory().get("/")
+    request.session = {}
+    request._messages = FallbackStorage(request)
+    return request
 
 
 @pytest.mark.django_db
@@ -298,3 +311,65 @@ def test_django_admin_can_create_and_modify_concert_with_category(client):
     assert category.price == Decimal("39.00")
     assert category.stock_initial == 60
     assert category.stock_remaining == 55
+
+
+@pytest.mark.django_db
+def test_concert_admin_metrics_and_bulk_actions(standard_user):
+    concert = create_concert(title="Synthese Admin")
+    category = create_category(concert, stock=10)
+    create_paid_order(standard_user, concert, category, quantity=2)
+    refused_line = add_ticket_to_cart(standard_user, category, 1)
+    process_simulated_payment(refused_line.cart, PaymentResult.REFUSED)
+    category.refresh_from_db()
+    concert_admin = ConcertAdmin(Concert, django_admin.site)
+
+    assert concert_admin.total_stock_initial(concert) == 10
+    assert concert_admin.total_stock_remaining(concert) == 8
+    assert concert_admin.paid_orders_count(concert) == 1
+    assert concert_admin.paid_tickets_sold(concert) == 2
+    assert concert_admin.paid_revenue(concert) == Decimal("80.00")
+
+    concert_to_cancel = create_concert(title="Annulation Admin")
+    create_category(concert_to_cancel)
+    concert_admin.cancel_selected_concerts(
+        build_admin_action_request(),
+        Concert.objects.filter(pk=concert_to_cancel.pk),
+    )
+    concert_to_cancel.refresh_from_db()
+    assert concert_to_cancel.status == ConcertStatus.CANCELLED
+
+    concert_to_close = create_concert(title="Cloture Admin")
+    create_category(concert_to_close)
+    concert_admin.close_selected_concerts(
+        build_admin_action_request(),
+        Concert.objects.filter(pk=concert_to_close.pk),
+    )
+    concert_to_close.refresh_from_db()
+    assert concert_to_close.status == ConcertStatus.CLOSED
+
+
+def test_order_and_payment_admin_records_are_read_only():
+    request = RequestFactory().get("/")
+
+    assert (
+        OrderLineInline(Order, django_admin.site).has_add_permission(request)
+        is False
+    )
+    assert OrderAdmin(Order, django_admin.site).has_add_permission(request) is False
+    assert (
+        OrderAdmin(Order, django_admin.site).has_delete_permission(request)
+        is False
+    )
+    assert (
+        OrderLineAdmin(OrderLine, django_admin.site).has_add_permission(request)
+        is False
+    )
+    assert (
+        OrderLineAdmin(OrderLine, django_admin.site).has_delete_permission(request)
+        is False
+    )
+    assert PaymentAdmin(Payment, django_admin.site).has_add_permission(request) is False
+    assert (
+        PaymentAdmin(Payment, django_admin.site).has_delete_permission(request)
+        is False
+    )

@@ -229,14 +229,14 @@ coverage report
 Resultats observes pour la derniere implementation complete :
 
 - `ruff check .` : OK.
-- `pytest` : OK, 103 tests passent.
+- `pytest` : OK, 105 tests passent.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest --cov=. --cov-report=xml` : OK, 103 tests passent et `coverage.xml` est genere puis ignore par Git.
-- `coverage report` : couverture totale 98 %, avec `cart/services.py`, `cart/views.py`, `concerts/services.py`, `orders/views.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
+- `pytest --cov=. --cov-report=xml` : OK, 105 tests passent et `coverage.xml` est genere puis ignore par Git.
+- `coverage report` : couverture totale 99 %, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
 - `git diff --check` : OK.
 
-Decision couverture : les lignes restantes non couvertes concernent surtout des methodes d'affichage/actions de l'admin Django, des hooks defensifs de permissions et quelques incoherences defensives dans `payments/services.py`. Les regles critiques demandees et les branches significatives des vues panier/paiement/commandes/administration sont couvertes par `tests/test_core_domain.py`, `tests/test_booking_flow.py`, `tests/test_order_history.py` et `tests/test_admin_concert_management.py`.
+Decision couverture : les lignes restantes non couvertes concernent uniquement des incoherences defensives dans `payments/services.py` : categorie de panier incoherente apres validation, stock devenu insuffisant entre validation et snapshot, ou echec concurrent de l'update conditionnel. Les couvrir demanderait des donnees volontairement incoherentes ou du monkeypatch interne, donc elles ne sont pas ajoutees a cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement/commandes/administration sont couvertes par `tests/test_core_domain.py`, `tests/test_booking_flow.py`, `tests/test_order_history.py` et `tests/test_admin_concert_management.py`.
 
 ## Verification navigateur
 

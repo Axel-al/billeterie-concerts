@@ -68,7 +68,7 @@ pytest --cov=. --cov-report=xml
 coverage report
 ```
 
-Resultat observe : OK, 103 tests passent et `coverage.xml` est genere. La couverture locale affiche 98 % sur les chemins mesures, avec `cart/services.py`, `cart/views.py`, `concerts/services.py`, `orders/views.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
+Resultat observe : OK, 105 tests passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
 
 ## Exclusions de couverture
 

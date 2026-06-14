@@ -108,7 +108,7 @@ class ConcertAdminActionView(AdminPermissionRequiredMixin, View):
     success_message = ""
 
     def update_concert(self, concert):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def post(self, request, pk):
         concert = get_object_or_404(Concert, pk=pk)
