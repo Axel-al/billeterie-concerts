@@ -1,5 +1,18 @@
 # Tables de decision
 
+## Consultation d'un concert
+
+| Cas | Statut | Date future | Stock disponible | Catalogue | Fiche | Action de reservation |
+| --- | --- | --- | --- | --- | --- | --- |
+| L1 | Ouvert | Oui | Oui | Afficher | Afficher | Connexion proposee au visiteur |
+| L2 | Ouvert | Oui | Non | Masquer | Afficher motif complet | Aucune |
+| L3 | Annule | Oui | Oui ou non | Masquer | Afficher motif annulation | Aucune |
+| L4 | Ouvert ou termine | Non | Oui ou non | Masquer | Afficher motif date passee | Aucune |
+| L5 | Termine ou complet | Oui | Oui ou non | Masquer | Afficher motif adapte | Aucune |
+| L6 | Brouillon | Oui ou non | Oui ou non | Masquer | Reponse `404` | Aucune |
+
+Exigences : EF1, EF2, EM4, EM5, RG1, RG7.
+
 ## Reservation d'une categorie
 
 | Cas | Utilisateur fourni au service | Panier mono-concert | Concert futur | Concert ouvert | Concert annule | Stock suffisant | Quantite totale concert 1..6 | Decision |

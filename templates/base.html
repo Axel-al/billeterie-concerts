@@ -10,6 +10,7 @@
   <header class="border-bottom bg-white">
     <nav class="navbar navbar-expand-lg container py-3">
       <a class="navbar-brand fw-semibold" href="{% url 'home' %}">Billetterie concerts</a>
+      <a class="nav-link ms-4" href="{% url 'concerts:list' %}">Concerts</a>
       <div class="ms-auto d-flex align-items-center gap-2">
         {% if user.is_authenticated %}
           <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:personal_area' %}">Mon espace</a>

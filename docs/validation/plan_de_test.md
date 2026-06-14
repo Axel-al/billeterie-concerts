@@ -11,16 +11,17 @@ Les premiers tests automatises sont versionnes dans `tests/`.
 - `tests/test_homepage.py` verifie que la page `/` repond.
 - `tests/test_accounts.py` verifie l'identifiant email, l'unicite email et le hachage des mots de passe.
 - `tests/test_authentication_views.py` verifie les labels francais, l'inscription, le rejet d'email duplique, le hachage via formulaire, la connexion, l'echec de connexion, la deconnexion POST, la protection de `Mon espace` et la fondation de role utilisateur standard.
+- `tests/test_concert_views.py` verifie le filtrage du catalogue, les donnees affichees sur les fiches, les etats non reservables, le CTA de connexion et les reponses HTTP.
 - `tests/test_core_domain.py` verifie les premieres regles domaine : quantites, stock, statut de concert, panier mono-concert, paiement simule accepte/refuse et prix snapshots.
 
-Ces tests couvrent `EF3`, `EF4`, `EM8`, `ENF3`, `ENF4`, `ENF6`, ainsi que les regles domaine `EM1` a `EM7`, `EM10` et `RG1` a `RG5`. `EF5`, `EF7`, `EF8` et `EF9` restent des couvertures partielles domaine/service, sans UI. `EM9` reste une fondation de role seulement et n'est pas revendiquee comme couverte.
+Ces tests couvrent `EF1` a `EF4`, `EM8`, `ENF3`, `ENF4`, `ENF6`, ainsi que les regles domaine `EM1` a `EM7`, `EM10` et `RG1` a `RG5`. `ENF1` est partiellement couvert par la navigation de consultation. `EF5`, `EF7`, `EF8` et `EF9` restent des couvertures partielles domaine/service, sans UI. `EM9` reste une fondation de role seulement et n'est pas revendiquee comme couverte.
 
 ## Types de tests prevus
 
 | Type | Cible | Outils | Exemples d'IDs |
 | --- | --- | --- | --- |
 | Unitaire | Regles metier pures ou services | pytest | EM1, EM2, EM3, EM6, EM7, RG2, RG3, RG4, RG5 |
-| Integration Django | Modeles, formulaires, vues, permissions | pytest-django | EF3, EF4, EF5, EF8, EF9, EF10, EF11, RG6, RG8 |
+| Integration Django | Modeles, formulaires, vues, permissions | pytest-django | EF1, EF2, EF3, EF4, EF5, EF8, EF9, EF10, EF11, RG1, RG6, RG8 |
 | Fonctionnel | Parcours utilisateur complet | pytest-playwright | EF1, EF2, EF5, EF7, EF8, EF10, ENF1 |
 | Qualite | Analyse statique et couverture | Ruff, coverage, SonarQube | ENF5, ENF6, ENF7 |
 
@@ -30,6 +31,8 @@ Ces tests couvrent `EF3`, `EF4`, `EM8`, `ENF3`, `ENF4`, `ENF6`, ainsi que les re
 - Concert complet ou stock insuffisant.
 - Concert annule.
 - Concert passe.
+- Concert ouvert sans stock.
+- Concert brouillon non publie.
 - Client avec panier vide et panier rempli.
 - Visiteur creant un compte avec email unique ou email deja utilise.
 - Client connecte puis deconnecte via POST.

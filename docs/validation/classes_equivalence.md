@@ -26,13 +26,13 @@ La contrainte de modele interdit aussi un stock restant negatif.
 
 ## Etat du concert
 
-| Classe | Situation | Resultat attendu | Exigences |
+| Classe | Situation | Resultat attendu dans le catalogue et la fiche | Exigences |
 | --- | --- | --- | --- |
-| Ouvert et futur | Concert reservable avec stock | Reservation possible | RG1 |
-| Brouillon | Non ouvert a la vente | Reservation impossible | RG1 |
-| Complet | Aucun stock disponible | Reservation impossible | RG1 |
-| Annule | Statut annule | Reservation impossible | EM5, RG7 |
-| Termine ou passe | Date passee | Reservation impossible | EM4, RG1 |
+| Ouvert et futur | Concert reservable avec stock | Catalogue et fiche visibles, connexion proposee au visiteur | EF1, EF2, RG1 |
+| Brouillon | Non ouvert a la vente | Absent du catalogue, fiche publique `404` | RG1 |
+| Complet | Aucun stock disponible | Absent du catalogue, fiche avec motif et sans CTA | RG1 |
+| Annule | Statut annule | Absent du catalogue, fiche avec motif et sans CTA | EM5, RG7 |
+| Termine ou passe | Date passee | Absent du catalogue, fiche avec motif et sans CTA | EM4, RG1 |
 
 Dans l'implementation courante, une date egale a l'instant courant est consideree comme non reservable ; le concert doit etre strictement futur.
 

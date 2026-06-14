@@ -26,9 +26,9 @@ Cas agreges couverts : `3 + 3 = 6` accepte, `3 + 4 = 7` refuse pour un meme conc
 
 | Situation | Resultat attendu | Exigences |
 | --- | --- | --- |
-| Date passee | Reservation refusee | EM4, RG1 |
-| Date actuelle | Reservation refusee | EM4, RG1 |
-| Date future | Reservation possible si autres conditions valides | EM4, RG1 |
+| Date passee | Absente du catalogue, fiche avec refus explique | EM4, RG1 |
+| Date actuelle | Absente du catalogue, fiche avec refus explique | EM4, RG1 |
+| Date future | Catalogue possible si statut ouvert et stock disponible | EF1, EM4, RG1 |
 
 ## Performance
 
