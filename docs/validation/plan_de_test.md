@@ -14,16 +14,17 @@ Les premiers tests automatises sont versionnes dans `tests/`.
 - `tests/test_concert_views.py` verifie le filtrage du catalogue, les donnees affichees sur les fiches, les etats non reservables, le CTA de connexion et les reponses HTTP.
 - `tests/test_booking_flow.py` verifie l'ajout au panier via la fiche, les bornes de quantite, les rejets stock/date/statut, le total panier, le paiement accepte/refuse, le decrement de stock, les prix snapshots et le cloisonnement des pages resultat.
 - `tests/test_order_history.py` verifie l'historique des commandes payees, le detail de commande, les redirections de visiteurs, le cloisonnement proprietaire, les liens post-paiement et l'exclusion des commandes refusees.
+- `tests/test_admin_concert_management.py` verifie les permissions d'administration, la synthese des ventes payees, l'annulation, la cloture, la preservation des commandes payees et la creation/modification admin de concerts avec categories.
 - `tests/test_core_domain.py` verifie les premieres regles domaine : quantites, stock, statut de concert, panier mono-concert, paiement simule accepte/refuse et prix snapshots.
 
-Ces tests couvrent `EF1` a `EF10`, `EF12`, `EM1` a `EM8`, `EM10`, `ENF3`, `ENF4`, `ENF6`, `RG1` a `RG8`. `EF10` et `RG8` sont couverts par le nouvel historique paye et les pages detail filtrees par proprietaire. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement. `ENF1` est partiellement couvert par la navigation de consultation et le parcours fiche -> panier -> paiement -> commandes. `EM9` reste une fondation de role seulement et n'est pas revendiquee comme couverte.
+Ces tests couvrent `EF1` a `EF12`, `EM1` a `EM10`, `ENF3`, `ENF4`, `ENF6`, `RG1` a `RG8`. `EF10` et `RG8` sont couverts par l'historique paye et les pages detail filtrees par proprietaire. `EF11`, `EM9` et `RG7` sont couverts par les vues d'administration, l'admin Django et les tests de permissions. Le suivi admin des ventes ne releve pas de `RG8`, qui reste l'isolation des commandes des utilisateurs standards. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement. `ENF1` est partiellement couvert par la navigation de consultation et le parcours fiche -> panier -> paiement -> commandes.
 
 ## Types de tests prevus
 
 | Type | Cible | Outils | Exemples d'IDs |
 | --- | --- | --- | --- |
 | Unitaire | Regles metier pures ou services | pytest | EM1, EM2, EM3, EM6, EM7, RG2, RG3, RG4, RG5 |
-| Integration Django | Modeles, formulaires, vues, permissions | pytest-django | EF1, EF2, EF3, EF4, EF5, EF6, EF7, EF8, EF9, EF10, EF11, RG1, RG6, RG8 |
+| Integration Django | Modeles, formulaires, vues, permissions | pytest-django | EF1, EF2, EF3, EF4, EF5, EF6, EF7, EF8, EF9, EF10, EF11, EM9, RG1, RG6, RG7, RG8 |
 | Fonctionnel | Parcours utilisateur complet | pytest-playwright | EF1, EF2, EF5, EF7, EF8, EF10, ENF1 |
 | Qualite | Analyse statique et couverture | Ruff, coverage, SonarQube | ENF5, ENF6, ENF7 |
 
@@ -35,11 +36,13 @@ Ces tests couvrent `EF1` a `EF10`, `EF12`, `EM1` a `EM8`, `EM10`, `ENF3`, `ENF4`
 - Concert passe.
 - Concert ouvert sans stock.
 - Concert brouillon non publie.
+- Concert cloture par l'administration.
 - Client avec panier vide et panier rempli.
 - Client avec commande payee et tentative de paiement refusee.
 - Visiteur creant un compte avec email unique ou email deja utilise.
 - Client connecte puis deconnecte via POST.
 - Administrateur.
+- Gestionnaire autorise par permissions Django.
 - Paiement simule accepte avec `4242424242424242` et refuse avec toute autre carte.
 
 ## Criteres de sortie initiaux

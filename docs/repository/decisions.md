@@ -2,6 +2,14 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-06-15 - Administration concerts et ventes par permissions Django
+
+Decision : ajouter une synthese admin des ventes et des actions d'annulation/cloture avec des vues Django protegees par permissions, tout en enrichissant l'admin Django existant.
+
+Motif : `EF11`, `EM9` et `RG7` demandent une preuve testable de gestion administrateur. Une page Django template reste coherente avec la stack du projet et plus facile a demontrer/tester que l'admin Django seul. Les permissions explicites `concerts.view_concert`, `orders.view_order` et `concerts.change_concert` permettent de distinguer visiteur anonyme, utilisateur standard et gestionnaire autorise.
+
+Impact : le statut `closed` represente une vente cloturee sans assimiler ce cas a un concert complet. Les concerts annules ou clotures ne sont plus reservables, mais les commandes payees existantes restent visibles a leur proprietaire. Le suivi admin des ventes compte seulement les commandes payees et ne modifie pas la portee de `RG8`, qui reste l'isolation des commandes des utilisateurs standards.
+
 ## 2026-06-14 - Parcours panier et paiement simule Django
 
 Decision : exposer le parcours panier, checkout, paiement simule, confirmation et refus avec des vues/templates Django, en reutilisant les services domaine existants.

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Administration des ventes - Billetterie concerts{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center mb-4">
+    <div>
+      <h1 class="h2 mb-1">Administration des ventes</h1>
+      <p class="text-muted mb-0">Synthese par concert, commandes payees uniquement.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'admin:concerts_concert_changelist' %}">Ouvrir l’admin Django</a>
+  </div>
+
+  {% if sales_summaries %}
+    <div class="table-responsive bg-white border rounded">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Concert</th>
+            <th scope="col">Statut</th>
+            <th scope="col" class="text-end">Commandes payees</th>
+            <th scope="col" class="text-end">Billets vendus</th>
+            <th scope="col" class="text-end">Chiffre d’affaires</th>
+            <th scope="col" class="text-end">Stock initial</th>
+            <th scope="col" class="text-end">Stock restant</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for summary in sales_summaries %}
+            <tr>
+              <th scope="row">
+                <a href="{% url 'concerts:detail' summary.concert.pk %}">{{ summary.concert.title }}</a>
+                <span class="d-block fw-normal text-muted">{{ summary.concert.artist }}</span>
+              </th>
+              <td>{{ summary.concert.get_status_display }}</td>
+              <td class="text-end">{{ summary.paid_orders_count }}</td>
+              <td class="text-end">{{ summary.tickets_sold }}</td>
+              <td class="text-end">{{ summary.revenue|floatformat:2 }} €</td>
+              <td class="text-end">{{ summary.stock_initial }}</td>
+              <td class="text-end">{{ summary.stock_remaining }}</td>
+              <td class="text-end">
+                <div class="d-inline-flex gap-2">
+                  <form method="post" action="{% url 'concerts:admin_close' summary.concert.pk %}" class="m-0">
+                    {% csrf_token %}
+                    <button
+                      type="submit"
+                      class="btn btn-outline-secondary btn-sm"
+                      {% if summary.concert.status == "closed" or summary.concert.status == "cancelled" %}disabled{% endif %}
+                    >
+                      Clôturer
+                    </button>
+                  </form>
+                  <form method="post" action="{% url 'concerts:admin_cancel' summary.concert.pk %}" class="m-0">
+                    {% csrf_token %}
+                    <button
+                      type="submit"
+                      class="btn btn-outline-danger btn-sm"
+                      {% if summary.concert.status == "cancelled" %}disabled{% endif %}
+                    >
+                      Annuler
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="alert alert-info">Aucun concert n’est encore disponible pour le suivi des ventes.</p>
+  {% endif %}
+{% endblock %}

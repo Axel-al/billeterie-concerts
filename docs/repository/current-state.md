@@ -1,6 +1,6 @@
 # Etat courant du depot
 
-Derniere mise a jour : 2026-06-14
+Derniere mise a jour : 2026-06-15
 
 ## Synthese
 
@@ -11,6 +11,7 @@ Le depot contient une application Django executable avec :
 - un catalogue public de concerts et des fiches detaillees ;
 - un parcours panier, checkout, paiement simule, confirmation et refus ;
 - un historique des commandes payees et un detail de commande filtres par utilisateur ;
+- des vues d'administration protegees par permissions pour le suivi des ventes, l'annulation et la cloture des ventes ;
 - un noyau domaine teste pour la billetterie de concerts ;
 - une documentation de validation et de tracabilite mise a jour.
 
@@ -34,8 +35,16 @@ Elements livres dans cette etape :
 - detail de commande affichant date, statut, total, concert, categorie, quantite et prix paye ;
 - commandes refusees exclues de l'historique des achats payes ;
 - navigation post-paiement vers le detail de commande et l'historique ;
+- statut de concert `closed` pour les ventes cloturees ;
+- route `/concerts/administration/ventes/` protegee par `concerts.view_concert` et `orders.view_order` ;
+- actions POST d'administration pour annuler un concert ou cloturer ses ventes, protegees par `concerts.change_concert` ;
+- synthese des ventes par concert limitee aux commandes payees : commandes, billets vendus, chiffre d'affaires, stock initial et stock restant ;
+- lien de navigation `Administration ventes` visible seulement pour les utilisateurs ayant les permissions de consultation requises ;
+- admin Django enrichi pour les concerts et categories, avec indicateurs de stock/ventes et actions d'annulation/cloture ;
+- commandes et paiements consultables en admin comme surfaces de lecture plutot que de modification metier ;
 - navigation et accueil orientes vers la consultation des concerts ;
 - tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite, les reponses HTTP, le parcours panier/paiement et l'historique de commandes ;
+- tests d'integration Django pour les permissions d'administration, l'annulation, la cloture, le suivi des ventes et la creation/modification admin de concerts avec categories ;
 - routes `/inscription/`, `/connexion/`, `/deconnexion/` et `/mon-espace/` ;
 - formulaire d'inscription avec email unique, mot de passe Django et rejet explicite des doublons ;
 - formulaire de connexion en francais et deconnexion par requete POST ;
@@ -64,6 +73,12 @@ Couverture revendiquee pour le catalogue :
 - `RG7` : annulation visible sans nouvelle action de reservation, hors action admin ;
 - `ENF1` : couverture partielle par la navigation accueil, catalogue et fiche.
 
+Couverture revendiquee pour l'administration :
+
+- `EF11` : creation, modification, annulation et cloture de concerts via administration ;
+- `EM9` : les vues d'administration exigent les permissions Django adaptees ;
+- `RG7` : l'annulation admin rend le concert non reservable.
+
 Couverture existante conservee :
 
 - `EF5` : ajout de billets au panier depuis une fiche concert reservable pour un utilisateur connecte ;
@@ -74,35 +89,34 @@ Couverture existante conservee :
 - `EF12` : stock decremente apres paiement accepte ;
 - `EM1` a `EM7` et `EM10` : regles couvertes au niveau domaine/service et parcours UI ;
 - `RG1` a `RG6` : regles couvertes au niveau domaine/service et parcours UI ;
-- `RG7` : couverture partielle domaine par refus des concerts annules ;
 - `EF10` et `RG8` : historique des commandes payees et detail de commande filtres par proprietaire ;
 - `ENF5`, `ENF6` et `ENF7` : Ruff, tests automatises, coverage et GitHub Actions versionnes.
 
 Traceabilite de cette etape :
 
 - `EF10` et `RG8` sont couverts par le nouvel historique paye et les pages detail filtrees par proprietaire.
+- `EF11`, `EM9` et `RG7` sont couverts par les vues d'administration, les actions de statut et les tests de permissions.
 - `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement.
 
 Non couvert volontairement dans ce lot :
 
-- couverture fonctionnelle complete de `EF11` ;
-- `EM9`, qui reste une fondation de role seulement via `is_staff` / `is_superuser`.
+- `RG8` ne couvre pas le suivi de ventes administrateur : il reste limite au cloisonnement des commandes des utilisateurs standards.
 
 ## Structure applicative
 
 - `config/` : settings, URLs racines, redirections d'authentification, ASGI et WSGI.
 - `accounts/` : modele utilisateur personnalise, manager, admin Django, formulaires, vues et URLs d'authentification.
-- `concerts/` : concerts, categories de places, statuts, stock, vues publiques, admin et commande `seed_demo_data`.
+- `concerts/` : concerts, categories de places, statuts, stock, vues publiques, vues d'administration, services de gestion, admin Django et commande `seed_demo_data`.
 - `cart/` : panier actif mono-concert, lignes de panier, services de validation/ajout, vues panier et checkout.
 - `orders/` : commandes, lignes de commandes et prix snapshots.
 - `payments/` : paiement simule, regle de carte, service transactionnel et vues paiement/resultat.
-- `templates/` : layout, accueil, catalogue, fiches concerts, comptes, panier, paiement et commandes.
-- `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts, domaine billetterie, parcours panier/paiement et historique de commandes.
+- `templates/` : layout, accueil, catalogue, fiches concerts, comptes, panier, paiement, commandes et synthese admin des ventes.
+- `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts, domaine billetterie, parcours panier/paiement, historique de commandes et administration concerts/ventes.
 
 ## Comportement catalogue
 
 - Le catalogue public n'affiche que les concerts strictement futurs, `open` et avec au moins une categorie en stock.
-- Les fiches annulees, passees, terminees ou completes restent consultables avec un motif explicite et sans CTA de reservation.
+- Les fiches annulees, cloturees, passees, terminees ou completes restent consultables avec un motif explicite et sans CTA de reservation.
 - Les fiches brouillon et les identifiants inconnus renvoient `404`.
 - Toutes les categories sont affichees sur la fiche, y compris les categories epuisees.
 - Un visiteur voit `Se connecter pour reserver` seulement pour un concert reservable ; le parametre `next` conserve l'URL de la fiche.
@@ -129,6 +143,19 @@ Non couvert volontairement dans ce lot :
 - Le detail affiche la date, le statut, le montant total, le concert, la categorie achetee, la quantite, le prix paye et le total de ligne.
 - Les commandes refusees restent tracees comme non finales, ne decrementent pas le stock et sont exclues de l'historique des achats payes.
 
+## Comportement administration
+
+- Le statut `closed` represente une vente cloturee manuellement par l'administration.
+- La synthese `/concerts/administration/ventes/` exige `concerts.view_concert` et `orders.view_order`.
+- Les actions POST d'annulation et de cloture exigent `concerts.change_concert`.
+- Un visiteur anonyme est redirige vers `/connexion/` avec le parametre `next`.
+- Un utilisateur authentifie sans permission recoit une reponse `403`.
+- Un utilisateur ayant les permissions requises peut consulter les ventes et changer le statut d'un concert.
+- L'annulation admin met le concert en `cancelled` et bloque toute nouvelle reservation.
+- La cloture admin met le concert en `closed` et bloque toute nouvelle reservation.
+- L'annulation ou la cloture ne modifie pas le stock restant et ne supprime pas les commandes payees existantes.
+- La synthese des ventes compte uniquement les commandes `paid`; les commandes `refused` restent hors chiffre d'affaires et hors billets vendus.
+
 ## Comportement authentification
 
 - Un visiteur peut creer un compte avec email, nom, prenom et mot de passe.
@@ -144,7 +171,7 @@ Non couvert volontairement dans ce lot :
 ## Regles domaine implementees
 
 - Un concert est reservable seulement s'il est strictement futur, `open` et avec au moins une categorie en stock.
-- Les concerts passes ou annules ne sont pas reservables.
+- Les concerts passes, annules ou clotures ne sont pas reservables.
 - Une quantite doit etre un entier entre 1 et 6.
 - Le plafond de 6 billets est applique au total du panier/commande pour un seul concert, pas seulement par ligne.
 - Un panier actif et une commande sont limites a un seul concert.
@@ -178,16 +205,13 @@ La configuration SonarCloud analyse tous les modules applicatifs existants :
 `config`, `accounts`, `concerts`, `cart`, `orders` et `payments`. Les tests restent
 declares separement dans `tests`.
 
-Etat distant du catalogue :
+Etat distant de la branche courante :
 
-- le compte GitHub actif dispose maintenant des droits d'ecriture sur `Axel-al/billeterie-concerts` ;
-- les pull requests #7 et #8 provenant du fork ont ete fermees, leur commit vide de relance a ete retire et le fork `yanismary/billeterie-concerts` a ete supprime ;
-- la branche `feature/public-concert-catalog` est poussee directement sur le depot amont ;
-- la pull request #9 `Implement public concert catalog` est ouverte vers `main` et signalee fusionnable ;
-- les workflows GitHub Actions declenches par le push et la pull request ont reussi ;
-- l'installation Chromium, Ruff, les checks Django, les 69 tests avec couverture et l'etape e2e conditionnelle ont reussi dans la CI ;
-- l'etape SonarQube Cloud a ete executee avec le secret du depot amont dans les deux workflows ;
-- le check externe `SonarCloud Code Analysis` a reussi.
+- le compte GitHub actif dispose de droits d'ecriture sur `Axel-al/billeterie-concerts` ;
+- la branche `feature/admin-concert-management` est poussee directement sur le depot amont ;
+- la pull request #12 `Implement admin concert management` est ouverte vers `main` ;
+- le workflow distant `CI` declenche par push a reussi ;
+- `gh checks HEAD` signale `Django checks` et `SonarCloud Code Analysis` en succes.
 
 ## Verification locale
 
@@ -202,21 +226,21 @@ pytest --cov=. --cov-report=xml
 coverage report
 ```
 
-Resultats observes pour cette implementation :
+Resultats observes pour la derniere implementation complete :
 
 - `ruff check .` : OK.
-- `pytest` : OK, 94 tests passent.
+- `pytest` : OK, 105 tests passent.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest --cov=. --cov-report=xml` : OK, 94 tests passent et `coverage.xml` est genere puis ignore par Git.
-- `coverage report` : couverture totale 99 %, avec `cart/forms.py`, `cart/services.py`, `cart/views.py`, `concerts/views.py`, `orders/views.py`, `orders/urls.py`, `payments/forms.py`, `payments/views.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
+- `pytest --cov=. --cov-report=xml` : OK, 105 tests passent et `coverage.xml` est genere puis ignore par Git.
+- `coverage report` : couverture totale 99 %, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
 - `git diff --check` : OK.
 
-Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement/commandes sont couvertes par `tests/test_core_domain.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py`.
+Decision couverture : les lignes restantes non couvertes concernent uniquement des incoherences defensives dans `payments/services.py` : categorie de panier incoherente apres validation, stock devenu insuffisant entre validation et snapshot, ou echec concurrent de l'update conditionnel. Les couvrir demanderait des donnees volontairement incoherentes ou du monkeypatch interne, donc elles ne sont pas ajoutees a cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement/commandes/administration sont couvertes par `tests/test_core_domain.py`, `tests/test_booking_flow.py`, `tests/test_order_history.py` et `tests/test_admin_concert_management.py`.
 
 ## Verification navigateur
 
-Aucun nouveau controle navigateur manuel n'a ete execute pour l'historique de commandes dans cette passe ; la verification repose sur les tests d'integration Django.
+Aucun nouveau controle navigateur manuel n'a ete execute pour l'administration concerts/ventes dans cette passe ; la verification repose sur les tests d'integration Django.
 
 Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` :
 
@@ -228,9 +252,9 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 
 ## Statut Git observe
 
-- Branche de travail : `feature/order-history`.
+- Branche de travail : `feature/admin-concert-management`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/11`.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/12`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.

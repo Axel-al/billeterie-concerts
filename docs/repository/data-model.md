@@ -14,6 +14,8 @@ Le modele courant couvre le noyau domaine de la billetterie et le parcours panie
 | OrderLine | `orders` | Ligne de commande avec nom de categorie et prix unitaire figes. |
 | Payment | `payments` | Resultat accepte ou refuse du paiement simule. |
 
+`Concert.status` contient maintenant les etats `draft`, `open`, `closed`, `sold_out`, `cancelled` et `finished`. Le statut `closed` represente une vente cloturee manuellement par l'administration : le concert reste consultable mais n'est plus reservable.
+
 ## Contraintes principales
 
 - `SeatCategory` est unique par couple concert/nom et son stock restant ne peut pas etre negatif.
@@ -23,6 +25,7 @@ Le modele courant couvre le noyau domaine de la billetterie et le parcours panie
 - Un panier actif ne peut contenir qu'un seul concert ; une commande reference aussi un seul concert.
 - `Payment` est en relation un-a-un avec `Order`.
 - Les pages de confirmation et de refus filtrent les commandes par utilisateur connecte.
+- Les vues d'administration des ventes calculent les ventes a partir des commandes `paid` existantes ; aucun total de vente supplementaire n'est stocke.
 
 ## Snapshots
 
@@ -33,6 +36,8 @@ Les prix affiches dans le panier restent les prix courants des categories. Lors 
 - la quantite.
 
 Une modification ulterieure du prix d'une categorie ne change donc pas les commandes deja creees.
+
+La synthese admin des ventes utilise ces snapshots et les montants de commandes payees. Les commandes refusees restent tracees mais ne comptent ni dans le chiffre d'affaires ni dans les billets vendus.
 
 ## Paiement simule
 

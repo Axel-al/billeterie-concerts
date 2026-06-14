@@ -58,5 +58,12 @@
 ## CA9 - Administration concerts
 
 - Etant donne un administrateur authentifie, quand il cree, modifie, suspend ou annule un concert, alors le changement est applique.
-- Etant donne un utilisateur non administrateur, quand il tente de gerer un concert, alors l'acces est refuse.
+- Etant donne un utilisateur avec `concerts.change_concert`, quand il annule un concert, alors le statut passe a `cancelled` et aucune nouvelle reservation n'est possible.
+- Etant donne un utilisateur avec `concerts.change_concert`, quand il cloture les ventes d'un concert, alors le statut passe a `closed` et aucune nouvelle reservation n'est possible.
+- Etant donne un utilisateur avec `concerts.view_concert` et `orders.view_order`, quand il ouvre la synthese des ventes, alors les commandes payees, billets vendus, revenus, stocks initiaux et stocks restants sont visibles par concert.
+- Etant donne un visiteur non connecte, quand il tente d'acceder a une fonctionnalite admin, alors il est redirige vers la connexion.
+- Etant donne un utilisateur connecte sans permission admin, quand il tente de gerer un concert ou de consulter les ventes, alors l'acces est refuse avec `403`.
+- Etant donne une commande payee existante, quand le concert est annule ensuite, alors la commande reste visible par son proprietaire.
 - Exigences : EF11, EM9, RG7.
+
+Note : `RG8` reste traite dans `CA8` pour l'historique et le detail des commandes des utilisateurs standards. La synthese admin des ventes est une fonctionnalite privilegiee distincte.

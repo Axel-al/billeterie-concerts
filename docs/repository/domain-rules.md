@@ -10,11 +10,13 @@ Un concert est reservable seulement si :
 
 Une categorie est reservable pour une quantite donnee seulement si son stock restant couvre cette quantite.
 
+Les statuts `cancelled` et `closed` bloquent toute nouvelle reservation. `cancelled` represente une annulation du concert ; `closed` represente une cloture manuelle des ventes.
+
 ## Consultation publique
 
 Le catalogue public affiche uniquement les concerts ouverts, strictement futurs et avec au moins une categorie en stock.
 
-Une fiche detaillee publique peut rester consultable lorsqu'un concert est annule, passe, termine ou complet afin d'expliquer son indisponibilite. Les brouillons ne sont pas publies et renvoient une reponse `404`.
+Une fiche detaillee publique peut rester consultable lorsqu'un concert est annule, cloture, passe, termine ou complet afin d'expliquer son indisponibilite. Les brouillons ne sont pas publies et renvoient une reponse `404`.
 
 La fiche affiche toutes les categories, y compris celles dont le stock est nul. Un visiteur voit un lien de connexion avec retour vers la fiche seulement si le concert est reservable. Un utilisateur connecte voit un formulaire categorie/quantite permettant d'ajouter des billets au panier.
 
@@ -44,6 +46,16 @@ Les pages `Mes commandes` et detail de commande sont reservees aux utilisateurs 
 - Un utilisateur ne peut pas consulter la commande payee d'un autre utilisateur.
 - Une commande `refused` reste non finale et exclue de l'historique des achats payes.
 
+## Administration
+
+- Le suivi admin des ventes exige `concerts.view_concert` et `orders.view_order`.
+- Les actions d'annulation et de cloture exigent `concerts.change_concert`.
+- Les visiteurs anonymes sont rediriges vers la connexion ; les utilisateurs authentifies sans permission recoivent `403`.
+- L'annulation met le concert en `cancelled` et empeche toute nouvelle reservation.
+- La cloture met le concert en `closed` et empeche toute nouvelle reservation.
+- Ces changements de statut ne modifient pas le stock restant et ne masquent pas les commandes payees deja accessibles a leur proprietaire.
+- La synthese admin compte seulement les commandes `paid`; les commandes `refused` ne contribuent pas aux ventes.
+
 ## Portee actuelle
 
-Les regles de date, statut et stock sont aussi appliquees par le catalogue, les fiches publiques, l'ajout au panier et la validation du paiement. Les vues de confirmation/refus filtrent les commandes par utilisateur connecte. `EF10` et `RG8` sont couverts par l'historique paye et le detail de commande filtre par proprietaire.
+Les regles de date, statut et stock sont aussi appliquees par le catalogue, les fiches publiques, l'ajout au panier et la validation du paiement. Les vues de confirmation/refus filtrent les commandes par utilisateur connecte. `EF10` et `RG8` sont couverts par l'historique paye et le detail de commande filtre par proprietaire. Le suivi admin des ventes est une fonctionnalite privilegiee distincte et ne modifie pas la portee de `RG8`.

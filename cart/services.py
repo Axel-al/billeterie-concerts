@@ -29,6 +29,8 @@ def validate_ticket_quantity(quantity: int) -> None:
 def validate_concert_bookable(concert: Concert) -> None:
     if concert.status == ConcertStatus.CANCELLED:
         raise ValidationError("Le concert annule ne peut pas etre reserve.")
+    if concert.status == ConcertStatus.CLOSED:
+        raise ValidationError("Les ventes de ce concert sont cloturees.")
     if concert.is_past():
         raise ValidationError("Le concert passe ne peut pas etre reserve.")
     if concert.status != ConcertStatus.OPEN:
