@@ -139,7 +139,15 @@ La configuration SonarCloud analyse tous les modules applicatifs existants :
 `config`, `accounts`, `concerts`, `cart`, `orders` et `payments`. Les tests restent
 declares separement dans `tests`.
 
-La verification distante de la branche du catalogue est effectuee apres le push et documentee plus bas.
+Etat distant du catalogue :
+
+- le depot amont est accessible en lecture seule au compte GitHub actif ;
+- la branche `feature/public-concert-catalog` est poussee sur le fork `yanismary/billeterie-concerts` ;
+- la pull request amont #7 `Implement public concert catalog` est ouverte vers `Axel-al/billeterie-concerts:main` ;
+- la PR est signalee fusionnable par GitHub ;
+- le workflow CI amont `27508739067` est bloque avec la conclusion `action_required` avant creation des jobs, car les workflows d'un premier contributeur externe exigent une approbation ;
+- la tentative d'approbation avec `gh` est refusee en `403`, les droits administrateur du depot amont etant requis ;
+- aucun resultat GitHub Actions ou SonarCloud n'est donc encore disponible pour le commit `2bd6056`.
 
 ## Verification locale
 
@@ -179,7 +187,9 @@ Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` 
 ## Statut Git observe
 
 - Branche de travail : `feature/public-concert-catalog`.
-- Remote Git : `https://github.com/Axel-al/billeterie-concerts.git`.
+- Remote amont en lecture seule : `https://github.com/Axel-al/billeterie-concerts.git`.
+- Remote de push : `https://github.com/yanismary/billeterie-concerts.git`.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/7`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
