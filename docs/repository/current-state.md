@@ -8,11 +8,19 @@ Le depot contient une application Django executable avec :
 
 - un modele utilisateur personnalise base sur l'email ;
 - des pages francaises d'inscription, connexion, deconnexion et espace personnel ;
+- un catalogue public de concerts et des fiches detaillees ;
 - un noyau domaine teste pour la billetterie de concerts ;
 - une documentation de validation et de tracabilite mise a jour.
 
 Elements livres dans cette etape :
 
+- routes `/concerts/` et `/concerts/<id>/` ;
+- catalogue limite aux concerts ouverts, futurs et possedant du stock ;
+- fiches avec titre, artiste, date, lieu, description, categories, prix et stock restant ;
+- explications francaises pour les concerts annules, passes, complets ou fermes a la vente ;
+- lien de connexion avec retour vers la fiche pour les visiteurs d'un concert reservable ;
+- navigation et accueil orientes vers la consultation des concerts ;
+- tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite et les reponses HTTP ;
 - routes `/inscription/`, `/connexion/`, `/deconnexion/` et `/mon-espace/` ;
 - formulaire d'inscription avec email unique, mot de passe Django et rejet explicite des doublons ;
 - formulaire de connexion en francais et deconnexion par requete POST ;
@@ -33,6 +41,14 @@ Couverture revendiquee pour le perimetre comptes :
 - `ENF3` : mots de passe geres par le hachage Django ;
 - `ENF4` : rejet propre des emails deja utilises et des identifiants invalides.
 
+Couverture revendiquee pour le catalogue :
+
+- `EF1` : liste des concerts ouverts, futurs et avec stock ;
+- `EF2` : fiche detaillee avec informations, categories, prix et stock restant ;
+- `EM4`, `EM5` et `RG1` : etats non reservables appliques dans les vues ;
+- `RG7` : annulation visible sans nouvelle action de reservation, hors action admin ;
+- `ENF1` : couverture partielle par la navigation accueil, catalogue et fiche.
+
 Couverture existante conservee :
 
 - `EF5` : couverture partielle domaine/service pour l'ajout de billets au panier, sans formulaire ni UI ;
@@ -46,10 +62,11 @@ Couverture existante conservee :
 - `RG7` : couverture partielle domaine par refus des concerts annules ;
 - `ENF5`, `ENF6` et `ENF7` : Ruff, tests automatises, coverage et GitHub Actions versionnes.
 
-Non couvert volontairement :
+Non couvert volontairement dans ce lot :
 
-- `EF1`, `EF2`, `EF10` ;
+- `EF10` ;
 - pages panier, paiement, confirmation et refus de paiement ;
+- formulaire categorie/quantite, endpoint panier et ajout de billet dans les vues ;
 - confirmation affichee de `EF8` et message explicite affiche de `EF9` ;
 - `RG6` et `RG8` ;
 - couverture fonctionnelle complete de `EF11` ;
@@ -59,12 +76,21 @@ Non couvert volontairement :
 
 - `config/` : settings, URLs racines, redirections d'authentification, ASGI et WSGI.
 - `accounts/` : modele utilisateur personnalise, manager, admin Django, formulaires, vues et URLs d'authentification.
-- `concerts/` : concerts, categories de places, statuts, stock, admin et commande `seed_demo_data`.
+- `concerts/` : concerts, categories de places, statuts, stock, vues publiques, admin et commande `seed_demo_data`.
 - `cart/` : panier actif mono-concert, lignes de panier et services de validation/ajout.
 - `orders/` : commandes, lignes de commandes et prix snapshots.
 - `payments/` : paiement simule et service transactionnel.
-- `templates/` : layout, page d'accueil et templates de comptes.
-- `tests/` : tests de smoke homepage, settings, utilisateur, authentification et domaine billetterie.
+- `templates/` : layout, accueil, catalogue, fiches concerts et templates de comptes.
+- `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts et domaine billetterie.
+
+## Comportement catalogue
+
+- Le catalogue public n'affiche que les concerts strictement futurs, `open` et avec au moins une categorie en stock.
+- Les fiches annulees, passees, terminees ou completes restent consultables avec un motif explicite et sans CTA de reservation.
+- Les fiches brouillon et les identifiants inconnus renvoient `404`.
+- Toutes les categories sont affichees sur la fiche, y compris les categories epuisees.
+- Un visiteur voit `Se connecter pour reserver` seulement pour un concert reservable ; le parametre `next` conserve l'URL de la fiche.
+- Un utilisateur connecte ne voit aucun bouton sans destination. Aucun ajout panier n'est implemente ou revendique au titre de `EF5`.
 
 ## Comportement authentification
 
@@ -113,12 +139,15 @@ La configuration SonarCloud analyse tous les modules applicatifs existants :
 `config`, `accounts`, `concerts`, `cart`, `orders` et `payments`. Les tests restent
 declares separement dans `tests`.
 
-Etat distant observe :
+Etat distant du catalogue :
 
-- la branche `feature/user-authentication` a ete poussee sur `origin` ;
-- la draft pull request #5 a ete creee vers `main` ;
-- `gh pr checks 5 --watch` et `gh checks HEAD` ont ete utilises pour surveiller les checks distants ;
-- les deux jobs GitHub Actions `Django checks` ont reussi ;
+- le compte GitHub actif dispose maintenant des droits d'ecriture sur `Axel-al/billeterie-concerts` ;
+- les pull requests #7 et #8 provenant du fork ont ete fermees, leur commit vide de relance a ete retire et le fork `yanismary/billeterie-concerts` a ete supprime ;
+- la branche `feature/public-concert-catalog` est poussee directement sur le depot amont ;
+- la pull request #9 `Implement public concert catalog` est ouverte vers `main` et signalee fusionnable ;
+- les workflows GitHub Actions declenches par le push et la pull request ont reussi ;
+- l'installation Chromium, Ruff, les checks Django, les 69 tests avec couverture et l'etape e2e conditionnelle ont reussi dans la CI ;
+- l'etape SonarQube Cloud a ete executee avec le secret du depot amont dans les deux workflows ;
 - le check externe `SonarCloud Code Analysis` a reussi.
 
 ## Verification locale
@@ -137,43 +166,36 @@ coverage report
 Resultats observes :
 
 - `ruff check .` : OK.
-- `pytest` : OK, 58 tests passent.
+- `pytest` : OK, 69 tests passent.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest --cov=. --cov-report=xml` : OK, 58 tests passent et `coverage.xml` est genere puis ignore par Git.
-- `coverage report` : couverture totale 99 %, avec `accounts/forms.py`, `accounts/urls.py` et `accounts/views.py` a 100 %.
+- `pytest --cov=. --cov-report=xml` : OK, 69 tests passent et `coverage.xml` est genere puis ignore par Git.
+- `coverage report` : couverture totale 99 %, avec `concerts/views.py`, `concerts/urls.py` et `tests/test_concert_views.py` a 100 %.
+- `git diff --check` : OK.
 
 Decision couverture : les lignes restantes non couvertes dans `payments/services.py` correspondent a des incoherences defensives apres validation ou a une course concurrente de stock difficile a declencher sans monkeypatch interne artificiel. Elles ne sont pas couvertes dans cette passe.
 
-Aucun controle navigateur manuel n'a ete execute dans cette etape, car les parcours comptes ajoutes sont couverts par des tests d'integration Django automatises.
+La mise a jour documentaire des resultats CI ne modifie aucun code ; la suite locale complete deja verte n'a donc pas ete relancee apres cette seule modification.
 
-### Verification locale de la configuration SonarCloud
+## Verification navigateur
 
-Commandes lancees le 2026-06-14 :
+Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` :
 
-```bash
-python manage.py check
-ruff check .
-pytest --cov=. --cov-report=xml
-git diff --check
-```
-
-Resultats observes :
-
-- `python manage.py check` : OK, aucun probleme detecte.
-- `ruff check .` : OK, tous les controles passent.
-- `pytest --cov=. --cov-report=xml` : OK, 58 tests passent en 8,34 secondes et
-  `coverage.xml` est genere.
-- `git diff --check` : OK, aucune erreur d'espacement detectee.
+- l'accueil expose `Concerts` et `Voir les concerts` ;
+- le catalogue n'affiche que `Nuit Electrique`, seul concert demo reservable ;
+- la fiche reservable affiche date, lieu, trois categories, prix, stocks et le lien de connexion avec `next=/concerts/1/` ;
+- les fiches `Silence Annule` et `Hier Encore` affichent leur motif francais et aucun CTA de reservation ;
+- une fiche de controle future avec stock nul affiche `Ce concert est complet. Il ne reste aucune place disponible.` et aucun CTA.
 
 ## Statut Git observe
 
-- Branche de travail : `fix/sonar-source-directories`.
-- Remote Git : `https://github.com/Axel-al/billeterie-concerts.git`.
+- Branche de travail : `feature/public-concert-catalog`.
+- Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/9`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest et environnements virtuels restent non versionnes.
 
 ## Prochaine etape recommandee
 
-Ajouter les vues de consultation des concerts (`EF1`, `EF2`) ou le parcours panier/paiement UI (`EF5`, `EF7`, `EF8`, `EF9`) en reutilisant les services domaine existants.
+Ajouter le parcours panier/paiement UI (`EF5`, `EF7`, `EF8`, `EF9`) en reutilisant les services domaine existants.

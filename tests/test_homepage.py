@@ -6,8 +6,12 @@ from django.urls import resolve, reverse
 def test_homepage_is_available(client):
     response = client.get(reverse("home"))
 
+    content = response.content.decode()
     assert response.status_code == 200
-    assert "Bienvenue sur la billetterie de concerts" in response.content.decode()
+    assert "Bienvenue sur la billetterie de concerts" in content
+    assert "Voir les concerts" in content
+    assert f'href="{reverse("concerts:list")}"' in content
+    assert ">Concerts</a>" in content
 
 
 def test_homepage_url_name_resolves_to_root():

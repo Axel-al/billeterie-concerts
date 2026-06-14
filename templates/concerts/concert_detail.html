@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ concert.title }} - Billetterie concerts{% endblock %}
+
+{% block content %}
+  <a class="link-secondary d-inline-block mb-4" href="{% url 'concerts:list' %}">
+    Retour aux concerts
+  </a>
+
+  <article>
+    <header class="mb-4">
+      <p class="text-primary fw-semibold mb-2">{{ concert.artist }}</p>
+      <h1 class="display-6 fw-semibold mb-3">{{ concert.title }}</h1>
+      <div class="row g-3 text-secondary">
+        <div class="col-12 col-md-auto">
+          <strong class="text-dark">Date :</strong>
+          {{ concert.starts_at|date:"d/m/Y à H:i" }}
+        </div>
+        <div class="col-12 col-md-auto">
+          <strong class="text-dark">Lieu :</strong>
+          {{ concert.venue }}
+        </div>
+      </div>
+      {% if concert.description %}
+        <p class="lead mt-4 mb-0">{{ concert.description }}</p>
+      {% endif %}
+    </header>
+
+    {% if is_bookable %}
+      <div class="alert alert-success" role="status">
+        Ce concert est réservable et des places sont disponibles.
+      </div>
+    {% else %}
+      <div class="alert alert-warning" role="alert">
+        {{ booking_unavailability_reason }}
+      </div>
+    {% endif %}
+
+    <section aria-labelledby="seat-categories-title" class="mt-5">
+      <h2 id="seat-categories-title" class="h3 mb-3">Catégories de places</h2>
+      {% if concert.seat_categories.all %}
+        <div class="table-responsive">
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th scope="col">Catégorie</th>
+                <th scope="col">Prix</th>
+                <th scope="col">Stock restant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in concert.seat_categories.all %}
+                <tr>
+                  <th scope="row">{{ category.name }}</th>
+                  <td>{{ category.price|floatformat:2 }} €</td>
+                  <td>{{ category.stock_remaining }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-secondary">Aucune catégorie de place n’est disponible.</p>
+      {% endif %}
+    </section>
+
+    {% if is_bookable %}
+      <section class="border rounded bg-white p-4 mt-4" aria-label="Réservation">
+        {% if user.is_authenticated %}
+          <p class="mb-0">La réservation en ligne n’est pas encore disponible.</p>
+        {% else %}
+          <p class="mb-3">Connectez-vous pour préparer votre réservation.</p>
+          <a class="btn btn-primary" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">
+            Se connecter pour réserver
+          </a>
+        {% endif %}
+      </section>
+    {% endif %}
+  </article>
+{% endblock %}
