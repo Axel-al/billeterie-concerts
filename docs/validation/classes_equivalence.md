@@ -21,8 +21,11 @@ Le plafond de 6 est valide sur la quantite totale du concert dans le panier ou l
 | Stock egal a la demande | stock 2, demande 2 | Acceptation | EF5, RG2 |
 | Stock inferieur a la demande | stock 1, demande 2 | Refus | EM1, RG2 |
 | Stock nul | stock 0 | Refus | EM1, RG1, RG2 |
+| Decrement conditionnel sans ligne modifiee | Stock valide au controle, echec de l'update atomique | Refus et rollback complet | EF12, EM1, EM6, ENF4, RG2, RG5 |
 
-La contrainte de modele interdit aussi un stock restant negatif.
+La contrainte de modele interdit aussi un stock restant negatif. Le cas d'echec
+conditionnel verifie qu'aucune commande, aucun paiement et aucune transition du
+panier ne subsistent apres rollback.
 
 ## Etat du concert
 

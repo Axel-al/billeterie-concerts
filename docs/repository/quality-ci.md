@@ -2,72 +2,116 @@
 
 ## Etat actuel
 
-La qualite et la CI sont configurees pour la fondation Django.
+La chaine qualite couvre les exigences `ENF5`, `ENF6` et `ENF7` avec :
 
-Elements deja presents :
+- Ruff pour l'analyse statique ;
+- pytest et pytest-django pour les tests unitaires et d'integration ;
+- coverage.py avec couverture de branches ;
+- pytest-playwright pour le scenario fonctionnel nominal ;
+- GitHub Actions pour l'execution automatique ;
+- SonarQube Cloud pour le Quality Gate externe.
 
-- `requirements-dev.txt` declare Ruff, pytest, pytest-django, pytest-cov, coverage, factory-boy, freezegun et pytest-playwright.
-- `pyproject.toml` configure Ruff, pytest et coverage.
-- `.github/workflows/ci.yml` execute les checks sur les branches et les pull requests.
-- `sonar-project.properties` configure le projet SonarCloud `Axel-al_billeterie-concerts`.
-- `e2e/test_nominal_booking_flow.py` fournit un premier scenario Playwright stable pour le parcours nominal.
+## Couverture
 
-Etat distant observe :
+Les packages applicatifs mesures sont declares dans `pyproject.toml` :
+`accounts`, `concerts`, `cart`, `orders`, `payments` et `config`. Les tests ne
+font pas partie du denominateur.
 
-- Le workflow GitHub Actions a ete execute avec succes sur la branche.
-- Le check externe SonarCloud du commit `4e68e25` a echoue au Quality Gate avec 76,4 % de couverture sur le nouveau code, pour un seuil requis de 80 %.
-- La correction courante augmente la couverture par des tests supplementaires et exclut seulement les entrypoints Django generes `config/asgi.py` et `config/wsgi.py` de la couverture.
-- Le check externe SonarCloud du correctif est passe avec 100,0 % de couverture sur le nouveau code.
-- La pull request #1 affiche des checks passants via `gh pr checks`.
-- L'analyse SonarQube Cloud s'execute seulement si le secret GitHub `SONAR_TOKEN` est disponible.
-- Les tests e2e sont versionnes ; la CI execute `pytest e2e --tracing=retain-on-failure --output=test-results/playwright`.
-- Les traces Playwright sont publiees comme artefact GitHub Actions en cas d'echec. `.gitignore` ignore deja `test-results/` et `playwright-report/`.
+Configuration :
+
+- couverture de branches activee ;
+- precision a une decimale ;
+- seuil global bloquant de 90 % ;
+- rapport terminal avec lignes manquantes ;
+- rapport XML `coverage.xml` pour SonarCloud.
+
+Commande de reference :
+
+```bash
+pytest --cov --cov-report=term-missing --cov-report=xml
+```
+
+Le seuil est un garde-fou, pas un objectif a maximiser artificiellement. Il ne
+doit pas conduire a exclure du code applicatif ou a ajouter des tests sans valeur
+fonctionnelle. Les regles de stock, quantite, paiement, isolation et permissions
+restent prioritaires.
+
+Exclusions justifiees :
+
+- migrations Django generees ;
+- `config/asgi.py` et `config/wsgi.py`, entrypoints generes sans logique metier ;
+- `manage.py`, lanceur Django sans logique applicative.
 
 ## CI
 
-Le pipeline GitHub Actions execute :
+Le job conserve le nom `Django checks`, requis par les regles du depot. Il
+execute, dans cet ordre :
 
-1. installation de Python ;
-2. installation des dependances ;
-3. installation de Chromium pour Playwright ;
-4. `ruff check .` ;
-5. `python manage.py check` ;
-6. `pytest --cov=. --cov-report=xml` ;
-7. tests e2e Playwright avec traces conservees en cas d'echec ;
-8. publication de `test-results/` en artefact si un echec survient ;
-9. analyse SonarQube Cloud si `SONAR_TOKEN` est configure.
+1. checkout complet pour l'analyse Sonar ;
+2. installation de Python 3.12 et des dependances verrouillees ;
+3. `ruff check .` ;
+4. `python manage.py check` ;
+5. `python manage.py makemigrations --check --dry-run` ;
+6. pytest avec couverture terminale, XML et seuil de 90 % ;
+7. installation Chromium apres les checks rapides ;
+8. scenario Playwright avec trace conservee en cas d'echec ;
+9. publication de `test-results/` si le job echoue ;
+10. analyse SonarCloud si `SONAR_TOKEN` est disponible.
 
-Versions d'actions utilisees :
+Les actions sont epinglees par SHA immuable, avec la version en commentaire :
 
-- `actions/checkout@v6`
-- `actions/setup-python@v6`
-- `actions/upload-artifact@v4`
-- `SonarSource/sonarqube-scan-action@v7.1.0`
+- `actions/checkout` v6.0.3
+- `actions/setup-python` v6.2.0
+- `actions/upload-artifact` v4.6.2
+- `SonarSource/sonarqube-scan-action` v8.2.0
 
-Commande Chromium cible pour CI :
+`requirements-ci.txt`, genere avec `pip-compile`, verrouille les versions
+directes et transitives du job Python 3.12 ainsi que les empreintes SHA-256 des
+artefacts acceptes. L'installation utilise `--require-hashes` et
+`--only-binary=:all:` pour verifier les distributions telechargees et eviter
+l'execution de scripts de construction issus de distributions source. Les
+manifests `requirements.txt` et `requirements-dev.txt` conservent les plages de
+versions supportees pour le developpement ; le lock CI doit etre regenere et
+valide deliberement lors de leur mise a jour.
+
+Commande de regeneration utilisee avec `pip-tools` 7.5.3 :
 
 ```bash
-python -m playwright install --with-deps chromium
+pip-compile --allow-unsafe --generate-hashes --no-emit-index-url \
+  --output-file=requirements-ci.txt --strip-extras requirements-dev.txt
 ```
 
-Commande e2e cible pour CI :
+## SonarQube Cloud
+
+Le projet `Axel-al_billeterie-concerts` analyse :
+
+- les packages Python applicatifs ;
+- les templates Django ;
+- les workflows GitHub Actions ;
+- les tests `tests/` et `e2e/` comme sources de test separees ;
+- `coverage.xml` comme rapport de couverture Python.
+
+Le Quality Gate distant conserve notamment le seuil de 80 % sur la couverture
+du nouveau code. `sonar.qualitygate.wait` n'est pas active : les regles du depot
+exigent deja les checks distincts `Django checks` et
+`SonarCloud Code Analysis`. Le check Sonar externe est donc l'autorite pour le
+Quality Gate sans bloquer inutilement le job Django en attente du traitement
+serveur.
+
+L'analyse CI reste conditionnelle a `SONAR_TOKEN`, qui n'est pas versionne. Les
+secrets GitHub ne sont normalement pas transmis aux workflows de pull requests
+issues de forks : le scanner peut alors etre ignore et le check Sonar requis
+peut bloquer la fusion jusqu'a une execution depuis une branche de confiance.
+
+## Diagnostic
+
+En cas d'echec :
 
 ```bash
-pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+gh run view --log-failed
+gh checks <sha>
+gh check-detail <check-run-id>
 ```
 
-## Objectifs qualite initiaux
-
-- Aucun secret versionne.
-- Pas de mot de passe stocke en clair.
-- Tests automatises relies aux exigences.
-- Couverture mesuree avant toute revendication de qualite.
-- Ruff sans erreur bloquante dans CI.
-
-## Statut SonarQube
-
-SonarQube Cloud est configure sans secret versionne. Les sources declarees couvrent
-tous les modules applicatifs existants : `config`, `accounts`, `concerts`, `cart`,
-`orders` et `payments`. Les tests restent declares separement dans `tests`.
-
-`config/asgi.py` et `config/wsgi.py` sont exclus uniquement de la couverture SonarCloud, car ce sont des fichiers Django generes et sans logique metier. Les verifier dans les tests n'apporterait pas de preuve fonctionnelle supplementaire.
+`gh check-detail` est la commande de reference pour lire le resultat du Quality
+Gate SonarCloud.

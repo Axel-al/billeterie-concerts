@@ -15,10 +15,10 @@ Les premiers tests automatises sont versionnes dans `tests/`.
 - `tests/test_booking_flow.py` verifie l'ajout au panier via la fiche, les bornes de quantite, les rejets stock/date/statut, le total panier, le paiement accepte/refuse, le decrement de stock, les prix snapshots et le cloisonnement des pages resultat.
 - `tests/test_order_history.py` verifie l'historique des commandes payees, le detail de commande, les redirections de visiteurs, le cloisonnement proprietaire, les liens post-paiement et l'exclusion des commandes refusees.
 - `tests/test_admin_concert_management.py` verifie les permissions d'administration, la synthese des ventes payees, l'annulation, la cloture, la preservation des commandes payees et la creation/modification admin de concerts avec categories.
-- `tests/test_core_domain.py` verifie les premieres regles domaine : quantites, stock, statut de concert, panier mono-concert, paiement simule accepte/refuse et prix snapshots.
+- `tests/test_core_domain.py` verifie les regles domaine : quantites, stock, statut de concert, panier mono-concert, paiement simule accepte/refuse, prix snapshots et rollback transactionnel si le decrement conditionnel du stock echoue.
 - `e2e/test_nominal_booking_flow.py` verifie en navigateur le parcours nominal : liste, fiche, connexion, ajout au panier, checkout, paiement accepte, confirmation et historique.
 
-Ces tests couvrent `EF1` a `EF12`, `EM1` a `EM10`, `ENF1`, `ENF3`, `ENF4`, `ENF6`, `ENF7`, `RG1` a `RG8`. `EF10` et `RG8` sont couverts par l'historique paye et les pages detail filtrees par proprietaire. `EF11`, `EM9` et `RG7` sont couverts par les vues d'administration, l'admin Django et les tests de permissions. Le suivi admin des ventes ne releve pas de `RG8`, qui reste l'isolation des commandes des utilisateurs standards. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement. `ENF1` est couvert pour le parcours nominal par Playwright.
+Ces tests couvrent `EF1` a `EF12`, `EM1` a `EM10`, `ENF1`, `ENF3`, `ENF4`, `ENF6`, `ENF7`, `RG1` a `RG8`. `EF10` et `RG8` sont couverts par l'historique paye et les pages detail filtrees par proprietaire. `EF11`, `EM9` et `RG7` sont couverts par les vues d'administration, l'admin Django et les tests de permissions. Le suivi admin des ventes ne releve pas de `RG8`, qui reste l'isolation des commandes des utilisateurs standards. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement. `EF12`, `EM1`, `EM6`, `ENF4`, `RG2` et `RG5` sont aussi verifies lors d'un echec du decrement conditionnel : la transaction est annulee, le stock et le panier restent inchanges, et aucune commande ni aucun paiement ne subsiste. `ENF1` est couvert pour le parcours nominal par Playwright.
 
 ## Types de tests prevus
 
@@ -45,6 +45,7 @@ Ces tests couvrent `EF1` a `EF12`, `EM1` a `EM10`, `ENF1`, `ENF3`, `ENF4`, `ENF6
 - Administrateur.
 - Gestionnaire autorise par permissions Django.
 - Paiement simule accepte avec `4242424242424242` et refuse avec toute autre carte.
+- Echec simule du decrement conditionnel de stock apres validation du panier.
 - Scenario e2e autonome avec utilisateur, concert ouvert et categories crees dans la base de test `pytest-django`, sans dependance a `db.sqlite3`.
 
 ## Criteres de sortie initiaux
@@ -53,6 +54,7 @@ Ces tests couvrent `EF1` a `EF12`, `EM1` a `EM10`, `ENF1`, `ENF3`, `ENF4`, `ENF6
 - La matrice de tracabilite relie chaque test a un ID officiel.
 - Le pipeline CI execute les checks principaux.
 - Les echecs de paiement et de stock ne modifient pas l'etat de facon irreversible.
+- Un echec du decrement atomique ne laisse ni commande, ni paiement, ni panier valide partiellement.
 
 ## Commandes verifiees
 
@@ -61,8 +63,13 @@ ruff check .
 pytest
 python manage.py check
 python manage.py makemigrations --check --dry-run
-pytest --cov=. --cov-report=xml
+pytest --cov --cov-report=term-missing --cov-report=xml
 pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 ```
 
-Resultat observe lors de la derniere verification complete : voir `docs/repository/current-state.md`.
+La couverture mesure uniquement les packages applicatifs declares dans
+`pyproject.toml`, avec branches et seuil global bloquant de 90 %. Ce seuil reste
+un garde-fou et ne remplace pas la priorisation des regles metier critiques.
+
+Resultat observe lors de la derniere verification complete : voir
+`docs/repository/current-state.md`.

@@ -17,6 +17,8 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_empty = true
+precision = 1
+fail_under = 90
 
 [tool.coverage.xml]
 output = "coverage.xml"

@@ -30,16 +30,19 @@ Exigences : EF5, EM1, EM2, EM3, EM4, EM5, RG1, RG2, RG3.
 
 ## Validation du paiement
 
-| Cas | Utilisateur connecte | Panier valide | Paiement accepte | Decision | Effet stock |
-| --- | --- | --- | --- | --- | --- |
-| P1 | Oui | Oui | Oui, carte `4242424242424242` | Commande payee et confirmation affichee | Decremente |
-| P2 | Oui | Oui | Non, autre carte | Commande refusee et message explicite | Inchange |
-| P3 | Non | Oui | Non applicable | Acces bloque | Inchange |
-| P4 | Oui | Non | Non applicable | Validation refusee | Inchange |
+| Cas | Utilisateur connecte | Panier valide | Paiement accepte | Decrement conditionnel | Decision | Effet stock |
+| --- | --- | --- | --- | --- | --- | --- |
+| P1 | Oui | Oui | Oui, carte `4242424242424242` | Reussi | Commande payee et confirmation affichee | Decremente |
+| P2 | Oui | Oui | Non, autre carte | Non execute | Commande refusee et message explicite | Inchange |
+| P3 | Non | Oui | Non applicable | Non execute | Acces bloque | Inchange |
+| P4 | Oui | Non | Non applicable | Non execute | Validation refusee | Inchange |
+| P5 | Oui | Oui | Oui, carte acceptee | Echec | Transaction annulee, aucune commande ni paiement persistant | Inchange |
 
-Exigences : EF7, EF8, EF9, EF12, EM6, EM7, RG4, RG5, RG6.
+Exigences : EF7, EF8, EF9, EF12, EM1, EM6, EM7, ENF4, RG2, RG4, RG5, RG6.
 
-`P1` et `P2` sont couverts par le service de paiement et les vues. `P3` est couvert par les vues `LoginRequiredMixin`.
+`P1` et `P2` sont couverts par le service de paiement et les vues. `P3` est
+couvert par les vues `LoginRequiredMixin`. `P5` est couvert par
+`tests/test_core_domain.py::test_failed_conditional_stock_update_rolls_back_payment`.
 
 ## Consultation des commandes
 

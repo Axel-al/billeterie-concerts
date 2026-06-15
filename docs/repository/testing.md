@@ -14,7 +14,7 @@ Tests automatises versionnes :
 - `tests/test_order_history.py` : historique des commandes payees, detail de commande, redirection des visiteurs, cloisonnement proprietaire, exclusion des commandes refusees et liens post-paiement.
 - `tests/test_admin_concert_management.py` : permissions d'administration, synthese des ventes payees, annulation, cloture, preservation des commandes payees et creation/modification admin de concerts avec categories.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
-- `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse et prix snapshots.
+- `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse, prix snapshots et rollback si le decrement conditionnel du stock echoue.
 - `e2e/test_nominal_booking_flow.py` : scenario Playwright nominal avec `live_server`, connexion, ajout de 2 billets, panier, checkout, paiement accepte, confirmation, historique et assertions ORM dans la base de test.
 
 Couverture officielle revendiquee dans cette etape :
@@ -29,6 +29,7 @@ Couverture officielle revendiquee dans cette etape :
 - `EM1` a `EM7`, `EM10`, `RG1` a `RG5` et `RG7` : couverture domaine/service, completee par les vues pour les etats de concert, le parcours panier/paiement, l'administration et l'affichage des commandes.
 - `EF5`, `EF6`, `EF7`, `EF8`, `EF9` : couverture par services et vues Django.
 - `EF12` : decrement de stock apres paiement accepte au niveau service.
+- `EF12`, `EM1`, `EM6`, `ENF4`, `RG2`, `RG5` : rollback complet si le decrement conditionnel du stock ne peut pas etre applique.
 - `RG6` : checkout et paiement proteges par authentification.
 - `EF10` et `RG8` : couverture par l'historique des commandes payees et le detail de commande filtres par utilisateur.
 - `EF11` et `EM9` : couverture par les vues admin protegees par permissions et l'admin Django.
@@ -45,7 +46,7 @@ Le suivi admin des ventes ne releve pas de `RG8`; `RG8` reste limite a l'acces d
 | Tests unitaires | Valider les regles metier isolees. | quantite 1 a 6, stock disponible, prix fige a la validation |
 | Tests d'integration Django | Valider modeles, vues, formulaires, ORM et permissions. | creation de compte unique, ajout panier, paiement accepte/refuse, pages resultat, historique filtre et administration concerts/ventes |
 | Tests fonctionnels Playwright | Valider un parcours utilisateur complet. | consultation, connexion, ajout panier, paiement accepte, historique |
-| Couverture | Mesurer la part du code exercee. | rapport XML pour CI et SonarQube |
+| Couverture | Mesurer les packages applicatifs et bloquer une regression importante. | rapport terminal, XML et seuil global de 90 % |
 | Analyse statique | Detecter les erreurs et problemes de style. | `ruff check .` |
 
 ## Commandes cibles
@@ -53,7 +54,7 @@ Le suivi admin des ventes ne releve pas de `RG8`; `RG8` reste limite a l'acces d
 ```bash
 ruff check .
 pytest
-pytest --cov=. --cov-report=xml
+pytest --cov --cov-report=term-missing --cov-report=xml
 pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 ```
 
@@ -67,11 +68,16 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 ruff check .
 pytest
-pytest --cov=. --cov-report=xml
+pytest --cov --cov-report=term-missing --cov-report=xml
 coverage report
+test -s coverage.xml
 ```
 
-Resultat observe : OK, 1 scenario Playwright passe, 105 tests Django passent et `coverage.xml` est genere. La couverture locale affiche 99 % sur les chemins mesures, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
+Resultat final observe : 106 tests Django passent, `coverage.xml` est genere,
+non vide (11 063 octets), et la couverture applicative avec branches atteint
+99,6 % (813 instructions, 2 non couvertes, 102 branches), au-dessus du seuil
+obligatoire de 90 %. Les tests ne sont pas inclus dans le denominateur. Le
+scenario Playwright nominal passe egalement.
 
 ## Exclusions de couverture
 
@@ -79,11 +85,18 @@ Les fichiers `config/asgi.py` et `config/wsgi.py` sont exclus de la couverture c
 
 Les migrations restent exclues comme artefacts generes. Les fichiers applicatifs reels (`accounts`, `concerts`, `cart`, `orders`, `payments`, `config/settings.py`, `config/urls.py`) restent mesures.
 
+Le seuil de 90 % constitue une alerte de regression. Il ne justifie ni tests
+artificiels ni nouvelles exclusions. Les deux lignes defensives restantes dans
+`payments/services.py` concernent des incoherences entre les donnees validees et
+les categories verrouillees ; elles ne sont pas forcees par des fixtures
+incoherentes uniquement pour atteindre 100 %.
+
 ## Regles de priorisation
 
 Les premiers tests devront couvrir les exigences qui portent le plus de risque metier :
 
 - EM1 / RG2 : ne jamais vendre plus que le stock.
+- EF12 / EM1 / EM6 / RG5 : annuler toute la transaction si le decrement atomique echoue.
 - EM2 / EM3 / RG3 : quantite entre 1 et 6.
 - EM6 / RG4 / RG5 : commande definitive seulement apres paiement accepte.
 - RG8 : un utilisateur ne consulte que ses propres commandes ou pages de resultat.

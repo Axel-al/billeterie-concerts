@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from cart.models import Cart, CartLine, CartStatus
@@ -16,8 +17,8 @@ from cart.services import (
     validate_ticket_quantity,
 )
 from concerts.models import Concert, ConcertStatus, SeatCategory
-from orders.models import OrderStatus
-from payments.models import PaymentResult
+from orders.models import Order, OrderStatus
+from payments.models import Payment, PaymentResult
 from payments.services import process_simulated_payment
 
 
@@ -346,6 +347,31 @@ def test_accepted_payment_creates_paid_order_and_decrements_stock(user):
     assert order_line.category_name_snapshot == "Fosse"
     assert category.stock_remaining == 6
     assert line.cart.status == CartStatus.CHECKED_OUT
+
+
+@pytest.mark.django_db
+def test_failed_conditional_stock_update_rolls_back_payment(user, monkeypatch):
+    concert = create_concert()
+    category = create_category(concert, price=Decimal("40.00"), stock=8)
+    line = add_ticket_to_cart(user, category, 2)
+    original_update = QuerySet.update
+
+    def fail_stock_decrement(queryset, **kwargs):
+        if queryset.model is SeatCategory and "stock_remaining" in kwargs:
+            return 0
+        return original_update(queryset, **kwargs)
+
+    monkeypatch.setattr(QuerySet, "update", fail_stock_decrement)
+
+    with pytest.raises(ValidationError, match="stock restant est insuffisant"):
+        process_simulated_payment(line.cart, PaymentResult.ACCEPTED)
+
+    category.refresh_from_db()
+    line.cart.refresh_from_db()
+    assert category.stock_remaining == 8
+    assert line.cart.status == CartStatus.ACTIVE
+    assert Order.objects.count() == 0
+    assert Payment.objects.count() == 0
 
 
 @pytest.mark.django_db
