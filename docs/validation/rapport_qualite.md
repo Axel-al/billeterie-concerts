@@ -1,134 +1,134 @@
-# Rapport qualite
+# Rapport qualité
 
-Derniere mise a jour : 2026-06-15
+Dernière mise à jour : 2026-06-15
 
-## Etat actuel
+## État actuel
 
-Le depot contient une application Django executable avec tests automatises,
-scenario Playwright nominal, mesure Playwright `ENF2`, Ruff, couverture de
+Le dépôt contient une application Django exécutable avec tests automatisés,
+scénario Playwright nominal, mesure Playwright `ENF2`, Ruff, couverture de
 branches, seuil local de 90 %, GitHub Actions et configuration SonarCloud sans
-secret versionne.
+secret versionné.
 
-## Outillage declare
+## Outillage déclaré
 
-| Outil | Declaration | Statut |
+| Outil | Déclaration | Statut |
 | --- | --- | --- |
-| Django | `requirements.txt` | Dependence runtime declaree |
-| python-dotenv | `requirements.txt` | Dependence runtime declaree |
-| pytest | `requirements-dev.txt` | Tests executes localement et en CI |
-| pytest-django | `requirements-dev.txt` | Integration Django executee |
+| Django | `requirements.txt` | Dépendance runtime déclarée |
+| python-dotenv | `requirements.txt` | Dépendance runtime déclarée |
+| pytest | `requirements-dev.txt` | Tests exécutés localement et en CI |
+| pytest-django | `requirements-dev.txt` | Intégration Django exécutée |
 | pytest-cov / coverage | `requirements-dev.txt`, `pyproject.toml` | Branches, XML et seuil global 90 % |
 | Ruff | `requirements-dev.txt`, `pyproject.toml` | Analyse statique bloquante |
-| freezegun | `requirements-dev.txt` | Dates stabilisees dans les tests concernes |
+| freezegun | `requirements-dev.txt` | Dates stabilisées dans les tests concernés |
 | factory-boy | `requirements-dev.txt` | Disponible ; non requis par les fixtures actuelles |
-| pytest-playwright | `requirements-dev.txt`, `e2e/` | Scenario e2e nominal et mesure `ENF2` versionnes |
+| pytest-playwright | `requirements-dev.txt`, `e2e/` | Scénario e2e nominal et mesure `ENF2` versionnés |
 
 ## Analyse statique
 
-Ruff est configure dans `pyproject.toml` et execute en local ainsi qu'en CI.
+Ruff est configuré dans `pyproject.toml` et exécuté en local ainsi qu'en CI.
 
-Commande verifiee :
+Commande vérifiée :
 
 ```bash
 ruff check .
 ```
 
-Resultat observe : OK.
+Résultat observé : OK.
 
-L'analyse Web des templates a conduit a deux corrections verifiees par
+L'analyse Web des templates a conduit à deux corrections vérifiées par
 `tests/test_template_quality.py` :
 
 - ajout des empreintes SRI et de `crossorigin="anonymous"` aux ressources
-  Bootstrap 5.3.3 chargees depuis jsDelivr ;
-- retrait de quatre roles `status` sur des messages rendus statiquement, sans
+  Bootstrap 5.3.3 chargées depuis jsDelivr ;
+- retrait de quatre rôles `status` sur des messages rendus statiquement, sans
   changement de texte ni de comportement.
 
 ## Couverture
 
-Coverage est configure dans `pyproject.toml`.
+Coverage est configuré dans `pyproject.toml`.
 
-Commande verifiee :
+Commande vérifiée :
 
 ```bash
 pytest --cov --cov-report=term-missing --cov-report=xml
 python .github/scripts/validate_coverage_xml.py
 ```
 
-Les applications sont declarees avec `source_pkgs` et `relative_files`. Le XML
+Les applications sont déclarées avec `source_pkgs` et `relative_files`. Le XML
 conserve ainsi des chemins tels que `accounts/admin.py` au lieu de noms ambigus
-comme `admin.py`. La CI verifie que chaque chemin est relatif et resolvable avant
+comme `admin.py`. La CI vérifie que chaque chemin est relatif et résolvable avant
 de lancer SonarCloud.
 
-Resultat local observe : 108 tests passent, la couverture applicative avec
+Résultat local observé : 108 tests passent, la couverture applicative avec
 branches atteint 99,6 % (813 instructions, 2 non couvertes, 102 branches), le
-seuil de 90 % est respecte et les 35 chemins du XML sont valides. Le fichier
-`coverage.xml` genere contient 37 553 octets.
+seuil de 90 % est respecté et les 35 chemins du XML sont valides. Le fichier
+`coverage.xml` généré contient 37 553 octets.
 
-Exclusions justifiees :
+Exclusions justifiées :
 
 - `config/asgi.py`
 - `config/wsgi.py`
 
-Ces deux fichiers sont des entrypoints Django generes, sans logique applicative propre.
+Ces deux fichiers sont des entrypoints Django générés, sans logique applicative propre.
 
 ## Tests fonctionnels
 
-Commande verifiee :
+Commande vérifiée :
 
 ```bash
 pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
 ```
 
-Resultat observe : OK, le scenario nominal et les 4 mesures `ENF2` passent. Les scenarios creent leurs donnees via `pytest-django` et `live_server` dans la base de test, sans dependance a `db.sqlite3`.
+Résultat observé : OK, le scénario nominal et les 4 mesures `ENF2` passent. Les scénarios créent leurs données via `pytest-django` et `live_server` dans la base de test, sans dépendance à `db.sqlite3`.
 
-Mesure `ENF2` locale observee sous Chromium, viewport 1366x768, contexte froid
-par page, sans throttling CPU/reseau, Bootstrap 5.3.3 rejoue depuis fixtures
+Mesure `ENF2` locale observée sous Chromium, viewport 1366x768, contexte froid
+par page, sans throttling CPU/réseau, Bootstrap 5.3.3 rejoué depuis fixtures
 locales conformes SRI :
 
-| Page | LCP observe | Duree load observee |
+| Page | LCP observé | Durée load observée |
 | --- | ---: | ---: |
 | Accueil `/` | 72 ms | 67,6 ms |
 | Catalogue `/concerts/` | 60 ms | 57,4 ms |
 | Fiche concert `/concerts/<id>/` | 48 ms | 45,6 ms |
-| Historique authentifie `/commandes/` | 44 ms | 40,1 ms |
+| Historique authentifié `/commandes/` | 44 ms | 40,1 ms |
 
 Le seuil `ENF2` reste 2 000 ms. Cette mesure valide le rendu navigateur sous
-conditions CI controlees ; elle ne prouve pas la performance production sur tous
-les appareils, etats CDN ou reseaux.
+conditions CI contrôlées ; elle ne prouve pas la performance production sur tous
+les appareils, états CDN ou réseaux.
 
 ## CI
 
-Le workflow `.github/workflows/ci.yml` est versionne. Il execute Ruff, les
-checks Django, le controle de migrations, pytest avec couverture, puis installe
+Le workflow `.github/workflows/ci.yml` est versionné. Il exécute Ruff, les
+checks Django, le contrôle de migrations, pytest avec couverture, puis installé
 Chromium et lance Playwright en ciblant explicitement Chromium avec les
-diagnostics des tests passes. Les traces sont publiees si le job echoue. La
+diagnostics des tests passés. Les traces sont publiées si le job échoue. La
 couverture terminale rend les logs directement exploitables.
 
-L'analyse Sonar du workflow a detecte des references d'actions non immuables et
-une installation Python non verrouillee. Les actions sont maintenant epinglees
+L'analyse Sonar du workflow a détecté des références d'actions non immuables et
+une installation Python non verrouillée. Les actions sont maintenant épinglées
 par SHA, `requirements-ci.txt` fixe les versions directes et transitives avec
-leurs empreintes SHA-256, `--require-hashes` verifie les artefacts telecharges et
+leurs empreintes SHA-256, `--require-hashes` vérifie les artefacts téléchargés et
 `--only-binary=:all:` interdit les distributions source en CI.
 
-Le lock a ete valide dans un environnement Python 3.12 vierge avec :
+Le lock a été validé dans un environnement Python 3.12 vierge avec :
 
 ```bash
 python -m pip install --only-binary=:all: --require-hashes -r requirements-ci.txt
 python -m pip check
 ```
 
-Resultat : installation reussie et aucune dependance incompatible.
+Résultat : installation réussie et aucune dépendance incompatible.
 
 ## SonarQube
 
-SonarCloud est configure par `sonar-project.properties`. Les sources incluent les
+SonarCloud est configuré par `sonar-project.properties`. Les sources incluent les
 packages applicatifs, les templates Django et les workflows GitHub Actions. Les
-tests `tests/` et `e2e/` restent declares separement. L'analyse CI utilise la
-version 8.2.0 de `SonarSource/sonarqube-scan-action`, epinglee par SHA, seulement
+tests `tests/` et `e2e/` restent déclarés séparément. L'analyse CI utilise la
+version 8.2.0 de `SonarSource/sonarqube-scan-action`, épinglée par SHA, seulement
 si `SONAR_TOKEN` est disponible.
 
-Le commit fusionne `9bc8e69` a passe le job GitHub Actions `Django checks`, mais
-le check externe SonarCloud `81334931351` a echoue avec 3,3 % de couverture du
+Le commit fusionne `9bc8e69` a passé le job GitHub Actions `Django checks`, mais
+le check externe SonarCloud `81334931351` a échoue avec 3,3 % de couverture du
 nouveau code. Le log du scanner contenait :
 
 ```text
@@ -139,18 +139,18 @@ Cannot resolve 7 file paths, ignoring coverage measures for those files
 
 La pull request de correction est
 `https://github.com/Axel-al/billeterie-concerts/pull/15`. Elle conserve la
-definition distante `previous_version` et n'ajoute pas de
+définition distante `previous_version` et n'ajoute pas de
 `sonar.projectVersion`; son objectif est uniquement de rendre le rapport de
-couverture importable sans ambiguite et de corriger les constats Web observes.
+couverture importable sans ambiguïté et de corriger les constats Web observés.
 
-`sonar.qualitygate.wait` n'est pas active. Les regles du depot imposent deja
+`sonar.qualitygate.wait` n'est pas activé. Les règles du dépôt imposent déjà
 `Django checks` et le check externe `SonarCloud Code Analysis`; ce dernier porte
-le resultat du Quality Gate. Une PR de fork peut ne pas recevoir le secret et
-rester bloquee jusqu'a une analyse depuis un contexte de confiance.
+le résultat du Quality Gate. Une PR de fork peut ne pas recevoir le secret et
+rester bloquée jusqu'à une analyse depuis un contexte de confiance.
 
 ## Risques actuels
 
-- Les tests de consultation de commandes couvrent l'historique paye et le detail filtre par proprietaire ; les tentatives refusees restent exclues de l'historique des achats.
-- Le rollback en cas d'echec du decrement conditionnel est teste, mais les tests de concurrence multi-processus restent a approfondir.
-- Le premier scenario Playwright couvre le parcours nominal seulement ; les parcours d'erreur e2e restent optionnels et sont couverts par les tests d'integration Django.
-- `ENF2` est mesuree en laboratoire CI controle : la preuve ne couvre pas toutes les conditions de production, appareils, etats CDN ou reseaux.
+- Les tests de consultation de commandes couvrent l'historique payé et le détail filtré par propriétaire ; les tentatives refusées restent exclues de l'historique des achats.
+- Le rollback en cas d'échec du décrément conditionnel est testé, mais les tests de concurrence multi-processus restent à approfondir.
+- Le premier scénario Playwright couvre le parcours nominal seulement ; les parcours d'erreur e2e restent optionnels et sont couverts par les tests d'intégration Django.
+- `ENF2` est mesurée en laboratoire CI contrôlé : la preuve ne couvre pas toutes les conditions de production, appareils, états CDN ou réseaux.
