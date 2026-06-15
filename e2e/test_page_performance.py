@@ -10,6 +10,7 @@ import pytest
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from django.urls import reverse
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import expect
 
 LCP_THRESHOLD_MS = 2_000
@@ -203,6 +204,17 @@ def _wait_for_main_content(page, page_name, scenario):
         raise AssertionError(f"Unknown ENF2 page name: {page_name}")
 
 
+def _wait_for_lcp_entry(page):
+    try:
+        page.wait_for_function(
+            "() => (window.__enf2LcpEntries || []).length > 0",
+            timeout=LCP_THRESHOLD_MS,
+            polling=25,
+        )
+    except PlaywrightTimeoutError:
+        pass
+
+
 def _diagnostic(page_name, url, metrics):
     return (
         f"ENF2 performance failure for {page_name} ({url}). "
@@ -251,6 +263,7 @@ def test_standard_page_lcp_under_two_seconds(
         url = urljoin(live_server.url, _page_path(page_name, performance_scenario))
         page.goto(url, wait_until="load")
         _wait_for_main_content(page, page_name, performance_scenario)
+        _wait_for_lcp_entry(page)
         metrics = page.evaluate(READ_BROWSER_TIMINGS_SCRIPT)
     finally:
         context.close()
