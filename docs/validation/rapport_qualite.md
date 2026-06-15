@@ -5,8 +5,9 @@ Derniere mise a jour : 2026-06-15
 ## Etat actuel
 
 Le depot contient une application Django executable avec tests automatises,
-scenario Playwright nominal, Ruff, couverture de branches, seuil local de 90 %,
-GitHub Actions et configuration SonarCloud sans secret versionne.
+scenario Playwright nominal, mesure Playwright `ENF2`, Ruff, couverture de
+branches, seuil local de 90 %, GitHub Actions et configuration SonarCloud sans
+secret versionne.
 
 ## Outillage declare
 
@@ -20,7 +21,7 @@ GitHub Actions et configuration SonarCloud sans secret versionne.
 | Ruff | `requirements-dev.txt`, `pyproject.toml` | Analyse statique bloquante |
 | freezegun | `requirements-dev.txt` | Dates stabilisees dans les tests concernes |
 | factory-boy | `requirements-dev.txt` | Disponible ; non requis par les fixtures actuelles |
-| pytest-playwright | `requirements-dev.txt`, `e2e/test_nominal_booking_flow.py` | Scenario e2e nominal versionne |
+| pytest-playwright | `requirements-dev.txt`, `e2e/` | Scenario e2e nominal et mesure `ENF2` versionnes |
 
 ## Analyse statique
 
@@ -75,16 +76,32 @@ Ces deux fichiers sont des entrypoints Django generes, sans logique applicative 
 Commande verifiee :
 
 ```bash
-pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
 ```
 
-Resultat observe : OK, 1 scenario Playwright passe. Le scenario cree ses donnees via `pytest-django` et `live_server` dans la base de test, sans dependance a `db.sqlite3`.
+Resultat observe : OK, le scenario nominal et les 4 mesures `ENF2` passent. Les scenarios creent leurs donnees via `pytest-django` et `live_server` dans la base de test, sans dependance a `db.sqlite3`.
+
+Mesure `ENF2` locale observee sous Chromium, viewport 1366x768, contexte froid
+par page, sans throttling CPU/reseau, Bootstrap 5.3.3 rejoue depuis fixtures
+locales conformes SRI :
+
+| Page | LCP observe | Duree load observee |
+| --- | ---: | ---: |
+| Accueil `/` | 72 ms | 67,6 ms |
+| Catalogue `/concerts/` | 60 ms | 57,4 ms |
+| Fiche concert `/concerts/<id>/` | 48 ms | 45,6 ms |
+| Historique authentifie `/commandes/` | 44 ms | 40,1 ms |
+
+Le seuil `ENF2` reste 2 000 ms. Cette mesure valide le rendu navigateur sous
+conditions CI controlees ; elle ne prouve pas la performance production sur tous
+les appareils, etats CDN ou reseaux.
 
 ## CI
 
 Le workflow `.github/workflows/ci.yml` est versionne. Il execute Ruff, les
 checks Django, le controle de migrations, pytest avec couverture, puis installe
-Chromium et lance Playwright. Les traces sont publiees si le job echoue. La
+Chromium et lance Playwright en ciblant explicitement Chromium avec les
+diagnostics des tests passes. Les traces sont publiees si le job echoue. La
 couverture terminale rend les logs directement exploitables.
 
 L'analyse Sonar du workflow a detecte des references d'actions non immuables et
@@ -136,4 +153,4 @@ rester bloquee jusqu'a une analyse depuis un contexte de confiance.
 - Les tests de consultation de commandes couvrent l'historique paye et le detail filtre par proprietaire ; les tentatives refusees restent exclues de l'historique des achats.
 - Le rollback en cas d'echec du decrement conditionnel est teste, mais les tests de concurrence multi-processus restent a approfondir.
 - Le premier scenario Playwright couvre le parcours nominal seulement ; les parcours d'erreur e2e restent optionnels et sont couverts par les tests d'integration Django.
-- `ENF2` reste non mesuree : aucun test de performance a deux secondes n'est revendique.
+- `ENF2` est mesuree en laboratoire CI controle : la preuve ne couvre pas toutes les conditions de production, appareils, etats CDN ou reseaux.

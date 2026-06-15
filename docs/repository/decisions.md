@@ -2,6 +2,26 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-06-15 - Mesure ENF2 en navigateur controle
+
+Decision : valider `ENF2` avec un test Playwright Chromium dedie qui mesure le
+Largest Contentful Paint sur des pages standards representative, avec un seuil
+strict de 2 000 ms.
+
+Motif : l'exigence demande un affichage en moins de deux secondes dans des
+conditions normales. Le test doit mesurer un vrai rendu navigateur, mais rester
+reproductible en local et en CI. Les ressources Bootstrap restent chargees par
+le template depuis jsDelivr en production ; pendant la mesure, Playwright
+intercepte ces URLs et renvoie des fixtures locales contenant les vrais fichiers
+Bootstrap 5.3.3 dont les empreintes SHA-384 correspondent aux attributs SRI du
+template.
+
+Impact : la mesure utilise `live_server`, une base de test creee par
+`pytest-django`, une navigation locale loopback, un viewport desktop 1366x768,
+Chromium sans throttling CPU ou reseau et un contexte navigateur froid par page.
+Elle valide le rendu sous conditions CI controlees, pas la performance de
+production sur tous les appareils, etats CDN ou reseaux.
+
 ## 2026-06-15 - Integrite CDN et messages HTML statiques
 
 Decision : conserver Bootstrap 5.3.3 via jsDelivr avec les empreintes SRI

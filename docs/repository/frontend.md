@@ -24,6 +24,7 @@ Le frontend applicatif minimal est initialise avec Django templates.
 - La navigation fournit un lien `Concerts`, puis affiche `Inscription` et `Connexion` aux visiteurs ou `Panier`, `Mes commandes`, `Mon espace` et un bouton POST `Deconnexion` aux utilisateurs connectes.
 - Le lien `Administration ventes` est affiche seulement aux utilisateurs disposant de `concerts.view_concert` et `orders.view_order`.
 - Des attributs `data-testid` stables existent sur les controles du parcours nominal pour Playwright, sans modifier les libelles visibles en francais.
+- Les pages standards accueil, catalogue, fiche concert et historique authentifie servent de surfaces representatives pour la mesure navigateur `ENF2`.
 
 ## Direction cible
 
@@ -71,6 +72,13 @@ Le parcours panier/paiement couvre maintenant l'ajout au panier, le total, le ch
 `EF11`, `EM9` et `RG7` sont couverts par une page d'administration Django template : synthese des ventes, annulation et cloture. Cette page est une fonctionnalite privilegiee et ne remplace pas l'historique normal des commandes utilisateur.
 
 Le scenario `e2e/test_nominal_booking_flow.py` couvre le chemin utilisateur principal en navigateur : liste des concerts, fiche reservable, connexion, choix de categorie, quantite valide, panier, validation, paiement accepte, confirmation et historique.
+
+Le test `e2e/test_page_performance.py` couvre `ENF2` en Chromium sur des pages
+standards. Pendant la mesure, les URLs jsDelivr de Bootstrap sont interceptees
+et servies depuis des fixtures locales contenant les vrais fichiers Bootstrap
+5.3.3, verifiees par les memes empreintes SRI que le template. Cela evite la
+latence tierce pendant la mesure LCP tout en conservant un rendu proche de
+l'usage normal.
 
 ## Contraintes
 
