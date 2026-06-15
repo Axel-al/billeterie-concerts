@@ -44,9 +44,9 @@ Commande verifiee :
 pytest --cov --cov-report=term-missing --cov-report=xml
 ```
 
-Resultat intermediaire observe : 106 tests passent, la couverture applicative
-avec branches atteint 99,6 %, le seuil de 90 % est respecte et `coverage.xml`
-est genere.
+Resultat final observe : 106 tests passent, la couverture applicative avec
+branches atteint 99,6 % (813 instructions, 2 non couvertes, 102 branches), le
+seuil de 90 % est respecte et `coverage.xml` est genere avec 11 063 octets.
 
 Exclusions justifiees :
 
@@ -78,6 +78,15 @@ par SHA, `requirements-ci.txt` fixe les versions directes et transitives avec
 leurs empreintes SHA-256, `--require-hashes` verifie les artefacts telecharges et
 `--only-binary=:all:` interdit les distributions source en CI.
 
+Le lock a ete valide dans un environnement Python 3.12 vierge avec :
+
+```bash
+python -m pip install --only-binary=:all: --require-hashes -r requirements-ci.txt
+python -m pip check
+```
+
+Resultat : installation reussie et aucune dependance incompatible.
+
 ## SonarQube
 
 SonarCloud est configure par `sonar-project.properties`. Les sources incluent les
@@ -86,8 +95,33 @@ tests `tests/` et `e2e/` restent declares separement. L'analyse CI utilise la
 version 8.2.0 de `SonarSource/sonarqube-scan-action`, epinglee par SHA, seulement
 si `SONAR_TOKEN` est disponible.
 
-Le commit `393225d` sur `main` a un Quality Gate passant, sans bug, vulnerabilite
-ni code smell, avec 99,3 % de couverture globale et du nouveau code.
+Le commit de configuration `086e7fa` a passe les deux runs GitHub Actions :
+
+- push `27519339493`, job `Django checks` `81334046774` ;
+- pull request `27519340500`, job `Django checks` `81334049790`.
+
+Le check externe SonarCloud `81334229776` a passe avec 0 nouvelle issue et
+0 Security Hotspot. Il affiche 0,0 % de couverture du nouveau code, ce qui est
+coherent avec l'absence de nouvelle ligne executable dans les packages
+applicatifs ; la branche ajoute un test et de la configuration. La couverture
+applicative locale globale mesuree reste 99,6 %.
+
+Commandes de diagnostic executees :
+
+```bash
+gh pr checks 14 --watch --interval 10
+gh checks 086e7fa966d083658ab655fbf9c6d213da0c22f3
+gh check-detail 81334229776
+gh run view 27519340500 --log-failed
+```
+
+Les trois checks sont passes. La derniere commande n'a produit aucun log
+d'echec, le run etant reussi.
+
+Les appels sans authentification aux API publiques de mesures et de Quality
+Gate SonarCloud ont retourne HTTP 403. Le detail disponible via
+`gh check-detail 81334229776` et le tableau de bord lie constituent donc la
+preuve distante retenue.
 
 `sonar.qualitygate.wait` n'est pas active. Les regles du depot imposent deja
 `Django checks` et le check externe `SonarCloud Code Analysis`; ce dernier porte

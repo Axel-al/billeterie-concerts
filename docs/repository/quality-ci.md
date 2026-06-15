@@ -74,7 +74,7 @@ manifests `requirements.txt` et `requirements-dev.txt` conservent les plages de
 versions supportees pour le developpement ; le lock CI doit etre regenere et
 valide deliberement lors de leur mise a jour.
 
-Commande de regeneration utilisee :
+Commande de regeneration utilisee avec `pip-tools` 7.5.3 :
 
 ```bash
 pip-compile --allow-unsafe --generate-hashes --no-emit-index-url \

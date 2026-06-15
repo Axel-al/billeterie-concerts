@@ -70,11 +70,14 @@ ruff check .
 pytest
 pytest --cov --cov-report=term-missing --cov-report=xml
 coverage report
+test -s coverage.xml
 ```
 
-Resultat intermediaire observe : 106 tests Django passent, `coverage.xml` est
-genere et la couverture applicative avec branches atteint 99,6 %, au-dessus du
-seuil obligatoire de 90 %. Les tests ne sont pas inclus dans le denominateur.
+Resultat final observe : 106 tests Django passent, `coverage.xml` est genere,
+non vide (11 063 octets), et la couverture applicative avec branches atteint
+99,6 % (813 instructions, 2 non couvertes, 102 branches), au-dessus du seuil
+obligatoire de 90 %. Les tests ne sont pas inclus dans le denominateur. Le
+scenario Playwright nominal passe egalement.
 
 ## Exclusions de couverture
 

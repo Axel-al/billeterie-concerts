@@ -235,22 +235,37 @@ Le detail de la strategie et des limites est maintenu dans
 
 ## Verification locale
 
-Verification intermediaire apres configuration :
+Verification complete executee apres configuration :
 
 ```bash
+python -m pip install --only-binary=:all: --require-hashes -r requirements-ci.txt
+python -m pip check
 ruff check .
 python manage.py check
 python manage.py makemigrations --check --dry-run
+pytest
 pytest --cov --cov-report=term-missing --cov-report=xml
+coverage report
+test -s coverage.xml
+pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+git diff --check
 ```
 
+- installation du lock dans un environnement Python 3.12 vierge : OK ;
+- `python -m pip check` : OK, aucune dependance incompatible ;
 - `ruff check .` : OK.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- pytest avec couverture : OK, 106 tests passent, couverture applicative 99,6 % et `coverage.xml` genere.
-
-La verification complete et les resultats distants seront consignes apres le
-push final de la branche.
+- `pytest` : OK, 106 tests passent.
+- pytest avec couverture : OK, 106 tests passent, 813 instructions mesurees,
+  2 non couvertes, 102 branches, couverture applicative 99,6 % et seuil de
+  90 % respecte.
+- `coverage report` : OK, total 99,6 %.
+- `test -s coverage.xml` : OK, fichier non vide de 11 063 octets.
+- Playwright : OK, 1 scenario nominal passe.
+- `git diff --check` : OK.
+- validation YAML supplementaire avec `npx --yes yaml-lint
+  .github/workflows/ci.yml` : OK.
 
 ## Verification navigateur
 
@@ -263,12 +278,25 @@ la preuve fonctionnelle automatisee.
 - Branche de travail : `quality/ci-traceability-audit`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
 - Le compte GitHub actif dispose du droit `WRITE` sur le depot.
-- Pull request : a creer apres validation locale.
+- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/14`.
+- Le commit de configuration `086e7fa` a passe les runs GitHub Actions
+  `27519339493` (push) et `27519340500` (pull request), tous deux avec le job
+  `Django checks`.
+- Le check externe SonarCloud `81334229776` a passe : Quality Gate vert,
+  0 nouvelle issue et 0 Security Hotspot.
+- Le check Sonar indique 0,0 % de couverture du nouveau code, ce qui est
+  coherent avec une branche qui ajoute un test et de la configuration sans
+  nouvelle ligne executable dans les packages applicatifs. La couverture locale
+  globale reste 99,6 %.
+- La lecture detaillee des mesures via l'API publique SonarCloud a retourne
+  HTTP 403 ; les preuves distantes retenues sont donc le check GitHub externe
+  et son lien vers le tableau de bord.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
-- `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest, `test-results/`, `playwright-report/` et environnements virtuels restent non versionnes.
 
-## Prochaine etape recommandee
+## Limites restantes
 
-Executer la verification complete, pousser la branche et controler les checks
-`Django checks` et `SonarCloud Code Analysis`.
+- `ENF2` reste non mesuree.
+- Une pull request issue d'un fork peut ne pas recevoir `SONAR_TOKEN` et rester
+  bloquee par le check Sonar requis.
+- Les tests de concurrence multi-processus restent hors de la validation SQLite.
