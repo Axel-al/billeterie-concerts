@@ -75,11 +75,12 @@ coverage report
 test -s coverage.xml
 ```
 
-Resultat final observe : 106 tests Django passent, `coverage.xml` est genere,
-non vide (11 063 octets), et la couverture applicative avec branches atteint
+Resultat final observe : 108 tests Django passent, `coverage.xml` est genere,
+non vide (37 553 octets), et la couverture applicative avec branches atteint
 99,6 % (813 instructions, 2 non couvertes, 102 branches), au-dessus du seuil
-obligatoire de 90 %. Les tests ne sont pas inclus dans le denominateur. Le
-scenario Playwright nominal passe egalement.
+obligatoire de 90 %. Les 35 chemins mesures sont relatifs et resolvables. Les
+tests ne sont pas inclus dans le denominateur. Le scenario Playwright nominal
+passe egalement.
 
 Le rapport XML conserve les chemins complets relatifs aux packages
 (`accounts/admin.py`, `cart/admin.py`, etc.). Le validateur CI refuse les

@@ -250,6 +250,7 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 pytest
 pytest --cov --cov-report=term-missing --cov-report=xml
+python .github/scripts/validate_coverage_xml.py
 coverage report
 test -s coverage.xml
 pytest e2e --tracing=retain-on-failure --output=test-results/playwright
@@ -261,12 +262,13 @@ git diff --check
 - `ruff check .` : OK.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest` : OK, 106 tests passent.
-- pytest avec couverture : OK, 106 tests passent, 813 instructions mesurees,
+- `pytest` : OK, 108 tests passent.
+- pytest avec couverture : OK, 108 tests passent, 813 instructions mesurees,
   2 non couvertes, 102 branches, couverture applicative 99,6 % et seuil de
   90 % respecte.
+- validation du XML : OK, 35 chemins relatifs resolvables.
 - `coverage report` : OK, total 99,6 %.
-- `test -s coverage.xml` : OK, fichier non vide de 11 063 octets.
+- `test -s coverage.xml` : OK, fichier non vide de 37 553 octets.
 - Playwright : OK, 1 scenario nominal passe.
 - `git diff --check` : OK.
 - validation YAML supplementaire avec `npx --yes yaml-lint
@@ -280,22 +282,17 @@ la preuve fonctionnelle automatisee.
 
 ## Statut Git observe
 
-- Branche de travail : `quality/ci-traceability-audit`.
+- Branche de travail : `quality/sonar-coverage-html`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
 - Le compte GitHub actif dispose du droit `WRITE` sur le depot.
-- Pull request : `https://github.com/Axel-al/billeterie-concerts/pull/14`.
-- Le commit de configuration `086e7fa` a passe les runs GitHub Actions
-  `27519339493` (push) et `27519340500` (pull request), tous deux avec le job
-  `Django checks`.
-- Le check externe SonarCloud `81334229776` a passe : Quality Gate vert,
-  0 nouvelle issue et 0 Security Hotspot.
-- Le check Sonar indique 0,0 % de couverture du nouveau code, ce qui est
-  coherent avec une branche qui ajoute un test et de la configuration sans
-  nouvelle ligne executable dans les packages applicatifs. La couverture locale
-  globale reste 99,6 %.
-- La lecture detaillee des mesures via l'API publique SonarCloud a retourne
-  HTTP 403 ; les preuves distantes retenues sont donc le check GitHub externe
-  et son lien vers le tableau de bord.
+- Pull request de correction :
+  `https://github.com/Axel-al/billeterie-concerts/pull/15`.
+- Le commit fusionne `9bc8e69` a passe `Django checks`, mais le check SonarCloud
+  `81334931351` a echoue avec 3,3 % de couverture du nouveau code.
+- Le log Sonar indiquait que sept familles de chemins, dont `admin.py`, etaient
+  ignorees car plusieurs racines Coverage rendaient leur resolution ambigue.
+- La correction ne modifie ni `sonar.projectVersion`, ni la definition distante
+  du nouveau code, ni `sonar.qualitygate.wait`.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest, `test-results/`, `playwright-report/` et environnements virtuels restent non versionnes.
 
