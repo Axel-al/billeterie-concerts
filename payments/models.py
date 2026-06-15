@@ -25,6 +25,8 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ("-processed_at",)
+        verbose_name = "paiement"
+        verbose_name_plural = "paiements"
 
     def __str__(self) -> str:
         return f"Paiement #{self.pk} - {self.get_result_display()}"

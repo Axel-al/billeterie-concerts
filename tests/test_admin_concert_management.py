@@ -314,6 +314,34 @@ def test_django_admin_can_create_and_modify_concert_with_category(client):
 
 
 @pytest.mark.django_db
+def test_django_admin_uses_french_site_app_and_model_labels(client):
+    admin_user = get_user_model().objects.create_superuser(
+        email="admin-labels@example.com",
+        password=VALID_PASSWORD,
+    )
+    client.force_login(admin_user)
+
+    response = client.get(reverse("admin:index"))
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert "Administration de la billetterie" in content
+    assert "Gestion de la billetterie" in content
+    for label in (
+        "Comptes",
+        "Concerts",
+        "Paniers",
+        "Commandes",
+        "Paiements",
+        "Utilisateurs",
+        "Catégories de places",
+        "Lignes de panier",
+        "Lignes de commande",
+    ):
+        assert label in content
+
+
+@pytest.mark.django_db
 def test_concert_admin_metrics_and_bulk_actions(standard_user):
     concert = create_concert(title="Synthèse Admin")
     category = create_category(concert, stock=10)

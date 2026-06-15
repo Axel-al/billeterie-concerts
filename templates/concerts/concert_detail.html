@@ -73,6 +73,7 @@
             action="{% url 'cart:add_ticket' concert.pk %}"
             class="row g-3 align-items-end"
             data-testid="booking-form"
+            novalidate
           >
             {% csrf_token %}
             <div class="col-12 col-md-6">
