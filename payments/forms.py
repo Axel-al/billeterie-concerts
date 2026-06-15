@@ -10,6 +10,7 @@ class SimulatedPaymentForm(forms.Form):
                 "class": "form-control",
                 "autocomplete": "off",
                 "inputmode": "numeric",
+                "data-testid": "payment-card-number",
             }
         ),
         error_messages={

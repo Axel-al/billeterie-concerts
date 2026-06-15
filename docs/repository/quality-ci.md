@@ -10,6 +10,7 @@ Elements deja presents :
 - `pyproject.toml` configure Ruff, pytest et coverage.
 - `.github/workflows/ci.yml` execute les checks sur les branches et les pull requests.
 - `sonar-project.properties` configure le projet SonarCloud `Axel-al_billeterie-concerts`.
+- `e2e/test_nominal_booking_flow.py` fournit un premier scenario Playwright stable pour le parcours nominal.
 
 Etat distant observe :
 
@@ -19,7 +20,8 @@ Etat distant observe :
 - Le check externe SonarCloud du correctif est passe avec 100,0 % de couverture sur le nouveau code.
 - La pull request #1 affiche des checks passants via `gh pr checks`.
 - L'analyse SonarQube Cloud s'execute seulement si le secret GitHub `SONAR_TOKEN` est disponible.
-- Les tests e2e ne sont pas encore versionnes ; la CI les ignore tant que `e2e/` n'existe pas.
+- Les tests e2e sont versionnes ; la CI execute `pytest e2e --tracing=retain-on-failure --output=test-results/playwright`.
+- Les traces Playwright sont publiees comme artefact GitHub Actions en cas d'echec. `.gitignore` ignore deja `test-results/` et `playwright-report/`.
 
 ## CI
 
@@ -31,19 +33,27 @@ Le pipeline GitHub Actions execute :
 4. `ruff check .` ;
 5. `python manage.py check` ;
 6. `pytest --cov=. --cov-report=xml` ;
-7. tests e2e si le dossier `e2e/` existe ;
-8. analyse SonarQube Cloud si `SONAR_TOKEN` est configure.
+7. tests e2e Playwright avec traces conservees en cas d'echec ;
+8. publication de `test-results/` en artefact si un echec survient ;
+9. analyse SonarQube Cloud si `SONAR_TOKEN` est configure.
 
 Versions d'actions utilisees :
 
 - `actions/checkout@v6`
 - `actions/setup-python@v6`
+- `actions/upload-artifact@v4`
 - `SonarSource/sonarqube-scan-action@v7.1.0`
 
 Commande Chromium cible pour CI :
 
 ```bash
 python -m playwright install --with-deps chromium
+```
+
+Commande e2e cible pour CI :
+
+```bash
+pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 ```
 
 ## Objectifs qualite initiaux
