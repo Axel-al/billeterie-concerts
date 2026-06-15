@@ -1,144 +1,142 @@
 # Qualité et CI
 
-## État actuel
+## Objectifs
 
-La chaîne qualité couvre les exigences `ENF5`, `ENF6` et `ENF7` avec :
+La chaîne qualité couvre `ENF5`, `ENF6` et `ENF7` avec :
 
-- Ruff pour l'analyse statique ;
-- pytest et pytest-django pour les tests unitaires et d'intégration ;
-- coverage.py avec couverture de branches ;
-- pytest-playwright pour le scénario fonctionnel nominal et la mesure `ENF2` ;
-- GitHub Actions pour l'exécution automatique ;
-- SonarQube Cloud pour le Quality Gate externe.
+- Ruff ;
+- pytest et pytest-django ;
+- coverage.py avec branches ;
+- Playwright Chromium ;
+- GitHub Actions ;
+- SonarQube Cloud.
+
+## Analyse statique
+
+Commande locale :
+
+```bash
+ruff check .
+```
+
+Ruff utilise Python 3.12, une longueur de ligne de 88 caractères et les familles
+`E`, `F`, `I`, `UP` et `B`. Les migrations générées sont exclues.
 
 ## Couverture
 
-Les packages applicatifs mesurés sont déclarés avec `source_pkgs` dans
-`pyproject.toml` : `accounts`, `concerts`, `cart`, `orders`, `payments` et
-`config`. Les tests ne font pas partie du dénominateur.
-
-Configuration :
-
-- couverture de branches activée ;
-- chemins relatifs au dépôt avec le nom du package conservé ;
-- précision à une décimale ;
-- seuil global bloquant de 90 % ;
-- rapport terminal avec lignes manquantes ;
-- rapport XML `coverage.xml` pour SonarCloud.
-
-Commande de référence :
+Commande :
 
 ```bash
 pytest --cov --cov-report=term-missing --cov-report=xml
 python .github/scripts/validate_coverage_xml.py
 ```
 
-Le validateur XML vérifie que chaque fichier mesuré utilise un chemin relatif
-unique résolvable depuis la racine, par exemple `accounts/admin.py`. Il empêche
-le retour de chemins ambigus tels que `admin.py`, que SonarCloud ne peut pas
-associer à une application Django lorsque plusieurs packages possèdent ce nom.
+Configuration :
 
-Le seuil est un garde-fou, pas un objectif à maximiser artificiellement. Il ne
-doit pas conduire à exclure du code applicatif ou à ajouter des tests sans valeur
-fonctionnelle. Les règles de stock, quantité, paiement, isolation et permissions
-restent prioritaires.
+- couverture de branches ;
+- packages applicatifs explicites ;
+- chemins relatifs ;
+- précision à une décimale ;
+- seuil bloquant de 90 % ;
+- XML destiné à SonarQube Cloud.
 
-Exclusions justifiées :
+Résultat final local : 99,6 % sur 838 instructions et 102 branches.
 
-- migrations Django générées ;
-- `config/asgi.py` et `config/wsgi.py`, entrypoints générés sans logique métier ;
-- `manage.py`, lanceur Django sans logique applicative.
+Le validateur XML vérifie que chaque chemin est relatif, résolvable et non
+ambigu. Il évite que SonarQube ignore des fichiers portant le même nom dans
+plusieurs applications Django.
 
-## CI
+## Workflow GitHub Actions
 
-Le job conserve le nom `Django checks`, requis par les règles du dépôt. Il
-exécute, dans cet ordre :
+Le fichier `.github/workflows/ci.yml` déclenche le job `Django checks` sur les
+pushes et les pull requests.
 
-1. checkout complet pour l'analyse Sonar ;
-2. installation de Python 3.12 et des dépendances verrouillées ;
-3. `ruff check .` ;
-4. `python manage.py check` ;
-5. `python manage.py makemigrations --check --dry-run` ;
-6. pytest avec couverture terminale, XML et seuil de 90 % ;
-7. validation des chemins de fichiers de `coverage.xml` ;
-8. installation Chromium après les checks rapides ;
-9. scénarios Playwright Chromium, dont la mesure `ENF2`, avec traces conservées en cas d'échec et diagnostics des tests passés ;
-10. publication de `test-results/` si le job échoue ;
-11. analyse SonarCloud si `SONAR_TOKEN` est disponible.
+Étapes :
 
-Les actions sont épinglées par SHA immuable, avec la version en commentaire :
+1. checkout avec historique complet ;
+2. Python 3.12 ;
+3. installation verrouillée de `requirements-ci.txt` ;
+4. Ruff ;
+5. `python manage.py check` ;
+6. contrôle des migrations ;
+7. pytest, couverture terminale et XML ;
+8. validation des chemins de couverture ;
+9. installation Chromium avec ses dépendances ;
+10. tests Playwright et diagnostics ;
+11. traces Playwright publiées en cas d'échec ;
+12. analyse SonarQube Cloud si le secret est disponible.
 
-- `actions/checkout` v6.0.3
-- `actions/setup-python` v6.2.0
-- `actions/upload-artifact` v4.6.2
-- `SonarSource/sonarqube-scan-action` v8.2.0
+## Sécurité de la chaîne d'approvisionnement
 
-`requirements-ci.txt`, généré avec `pip-compile`, verrouille les versions
-directes et transitives du job Python 3.12 ainsi que les empreintes SHA-256 des
-artefacts acceptés. L'installation utilise `--require-hashes` et
-`--only-binary=:all:` pour vérifier les distributions téléchargées et éviter
-l'exécution de scripts de construction issus de distributions source. Les
-manifests `requirements.txt` et `requirements-dev.txt` conservent les plages de
-versions supportées pour le développement ; le lock CI doit être régénéré et
-validé délibérément lors de leur mise à jour.
+- Les actions GitHub sont épinglées par SHA immuable.
+- `requirements-ci.txt` verrouille les versions et empreintes SHA-256.
+- La CI impose `--require-hashes`.
+- La CI impose `--only-binary=:all:`.
+- Aucun secret n'est écrit dans le dépôt.
 
-Commande de régénération utilisée avec `pip-tools` 7.5.3 :
+Pour régénérer le lock avec `pip-tools` :
 
 ```bash
 pip-compile --allow-unsafe --generate-hashes --no-emit-index-url \
   --output-file=requirements-ci.txt --strip-extras requirements-dev.txt
 ```
 
+Une régénération doit être revue et testée sous Python 3.12.
+
 ## SonarQube Cloud
 
 Le projet `Axel-al_billeterie-concerts` analyse :
 
-- les packages Python applicatifs ;
+- les packages Python ;
 - les templates Django ;
-- les workflows GitHub Actions ;
-- les tests `tests/` et `e2e/` comme sources de test séparées ;
-- `coverage.xml` comme rapport de couverture Python.
+- `.github/workflows` ;
+- les tests comme sources de test ;
+- `coverage.xml`.
 
-Les constats Web sont traités dans les templates : les ressources Bootstrap
-chargées depuis jsDelivr utilisent SRI et les messages rendus statiquement ne
-déclarent pas de zone live `status`. `tests/test_template_quality.py` protège
-ces choix contre une régression.
+Le Quality Gate externe reste distinct du job `Django checks`.
+`sonar.qualitygate.wait` n'est pas activé, car GitHub reçoit déjà le check
+`SonarCloud Code Analysis`.
 
-Le Quality Gate distant conserve notamment le seuil de 80 % sur la couverture
-du nouveau code. `sonar.qualitygate.wait` n'est pas activé : les règles du dépôt
-exigent déjà les checks distincts `Django checks` et
-`SonarCloud Code Analysis`. Le check Sonar externe est donc l'autorité pour le
-Quality Gate sans bloquer inutilement le job Django en attente du traitement
-serveur.
+Le check de référence sur `main`, commit `946ad8c`, a réussi le 15 juin 2026
+avec 0 nouvelle anomalie, 0 hotspot, 99,5 % de couverture du nouveau code et
+0,0 % de duplication du nouveau code.
 
-L'analyse CI reste conditionnelle à `SONAR_TOKEN`, qui n'est pas versionné. Les
-secrets GitHub ne sont normalement pas transmis aux workflows de pull requests
-issues de forks : le scanner peut alors être ignoré et le check Sonar requis
-peut bloquer la fusion jusqu'à une exécution depuis une branche de confiance.
+L'analyse dépend de `SONAR_TOKEN`. Une pull request issue d'un fork peut ne pas
+recevoir ce secret et rester sans analyse.
 
-## Diagnostic
-
-En cas d'échec :
+## Diagnostic distant
 
 ```bash
+gh run list
 gh run view --log-failed
 gh checks <sha>
 gh check-detail <check-run-id>
+gh pr checks
 ```
 
-`gh check-detail` est la commande de référence pour lire le résultat du Quality
-Gate SonarCloud.
+`gh check-detail` doit être utilisé pour examiner un résultat SonarQube Cloud.
 
-## Mesure ENF2
+## Performance
 
-La mesure `ENF2` est exécutée dans le même job que les autres tests Playwright :
+La CI exécute :
 
 ```bash
-pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
+pytest e2e --browser chromium \
+  --tracing=retain-on-failure \
+  --output=test-results/playwright \
+  -rP
 ```
 
-Elle utilise `live_server`, une base de test créée par `pytest-django`, un
-viewport desktop 1366x768, aucune limitation CPU/réseau et des fixtures locales
-pour rejouer les vrais fichiers Bootstrap 5.3.3 normalement servis par jsDelivr.
-Cette preuve valide le rendu sous conditions CI contrôlées ; elle ne remplace
-pas une campagne de performance production multi-appareils ou multi-réseaux.
+La mesure `ENF2` utilise un environnement local contrôlé, sans limitation
+CPU/réseau. Elle valide le seuil de 2 000 ms dans ces conditions uniquement.
+
+## Artefacts ignorés
+
+Ne sont pas versionnés :
+
+- `coverage.xml`, `.coverage` et `htmlcov/` ;
+- `test-results/` et `playwright-report/` ;
+- `db.sqlite3` ;
+- `.env` ;
+- caches Python, pytest et Ruff ;
+- environnements virtuels.

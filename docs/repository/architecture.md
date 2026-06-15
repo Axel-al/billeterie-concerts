@@ -1,53 +1,102 @@
 # Architecture
 
-## État actuel
+## Vue d'ensemble
 
-Le dépôt contient maintenant une application Django exécutable avec un noyau domaine testé.
+Le projet est un monolithe Django rendu côté serveur. Il utilise l'ORM Django,
+SQLite en développement, les templates Django et Bootstrap via CDN. Aucun
+frontend séparé ni service externe de paiement n'est nécessaire.
 
-- `config` porte la configuration Django, les URLs racines, ASGI et WSGI.
-- `accounts` contient le modèle utilisateur personnalisé basé sur l'e-mail unique.
-- `concerts` contient les concerts, catégories de places, statuts et stocks.
-- `cart` contient les paniers mono-concert et lignes de panier.
-- `orders` contient les commandes et lignes figeant les prix au moment du paiement.
-- `payments` contient le paiement simulé accepté/refusé.
-- `templates/` contient le gabarit de base Bootstrap CDN et une page d'accueil française minimale.
+```text
+Navigateur
+   |
+   v
+Vues Django + formulaires
+   |
+   v
+Services métier transactionnels
+   |
+   v
+Modèles Django / SQLite
+```
 
-Le stockage local est SQLite. Les migrations Django sont en place pour le modèle utilisateur et le noyau domaine, mais la base locale `db.sqlite3` n'est pas versionnée.
+## Applications
 
-## Architecture cible
+- `config` : réglages, URLs racines, ASGI et WSGI.
+- `accounts` : utilisateur e-mail, inscription et authentification.
+- `concerts` : catalogue, catégories, stock et gestion administrateur.
+- `cart` : panier actif mono-concert et validation avant paiement.
+- `orders` : commandes et lignes avec prix figés.
+- `payments` : décision du paiement simulé et orchestration transactionnelle.
 
-L'architecture cible reste une application Django monolithe, organisée autour de domaines métier simples et testables :
+Les responsabilités détaillées sont décrites dans `apps.md`.
 
-- consultation des concerts ;
-- comptes et authentification ;
-- panier mono-concert dans cette première version ;
-- commandes ;
-- paiement simulé au niveau service ;
-- administration des concerts.
+## Flux de consultation
 
-Le stockage local cible est SQLite pour le développement. La persistance sera portée par l'ORM Django et les migrations Django.
+1. `ConcertListView` sélectionne les concerts `open`, futurs et disposant de
+   stock.
+2. `ConcertDetailView` affiche toutes les catégories et explique les états non
+   réservables.
+3. Les brouillons restent inaccessibles publiquement.
 
-## Principes
+## Flux de réservation
 
-- Garder le domaine métier proche des modèles et services Django.
-- Isoler les règles sensibles dans du code testable, notamment le stock, les quantités, les statuts de concert et le paiement.
-- Utiliser les vues Django et les templates pour limiter la complexité frontend.
-- Introduire des services métier seulement quand une règle devient partagée entre plusieurs vues, formulaires ou commandes.
-- Utiliser `is_staff` et `is_superuser` pour les premiers droits administrateur ; un champ de rôle dédié sera ajouté seulement si un cas d'usage le justifie.
+1. Un utilisateur connecté soumet une catégorie et une quantité.
+2. `AddTicketForm` vérifie le type et les bornes.
+3. `add_ticket_to_cart` revérifie quantité, concert, stock et unicité du
+   concert.
+4. `validate_cart_for_checkout` contrôle à nouveau l'état complet du panier.
+5. `process_simulated_payment` verrouille panier et catégories dans une
+   transaction.
+6. Un paiement accepté crée une commande `paid`, fige les prix, décrémente le
+   stock et valide le panier.
+7. Un paiement refusé crée une commande `refused`, conserve le stock et laisse
+   le panier actif.
 
-## Flux cible de réservation
+La validation est volontairement répétée aux frontières afin qu'un attribut
+HTML ou un contrôle antérieur ne soit jamais l'unique protection.
 
-1. Un visiteur consulte les concerts ouverts.
-2. Un utilisateur connecté ajoute une sélection valide au panier.
-3. Le panier calcule son total à partir des prix applicables et reste limité à un seul concert.
-4. Le paiement simulé accepte ou refuse la validation.
-5. En cas de succès seulement, la commande devient payée et le stock est décrémenté.
-6. En cas de refus, la commande ne devient pas définitive et le stock reste inchangé.
+## Authentification et autorisation
 
-## Points d'attention
+- L'adresse e-mail est l'identifiant unique.
+- Django gère le hachage des mots de passe et les sessions.
+- Les vues panier, paiement et commandes exigent une authentification.
+- Les commandes sont filtrées par propriétaire.
+- La synthèse des ventes exige `concerts.view_concert` et
+  `orders.view_order`.
+- L'annulation et la clôture exigent `concerts.change_concert`.
+- L'administration Django est réservée aux comptes autorisés.
 
-- Les transactions seront importantes pour éviter la survendue.
-- La vérification du stock devra être faite au moment de la validation, pas seulement à l'ajout au panier.
-- Les commandes devront être cloisonnées par utilisateur.
-- Les mots de passe seront gérés par le système d'authentification Django, jamais stockés en clair.
-- Le modèle utilisateur personnalisé a été créé dès le départ afin d'éviter une migration tardive coûteuse.
+## Transactions et stock
+
+Le paiement accepté utilise `transaction.atomic`, `select_for_update` et un
+décrément conditionnel avec `F`. Si le stock ne peut pas être décrémenté, la
+commande, le paiement et la transition du panier sont annulés ensemble.
+
+SQLite permet de tester le rollback et les invariants, mais ne remplace pas une
+campagne de concurrence multi-processus sur une base de production.
+
+## Interface
+
+Les templates restent simples et sans JavaScript applicatif. Les formulaires de
+réservation et paiement utilisent `novalidate` pour garantir des erreurs Django
+en français, tout en conservant les attributs HTML utiles à la sémantique et
+aux claviers adaptés.
+
+## Fichiers importants
+
+- `config/settings.py` : environnement et configuration Django.
+- `config/urls.py` : routes racines et titres de l'administration.
+- `cart/services.py` : quantité, stock et panier.
+- `payments/services.py` : paiement et transaction de stock.
+- `concerts/services.py` : administration et synthèse des ventes.
+- `pyproject.toml` : pytest, coverage et Ruff.
+- `.github/workflows/ci.yml` : pipeline automatique.
+
+## Limites architecturales
+
+- base SQLite locale ;
+- panier limité à un concert ;
+- paiement uniquement simulé ;
+- pas de déploiement de production ;
+- statuts complet et terminé non automatisés ;
+- dépendance Bootstrap à jsDelivr en usage normal.

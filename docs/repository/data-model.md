@@ -1,47 +1,94 @@
 # Modèle de données
 
-## Vue d'ensemble
+## Entités
 
-Le modèle courant couvre le noyau domaine de la billetterie et le parcours panier/checkout/paiement simulé.
-
-| Concept | Application | Rôle |
+| Modèle | Application | Rôle |
 | --- | --- | --- |
-| Concert | `concerts` | Événement réservé ou non selon date, statut et stock. |
-| SeatCategory | `concerts` | Catégorie de place avec prix, stock initial et stock restant. |
-| Cart | `cart` | Panier actif d'un utilisateur, limité à un seul concert. |
-| CartLine | `cart` | Quantité demandée pour une catégorie de place. |
-| Order | `orders` | Résultat d'une tentative de paiement, rattaché à un utilisateur, un concert, une date et un statut. |
-| OrderLine | `orders` | Ligne de commande avec nom de catégorie et prix unitaire figés. |
-| Payment | `payments` | Résultat accepté ou refusé du paiement simulé. |
+| `User` | `accounts` | Compte identifié par une adresse e-mail unique. |
+| `Concert` | `concerts` | Événement, date, lieu et statut de vente. |
+| `SeatCategory` | `concerts` | Prix et stocks d'une catégorie pour un concert. |
+| `Cart` | `cart` | Panier actif, validé ou abandonné d'un utilisateur. |
+| `CartLine` | `cart` | Catégorie et quantité demandées. |
+| `Order` | `orders` | Résultat payé ou refusé d'une tentative. |
+| `OrderLine` | `orders` | Quantité, catégorie et prix figés. |
+| `Payment` | `payments` | Résultat accepté ou refusé associé à une commande. |
 
-`Concert.status` contient maintenant les états `draft`, `open`, `closed`, `sold_out`, `cancelled` et `finished`. Le statut `closed` représente une vente clôturée manuellement par l'administration : le concert reste consultable mais n'est plus réservable.
+## Relations
 
-## Contraintes principales
+```text
+User 1 ── n Cart
+User 1 ── n Order
+Concert 1 ── n SeatCategory
+Concert 1 ── n Cart
+Concert 1 ── n Order
+Cart 1 ── n CartLine
+SeatCategory 1 ── n CartLine
+Order 1 ── n OrderLine
+SeatCategory 1 ── n OrderLine
+Order 1 ── 1 Payment
+```
 
-- `SeatCategory` est unique par couple concert/nom et son stock restant ne peut pas être négatif.
-- `CartLine` et `OrderLine` imposent une quantité ligne entre 1 et 6.
-- Les services imposent en plus le plafond de 6 billets au total pour le concert du panier ou de la commande.
-- Un utilisateur ne peut avoir qu'un seul panier actif. Les vues panier et checkout ne consultent que le panier actif de l'utilisateur connecté.
-- Un panier actif ne peut contenir qu'un seul concert ; une commande référence aussi un seul concert.
-- `Payment` est en relation un-a-un avec `Order`.
-- Les pages de confirmation et de refus filtrent les commandes par utilisateur connecté.
-- Les vues d'administration des ventes calculent les ventes à partir des commandes `paid` existantes ; aucun total de vente supplémentaire n'est stocké.
+## Statuts
 
-## Snapshots
+Concert :
 
-Les prix affichés dans le panier restent les prix courants des catégories. Lors du paiement simulé, chaque `OrderLine` fige :
+- `draft` : brouillon non publié ;
+- `open` : ouvert à la vente ;
+- `closed` : ventes clôturées ;
+- `sold_out` : complet ;
+- `cancelled` : annulé ;
+- `finished` : terminé.
 
-- le nom de la catégorie achetée ;
-- le prix unitaire au moment de la validation ;
-- la quantité.
+Panier :
 
-Une modification ultérieure du prix d'une catégorie ne change donc pas les commandes déjà créées.
+- `active` ;
+- `checked_out` ;
+- `abandoned`.
 
-La synthèse admin des ventes utilise ces snapshots et les montants de commandes payées. Les commandes refusées restent tracées mais ne comptent ni dans le chiffre d'affaires ni dans les billets vendus.
+Commande :
 
-## Paiement simulé
+- `pending` ;
+- `paid` ;
+- `refused` ;
+- `cancelled`.
 
-Le numéro de carte n'est pas stocké. La vue de paiement transmet seulement le résultat déterminé au service :
+Paiement :
 
-- `4242424242424242` après normalisation des espaces : paiement accepté ;
-- toute autre valeur saisie : paiement refusé.
+- `accepted` ;
+- `refused`.
+
+Le parcours simulé crée directement une commande `paid` ou `refused`. Les
+statuts `pending`, `cancelled` et `abandoned` existent dans le modèle, mais ne
+sont pas exposés par le parcours actuel.
+
+## Contraintes
+
+- `User.email` est unique.
+- Une catégorie est unique par couple concert/nom.
+- Les stocks initial et restant ne peuvent pas être négatifs.
+- Une ligne de panier ou de commande contient entre 1 et 6 billets.
+- Les services appliquent aussi la limite de 6 au total des lignes du concert.
+- Un utilisateur ne peut avoir qu'un panier `active`.
+- Un panier actif et une commande ne concernent qu'un concert.
+- Un paiement est lié en un-à-un à une commande.
+
+## Prix figés
+
+Le panier calcule son total avec les prix courants. Au paiement,
+`OrderLine` enregistre :
+
+- `category_name_snapshot` ;
+- `unit_price` ;
+- `quantity`.
+
+Une modification ultérieure de la catégorie n'altère donc pas une commande
+payée existante.
+
+## Stock
+
+Le stock n'est décrémenté qu'après acceptation du paiement. Le service utilise
+une transaction, des verrous ORM et une mise à jour conditionnelle. Un échec
+annule l'ensemble de la transaction.
+
+Une commande `refused` et son paiement sont conservés comme trace non finale,
+mais le panier reste actif et le stock ne change pas.
