@@ -46,7 +46,10 @@ Elements livres dans cette etape :
 - tests d'integration Django pour le filtrage, les affichages, les CTA, les motifs d'indisponibilite, les reponses HTTP, le parcours panier/paiement et l'historique de commandes ;
 - tests d'integration Django pour les permissions d'administration, l'annulation, la cloture, le suivi des ventes et la creation/modification admin de concerts avec categories ;
 - scenario Playwright `e2e/test_nominal_booking_flow.py` pour le parcours nominal catalogue -> fiche -> connexion -> panier -> checkout -> paiement accepte -> confirmation -> historique ;
+- test Playwright Chromium `e2e/test_page_performance.py` pour `ENF2` sur accueil, catalogue, fiche concert et historique authentifie ;
+- mesure ENF2 par Largest Contentful Paint avec seuil `<= 2 000 ms` et duree `PerformanceNavigationTiming` en diagnostic ;
 - fixtures e2e basees sur `pytest-django`, `transactional_db` et `live_server`, sans dependance a `db.sqlite3` ni aux donnees demo locales ;
+- fixtures locales Bootstrap 5.3.3 conformes aux empreintes SRI du template pour rejouer les ressources jsDelivr sans latence CDN pendant la mesure ;
 - selecteurs stables `data-testid` sur les controles et liens du parcours nominal ;
 - routes `/inscription/`, `/connexion/`, `/deconnexion/` et `/mon-espace/` ;
 - formulaire d'inscription avec email unique, mot de passe Django et rejet explicite des doublons ;
@@ -57,6 +60,7 @@ Elements livres dans cette etape :
 - test de rollback transactionnel si le decrement conditionnel du stock echoue ;
 - couverture applicative de branches avec seuil global de 90 % et rapport XML ;
 - CI avec Ruff, checks Django, controle de migrations, tests, Playwright et SonarCloud ;
+- CI Playwright cible explicitement Chromium et affiche les diagnostics des tests passes avec `-rP` ;
 - analyse SonarCloud etendue aux templates Django et workflows GitHub Actions ;
 - actions GitHub epinglees par SHA et dependances CI verrouillees dans `requirements-ci.txt` ;
 - mise a jour des documents `docs/repository/` et `docs/validation/`.
@@ -106,9 +110,11 @@ Couverture e2e ajoutee :
 - `EF1`, `EF2`, `EF4`, `EF5`, `EF6`, `EF7`, `EF8`, `EF10` et `EF12` sont couverts de bout en bout par le scenario Playwright nominal.
 - `EM1`, `EM2`, `EM3`, `EM6`, `EM7`, `EM10`, `RG1`, `RG2`, `RG3` et `RG5` sont verifies dans ce scenario par le choix d'un concert reservable, une quantite valide, le paiement accepte, les snapshots de prix et le decrement du stock.
 - `ENF1`, `ENF6` et `ENF7` sont renforces par un parcours fonctionnel automatise et execute en CI.
+- `ENF2` est couvert par une mesure Playwright Chromium reproductible sur des pages standards avec LCP `<= 2 000 ms` sous conditions controlees.
 
 Traceabilite de cette etape :
 
+- `ENF2` est tracee dans `docs/validation/matrice_tracabilite.md` avec le test, les pages mesurees, le seuil, le navigateur, les resultats et les limites.
 - `EF10` et `RG8` sont couverts par le nouvel historique paye et les pages detail filtrees par proprietaire.
 - `EF11`, `EM9` et `RG7` sont couverts par les vues d'administration, les actions de statut et les tests de permissions.
 - `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement.
@@ -128,7 +134,7 @@ Non couvert volontairement dans ce lot :
 - `payments/` : paiement simule, regle de carte, service transactionnel et vues paiement/resultat.
 - `templates/` : layout, accueil, catalogue, fiches concerts, comptes, panier, paiement, commandes et synthese admin des ventes.
 - `tests/` : tests de smoke homepage, settings, utilisateur, authentification, vues concerts, domaine billetterie, parcours panier/paiement, historique de commandes et administration concerts/ventes.
-- `e2e/` : scenario Playwright nominal avec fixtures `pytest-django` et `live_server`.
+- `e2e/` : scenario Playwright nominal et mesure ENF2 avec fixtures `pytest-django`, `live_server` et Bootstrap local rejoue pour la mesure.
 
 ## Comportement catalogue
 
@@ -209,8 +215,9 @@ La commande `python manage.py seed_demo_data` cree ou met a jour :
 ## Qualite et CI
 
 Le workflow conserve le job requis `Django checks` et execute Ruff, les checks
-Django, le controle des migrations, pytest avec couverture, puis Playwright. Les
-traces Playwright sont publiees en cas d'echec.
+Django, le controle des migrations, pytest avec couverture, puis Playwright
+Chromium pour le scenario nominal et la mesure `ENF2`. Les traces Playwright
+sont publiees en cas d'echec.
 
 Coverage mesure uniquement les packages applicatifs declares avec
 `source_pkgs` dans `pyproject.toml`, avec branches, chemins relatifs non ambigus,
@@ -240,25 +247,22 @@ Le detail de la strategie et des limites est maintenu dans
 
 ## Verification locale
 
-Verification complete executee apres configuration :
+Verification complete executee pour cette etape :
 
 ```bash
-python -m pip install --only-binary=:all: --require-hashes -r requirements-ci.txt
-python -m pip check
 ruff check .
 python manage.py check
 python manage.py makemigrations --check --dry-run
 pytest
 pytest --cov --cov-report=term-missing --cov-report=xml
 python .github/scripts/validate_coverage_xml.py
-coverage report
 test -s coverage.xml
-pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+DJANGO_DEBUG=False pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
 git diff --check
+git ls-files test-results playwright-report coverage.xml
+git status --short --ignored
 ```
 
-- installation du lock dans un environnement Python 3.12 vierge : OK ;
-- `python -m pip check` : OK, aucune dependance incompatible ;
 - `ruff check .` : OK.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
@@ -267,38 +271,33 @@ git diff --check
   2 non couvertes, 102 branches, couverture applicative 99,6 % et seuil de
   90 % respecte.
 - validation du XML : OK, 35 chemins relatifs resolvables.
-- `coverage report` : OK, total 99,6 %.
 - `test -s coverage.xml` : OK, fichier non vide de 37 553 octets.
-- Playwright : OK, 1 scenario nominal passe.
+- Playwright Chromium : OK, 5 tests passent, dont 1 scenario nominal et 4 mesures ENF2.
+- ENF2 observe localement : accueil LCP 72 ms / load 67,6 ms ; catalogue LCP 60 ms / load 57,4 ms ; fiche LCP 48 ms / load 45,6 ms ; historique LCP 44 ms / load 40,1 ms.
 - `git diff --check` : OK.
-- validation YAML supplementaire avec `npx --yes yaml-lint
-  .github/workflows/ci.yml` : OK.
+- `git ls-files test-results playwright-report coverage.xml` : OK, aucun artefact Playwright ou couverture suivi.
+- `git status --short --ignored` : OK, les artefacts generes restent ignores.
 
 ## Verification navigateur
 
-Aucune interface utilisateur n'est modifiee par cet audit. Aucun controle manuel
-navigateur supplementaire n'est requis ; le scenario Playwright nominal reste
-la preuve fonctionnelle automatisee.
+Aucune interface utilisateur applicative n'est modifiee. Aucun controle manuel
+navigateur supplementaire n'est requis ; les preuves navigateur sont les tests
+Playwright Chromium nominal et ENF2.
 
 ## Statut Git observe
 
-- Branche de travail : `quality/sonar-coverage-html`.
+- Branche de travail : `validation/enf2-browser-performance`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
 - Le compte GitHub actif dispose du droit `WRITE` sur le depot.
-- Pull request de correction :
-  `https://github.com/Axel-al/billeterie-concerts/pull/15`.
-- Le commit fusionne `9bc8e69` a passe `Django checks`, mais le check SonarCloud
-  `81334931351` a echoue avec 3,3 % de couverture du nouveau code.
-- Le log Sonar indiquait que sept familles de chemins, dont `admin.py`, etaient
-  ignorees car plusieurs racines Coverage rendaient leur resolution ambigue.
-- La correction ne modifie ni `sonar.projectVersion`, ni la definition distante
-  du nouveau code, ni `sonar.qualitygate.wait`.
+- Pull request ouverte : `https://github.com/Axel-al/billeterie-concerts/pull/16`.
+- Les checks distants sont disponibles sur la pull request et sont inspectes
+  apres chaque push final, car GitHub relance les jobs a chaque nouveau SHA.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest, `test-results/`, `playwright-report/` et environnements virtuels restent non versionnes.
 
 ## Limites restantes
 
-- `ENF2` reste non mesuree.
+- La mesure `ENF2` valide un rendu navigateur sous conditions CI controlees ; elle ne prouve pas la performance production sur tous les appareils, etats CDN ou reseaux.
 - Une pull request issue d'un fork peut ne pas recevoir `SONAR_TOKEN` et rester
   bloquee par le check Sonar requis.
 - Les tests de concurrence multi-processus restent hors de la validation SQLite.

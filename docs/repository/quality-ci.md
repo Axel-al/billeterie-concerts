@@ -7,7 +7,7 @@ La chaine qualite couvre les exigences `ENF5`, `ENF6` et `ENF7` avec :
 - Ruff pour l'analyse statique ;
 - pytest et pytest-django pour les tests unitaires et d'integration ;
 - coverage.py avec couverture de branches ;
-- pytest-playwright pour le scenario fonctionnel nominal ;
+- pytest-playwright pour le scenario fonctionnel nominal et la mesure `ENF2` ;
 - GitHub Actions pour l'execution automatique ;
 - SonarQube Cloud pour le Quality Gate externe.
 
@@ -62,7 +62,7 @@ execute, dans cet ordre :
 6. pytest avec couverture terminale, XML et seuil de 90 % ;
 7. validation des chemins de fichiers de `coverage.xml` ;
 8. installation Chromium apres les checks rapides ;
-9. scenario Playwright avec trace conservee en cas d'echec ;
+9. scenarios Playwright Chromium, dont la mesure `ENF2`, avec traces conservees en cas d'echec et diagnostics des tests passes ;
 10. publication de `test-results/` si le job echoue ;
 11. analyse SonarCloud si `SONAR_TOKEN` est disponible.
 
@@ -128,3 +128,17 @@ gh check-detail <check-run-id>
 
 `gh check-detail` est la commande de reference pour lire le resultat du Quality
 Gate SonarCloud.
+
+## Mesure ENF2
+
+La mesure `ENF2` est executee dans le meme job que les autres tests Playwright :
+
+```bash
+pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
+```
+
+Elle utilise `live_server`, une base de test creee par `pytest-django`, un
+viewport desktop 1366x768, aucune limitation CPU/reseau et des fixtures locales
+pour rejouer les vrais fichiers Bootstrap 5.3.3 normalement servis par jsDelivr.
+Cette preuve valide le rendu sous conditions CI controlees ; elle ne remplace
+pas une campagne de performance production multi-appareils ou multi-reseaux.

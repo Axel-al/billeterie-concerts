@@ -60,7 +60,12 @@ jobs:
         run: python -m playwright install --with-deps chromium
 
       - name: End-to-end tests
-        run: pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+        run: >-
+          pytest e2e
+          --browser chromium
+          --tracing=retain-on-failure
+          --output=test-results/playwright
+          -rP
 
       - name: Upload Playwright traces
         if: failure()

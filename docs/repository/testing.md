@@ -17,6 +17,7 @@ Tests automatises versionnes :
 - `tests/test_template_quality.py` : empreintes SRI des ressources Bootstrap et absence de roles `status` sur les messages statiques.
 - `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse, prix snapshots et rollback si le decrement conditionnel du stock echoue.
 - `e2e/test_nominal_booking_flow.py` : scenario Playwright nominal avec `live_server`, connexion, ajout de 2 billets, panier, checkout, paiement accepte, confirmation, historique et assertions ORM dans la base de test.
+- `e2e/test_page_performance.py` : mesure Playwright Chromium de `ENF2` sur l'accueil, le catalogue, une fiche concert et l'historique authentifie, avec LCP `<= 2 000 ms` et duree de chargement en diagnostic.
 
 Couverture officielle revendiquee dans cette etape :
 
@@ -36,6 +37,7 @@ Couverture officielle revendiquee dans cette etape :
 - `EF11` et `EM9` : couverture par les vues admin protegees par permissions et l'admin Django.
 - `ENF6` : tests automatises executables sur la fondation technique et domaine.
 - `EF1`, `EF2`, `EF4`, `EF5`, `EF6`, `EF7`, `EF8`, `EF10`, `EF12`, `EM1`, `EM2`, `EM3`, `EM6`, `EM7`, `EM10`, `RG1`, `RG2`, `RG3`, `RG5`, `ENF1`, `ENF6` et `ENF7` : preuve Playwright de bout en bout pour le parcours nominal.
+- `ENF2` : preuve Playwright Chromium reproductible sur quatre pages standards sous conditions controlees.
 
 Le suivi admin des ventes ne releve pas de `RG8`; `RG8` reste limite a l'acces des utilisateurs standards a leurs propres commandes.
 `ENF1` est couvert pour le parcours nominal fiche -> panier -> paiement -> commandes par le scenario Playwright.
@@ -47,6 +49,7 @@ Le suivi admin des ventes ne releve pas de `RG8`; `RG8` reste limite a l'acces d
 | Tests unitaires | Valider les regles metier isolees. | quantite 1 a 6, stock disponible, prix fige a la validation |
 | Tests d'integration Django | Valider modeles, vues, formulaires, ORM et permissions. | creation de compte unique, ajout panier, paiement accepte/refuse, pages resultat, historique filtre et administration concerts/ventes |
 | Tests fonctionnels Playwright | Valider un parcours utilisateur complet. | consultation, connexion, ajout panier, paiement accepte, historique |
+| Performance Playwright | Mesurer le rendu navigateur de pages standards sous conditions controlees. | LCP accueil, catalogue, fiche concert, historique authentifie |
 | Couverture | Mesurer les packages applicatifs et bloquer une regression importante. | rapport terminal, XML et seuil global de 90 % |
 | Analyse statique | Detecter les erreurs et problemes de style. | `ruff check .` |
 
@@ -56,15 +59,20 @@ Le suivi admin des ventes ne releve pas de `RG8`; `RG8` reste limite a l'acces d
 ruff check .
 pytest
 pytest --cov --cov-report=term-missing --cov-report=xml
-pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
 ```
 
 La commande e2e utilise `pytest-django` et `live_server`. Les fixtures creent leurs donnees dans la base de test transactionnelle ; elles ne dependent pas de `db.sqlite3`.
+Le test `ENF2` utilise un contexte Chromium froid par page, un viewport desktop
+1366x768, aucune limitation CPU/reseau et des ressources Bootstrap rejouees
+depuis des fixtures locales correspondant aux empreintes SRI du template. Cette
+mesure valide le rendu navigateur sous conditions CI controlees, pas la
+performance de production sur tous les appareils, etats CDN ou reseaux.
 
 ## Commandes verifiees localement
 
 ```bash
-pytest e2e --tracing=retain-on-failure --output=test-results/playwright
+pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
 python manage.py check
 python manage.py makemigrations --check --dry-run
 ruff check .
@@ -80,7 +88,7 @@ non vide (37 553 octets), et la couverture applicative avec branches atteint
 99,6 % (813 instructions, 2 non couvertes, 102 branches), au-dessus du seuil
 obligatoire de 90 %. Les 35 chemins mesures sont relatifs et resolvables. Les
 tests ne sont pas inclus dans le denominateur. Le scenario Playwright nominal
-passe egalement.
+et les mesures `ENF2` passent egalement.
 
 Le rapport XML conserve les chemins complets relatifs aux packages
 (`accounts/admin.py`, `cart/admin.py`, etc.). Le validateur CI refuse les
@@ -112,9 +120,10 @@ Les premiers tests devront couvrir les exigences qui portent le plus de risque m
 - ENF3 : mots de passe jamais stockes en clair.
 - EF3 / EF4 : parcours inscription, connexion, deconnexion et acces protege.
 - EF1 / EF2 / EF5 / EF7 / EF8 / EF10 / ENF1 : parcours fonctionnel Playwright nominal.
+- ENF2 : affichage de pages standards en moins de deux secondes sous conditions normales documentees.
 
 ## Documentation des tests
 
 Chaque test automatise devra etre relie a un ou plusieurs IDs officiels dans `docs/validation/matrice_tracabilite.md`.
 
-Pour l'historique, `EF10` et `RG8` sont couverts par les pages de commandes payees et detail filtrees par proprietaire. Pour l'administration, `EF11`, `EM9` et `RG7` sont couverts par `tests/test_admin_concert_management.py`. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur reste porte par le parcours checkout/paiement. Le scenario Playwright nominal est trace dans `docs/validation/matrice_tracabilite.md` et documente dans `docs/validation/scenario_fonctionnel.md`.
+Pour l'historique, `EF10` et `RG8` sont couverts par les pages de commandes payees et detail filtrees par proprietaire. Pour l'administration, `EF11`, `EM9` et `RG7` sont couverts par `tests/test_admin_concert_management.py`. `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur reste porte par le parcours checkout/paiement. Le scenario Playwright nominal est trace dans `docs/validation/matrice_tracabilite.md` et documente dans `docs/validation/scenario_fonctionnel.md`. La mesure `ENF2` est tracee dans `docs/validation/matrice_tracabilite.md` avec ses pages, son seuil, son navigateur et ses limites.

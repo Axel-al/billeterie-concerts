@@ -17,6 +17,7 @@ Le depot contient une fondation Django, un catalogue public de concerts, des fic
 - `RG6` est couvert par les vues de checkout et paiement protegees ;
 - `EF8`, `EF9`, `EM6`, `EM7`, `EM10`, `RG4` et `RG5` sont maintenus ou etendus par les tests de navigation et d'affichage, mais leur comportement coeur etait deja implemente par le parcours checkout/paiement ;
 - `e2e/test_nominal_booking_flow.py::test_nominal_booking_flow_accepted_payment_appears_in_history` couvre le parcours nominal complet en navigateur avec `live_server` et des fixtures de base de test ;
+- `e2e/test_page_performance.py::test_standard_page_lcp_under_two_seconds` couvre `ENF2` par mesure LCP Chromium sur des pages standards sous conditions controlees ;
 - le suivi admin des ventes est une fonctionnalite privilegiee et ne change pas la portee de `RG8`, qui reste l'isolation des commandes des utilisateurs standards.
 
 ## Preuve Playwright nominale
@@ -24,6 +25,12 @@ Le depot contient une fondation Django, un catalogue public de concerts, des fic
 | Test | Exigences couvertes | Implementation exercee | Statut | Limite connue |
 | --- | --- | --- | --- | --- |
 | `e2e/test_nominal_booking_flow.py::test_nominal_booking_flow_accepted_payment_appears_in_history` | `EF1`, `EF2`, `EF4`, `EF5`, `EF6`, `EF7`, `EF8`, `EF10`, `EF12`, `EM1`, `EM2`, `EM3`, `EM6`, `EM7`, `EM10`, `ENF1`, `ENF6`, `ENF7`, `RG1`, `RG2`, `RG3`, `RG5` | Catalogue, fiche concert, connexion, formulaire panier, checkout, paiement simule accepte, confirmation, historique et assertions ORM sur commande/stock/prix | Couvert | Les parcours paiement refuse, quantite invalide et redirection anonyme restent couverts par les tests d'integration Django |
+
+## Preuve Playwright performance ENF2
+
+| Test | Exigences couvertes | Pages mesurees | Seuil et preuves | Limite connue |
+| --- | --- | --- | --- | --- |
+| `e2e/test_page_performance.py::test_standard_page_lcp_under_two_seconds` | `ENF2` | Accueil `/`, catalogue `/concerts/`, fiche `/concerts/<id>/`, historique authentifie `/commandes/` | Chromium Playwright, `live_server`, viewport 1366x768, donnees controlees, contexte froid par page, LCP `<= 2 000 ms`, duree `PerformanceNavigationTiming` en diagnostic, Bootstrap 5.3.3 rejoue depuis fixtures locales conformes SRI | Mesure de laboratoire CI controlee ; ne prouve pas la performance de production sur tous les appareils, etats CDN ou reseaux |
 
 ## Exigences fonctionnelles
 
@@ -62,7 +69,7 @@ Le depot contient une fondation Django, un catalogue public de concerts, des fic
 | ID | Implementation actuelle | Tests actuels | Statut | Limite connue |
 | --- | --- | --- | --- | --- |
 | ENF1 | Acces direct accueil -> catalogue -> fiche -> panier -> checkout -> paiement -> commandes | `tests/test_homepage.py`, tests concert, `tests/test_booking_flow.py`, `tests/test_order_history.py::test_paid_order_appears_in_history_after_successful_payment`, `e2e/test_nominal_booking_flow.py::test_nominal_booking_flow_accepted_payment_appears_in_history` | Couvert pour le parcours nominal | Les parcours d'erreur e2e restent optionnels |
-| ENF2 | Aucune mesure performance applicative | Aucun | Non couvert | A mesurer avec vues |
+| ENF2 | Mesure navigateur de pages standards avec LCP comme metrique primaire et duree de chargement comme diagnostic | `e2e/test_page_performance.py::test_standard_page_lcp_under_two_seconds` | Couvert sous conditions controlees | Accueil, catalogue, fiche et historique seulement ; pas une preuve production multi-appareils ou multi-reseaux |
 | ENF3 | Mot de passe gere par Django auth et formulaire d'inscription Django | `tests/test_accounts.py::test_user_password_is_hashed`, `tests/test_authentication_views.py::test_registered_password_is_not_stored_in_plain_text` | Couvert | Aucun stockage en clair attendu |
 | ENF4 | Services et formulaires rejettent les saisies invalides proprement ; une incoherence de stock tardive provoque un rollback explicite | Tests quantite/stock/statut domaine, `tests/test_core_domain.py::test_failed_conditional_stock_update_rolls_back_payment`, tests authentification, `tests/test_booking_flow.py` | Couvert pour le perimetre implemente |  |
 | ENF5 | Ruff, couverture applicative de branches avec seuil global de 90 %, chemins XML relatifs non ambigus, controle SRI/accessibilite statique et analyse SonarCloud des sources, templates et workflows | `ruff check .`, `pytest --cov --cov-report=term-missing --cov-report=xml`, `.github/scripts/validate_coverage_xml.py`, `tests/test_template_quality.py`, Quality Gate Sonar externe | Couvert | Le seuil local ne doit pas encourager les tests artificiels |

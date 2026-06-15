@@ -67,3 +67,10 @@
 - Exigences : EF11, EM9, RG7.
 
 Note : `RG8` reste traite dans `CA8` pour l'historique et le detail des commandes des utilisateurs standards. La synthese admin des ventes est une fonctionnalite privilegiee distincte.
+
+## CA10 - Performance page standard
+
+- Etant donne Chromium installe par Playwright, `live_server`, des donnees de test controlees, une navigation locale loopback, un viewport desktop 1366x768, aucun throttling CPU ou reseau, un contexte navigateur froid et les ressources Bootstrap rejouees depuis des fixtures locales conformes aux empreintes SRI, quand l'accueil, le catalogue, une fiche concert ou l'historique authentifie affichent leur contenu principal, alors le Largest Contentful Paint mesure par le navigateur reste inferieur ou egal a 2 000 ms.
+- La duree de chargement issue de `PerformanceNavigationTiming` est collectee comme diagnostic, sans remplacer le seuil LCP.
+- Cette acceptation prouve le rendu navigateur sous conditions CI controlees, pas la performance production sur tous les appareils, etats CDN ou reseaux.
+- Exigences : ENF2.
