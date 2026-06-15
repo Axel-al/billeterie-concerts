@@ -22,6 +22,14 @@ le nom requis `Django checks`, verifie aussi l'absence de migration manquante et
 affiche les lignes non couvertes. SonarCloud analyse egalement les templates
 Django et les workflows GitHub Actions.
 
+L'analyse etendue a detecte des risques de chaine d'approvisionnement dans le
+workflow. Les actions GitHub sont donc referencees par SHA immuable avec leur
+version lisible en commentaire. `requirements-ci.txt`, genere par `pip-compile`,
+verrouille les versions directes et transitives ainsi que les empreintes SHA-256
+utilisees sous Python 3.12. La CI impose `--require-hashes` et installe uniquement
+des distributions binaires. `requirements.txt` et `requirements-dev.txt` restent
+les manifests de plages supportees pour le developpement.
+
 `sonar.qualitygate.wait` n'est pas active : les regles du depot exigent deja les
 checks distincts `Django checks` et `SonarCloud Code Analysis`. Attendre le
 Quality Gate dans le job Django dupliquerait ce mecanisme et allongerait la CI.

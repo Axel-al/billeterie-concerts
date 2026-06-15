@@ -58,6 +58,7 @@ Elements livres dans cette etape :
 - couverture applicative de branches avec seuil global de 90 % et rapport XML ;
 - CI avec Ruff, checks Django, controle de migrations, tests, Playwright et SonarCloud ;
 - analyse SonarCloud etendue aux templates Django et workflows GitHub Actions ;
+- actions GitHub epinglees par SHA et dependances CI verrouillees dans `requirements-ci.txt` ;
 - mise a jour des documents `docs/repository/` et `docs/validation/`.
 
 Le cahier des charges officiel reste conserve dans `docs/brief/projet-validation-logiciel-e4a-2026.md`.
@@ -218,7 +219,10 @@ ne justifie ni tests artificiels ni exclusion de code applicatif.
 
 SonarCloud analyse les packages Python, les templates Django et les workflows
 GitHub Actions. Les tests `tests/` et `e2e/` sont declares comme sources de test.
-L'action utilise `SonarSource/sonarqube-scan-action@v8.2.0`.
+Les actions GitHub sont epinglees par SHA immuable, dont
+`SonarSource/sonarqube-scan-action` v8.2.0. `requirements-ci.txt` verrouille les
+versions directes et transitives ainsi que les empreintes SHA-256. La CI impose
+`--require-hashes` et installe uniquement des distributions binaires.
 
 `sonar.qualitygate.wait` n'est pas active : les regles du depot exigent deja les
 checks distincts `Django checks` et `SonarCloud Code Analysis`. L'analyse reste

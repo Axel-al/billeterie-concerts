@@ -72,13 +72,19 @@ checks Django, le controle de migrations, pytest avec couverture, puis installe
 Chromium et lance Playwright. Les traces sont publiees si le job echoue. La
 couverture terminale rend les logs directement exploitables.
 
+L'analyse Sonar du workflow a detecte des references d'actions non immuables et
+une installation Python non verrouillee. Les actions sont maintenant epinglees
+par SHA, `requirements-ci.txt` fixe les versions directes et transitives avec
+leurs empreintes SHA-256, `--require-hashes` verifie les artefacts telecharges et
+`--only-binary=:all:` interdit les distributions source en CI.
+
 ## SonarQube
 
 SonarCloud est configure par `sonar-project.properties`. Les sources incluent les
 packages applicatifs, les templates Django et les workflows GitHub Actions. Les
-tests `tests/` et `e2e/` restent declares separement. L'analyse CI utilise
-`SonarSource/sonarqube-scan-action@v8.2.0` seulement si `SONAR_TOKEN` est
-disponible.
+tests `tests/` et `e2e/` restent declares separement. L'analyse CI utilise la
+version 8.2.0 de `SonarSource/sonarqube-scan-action`, epinglee par SHA, seulement
+si `SONAR_TOKEN` est disponible.
 
 Le commit `393225d` sur `main` a un Quality Gate passant, sans bug, vulnerabilite
 ni code smell, avec 99,3 % de couverture globale et du nouveau code.

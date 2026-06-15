@@ -48,7 +48,7 @@ Le job conserve le nom `Django checks`, requis par les regles du depot. Il
 execute, dans cet ordre :
 
 1. checkout complet pour l'analyse Sonar ;
-2. installation de Python 3.12 et des dependances ;
+2. installation de Python 3.12 et des dependances verrouillees ;
 3. `ruff check .` ;
 4. `python manage.py check` ;
 5. `python manage.py makemigrations --check --dry-run` ;
@@ -58,12 +58,28 @@ execute, dans cet ordre :
 9. publication de `test-results/` si le job echoue ;
 10. analyse SonarCloud si `SONAR_TOKEN` est disponible.
 
-Actions utilisees :
+Les actions sont epinglees par SHA immuable, avec la version en commentaire :
 
-- `actions/checkout@v6`
-- `actions/setup-python@v6`
-- `actions/upload-artifact@v4`
-- `SonarSource/sonarqube-scan-action@v8.2.0`
+- `actions/checkout` v6.0.3
+- `actions/setup-python` v6.2.0
+- `actions/upload-artifact` v4.6.2
+- `SonarSource/sonarqube-scan-action` v8.2.0
+
+`requirements-ci.txt`, genere avec `pip-compile`, verrouille les versions
+directes et transitives du job Python 3.12 ainsi que les empreintes SHA-256 des
+artefacts acceptes. L'installation utilise `--require-hashes` et
+`--only-binary=:all:` pour verifier les distributions telechargees et eviter
+l'execution de scripts de construction issus de distributions source. Les
+manifests `requirements.txt` et `requirements-dev.txt` conservent les plages de
+versions supportees pour le developpement ; le lock CI doit etre regenere et
+valide deliberement lors de leur mise a jour.
+
+Commande de regeneration utilisee :
+
+```bash
+pip-compile --allow-unsafe --generate-hashes --no-emit-index-url \
+  --output-file=requirements-ci.txt --strip-extras requirements-dev.txt
+```
 
 ## SonarQube Cloud
 
