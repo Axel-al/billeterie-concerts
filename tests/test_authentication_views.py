@@ -23,11 +23,11 @@ def test_authentication_pages_use_french_labels(client):
     login_content = login_response.content.decode()
     assert signup_response.status_code == 200
     assert login_response.status_code == 200
-    assert "Adresse email" in signup_content
+    assert "Adresse e-mail" in signup_content
     assert "Prénom" in signup_content
     assert "Mot de passe" in signup_content
     assert "Créer mon compte" in signup_content
-    assert "Adresse email" in login_content
+    assert "Adresse e-mail" in login_content
     assert "Mot de passe" in login_content
     assert "Se connecter" in login_content
 
@@ -61,7 +61,7 @@ def test_duplicate_email_registration_is_rejected_with_french_message(client):
     assert response.status_code == 200
     assert user_model.objects.count() == 1
     assert (
-        "Un compte existe déjà avec cette adresse email."
+        "Un compte existe déjà avec cette adresse e-mail."
         in response.content.decode()
     )
 
@@ -109,7 +109,7 @@ def test_login_fails_with_invalid_credentials(client):
 
     assert response.status_code == 200
     assert "_auth_user_id" not in client.session
-    assert "Adresse email ou mot de passe invalide." in response.content.decode()
+    assert "Adresse e-mail ou mot de passe invalide." in response.content.decode()
 
 
 @pytest.mark.django_db

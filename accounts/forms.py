@@ -5,8 +5,8 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(
-        label="Adresse email",
-        error_messages={"required": "L'adresse email est obligatoire."},
+        label="Adresse e-mail",
+        error_messages={"required": "L’adresse e-mail est obligatoire."},
         widget=forms.EmailInput(
             attrs={
                 "autocomplete": "email",
@@ -49,7 +49,7 @@ class RegistrationForm(UserCreationForm):
         user_model = get_user_model()
         if user_model.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError(
-                "Un compte existe déjà avec cette adresse email.",
+                "Un compte existe déjà avec cette adresse e-mail.",
                 code="duplicate_email",
             )
         return user_model.objects.normalize_email(email)
@@ -57,7 +57,7 @@ class RegistrationForm(UserCreationForm):
 
 class EmailAuthenticationForm(AuthenticationForm):
     username = forms.EmailField(
-        label="Adresse email",
+        label="Adresse e-mail",
         widget=forms.EmailInput(
             attrs={
                 "autofocus": True,
@@ -69,7 +69,7 @@ class EmailAuthenticationForm(AuthenticationForm):
     )
 
     error_messages = {
-        "invalid_login": "Adresse email ou mot de passe invalide.",
+        "invalid_login": "Adresse e-mail ou mot de passe invalide.",
         "inactive": "Ce compte est inactif.",
     }
 

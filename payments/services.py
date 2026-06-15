@@ -30,7 +30,7 @@ def process_simulated_card_payment(cart: Cart, card_number: str) -> Payment:
 @transaction.atomic
 def process_simulated_payment(cart: Cart, result: str) -> Payment:
     if result not in PaymentResult.values:
-        raise ValidationError("Le resultat du paiement simule est invalide.")
+        raise ValidationError("Le résultat du paiement simulé est invalide.")
 
     locked_cart = (
         Cart.objects.select_for_update()
@@ -48,7 +48,7 @@ def process_simulated_payment(cart: Cart, result: str) -> Payment:
         seat_category = categories[line.seat_category_id]
         if seat_category.concert_id != validation.concert.id:
             raise ValidationError(
-                "Un panier valide ne peut contenir qu'un seul concert."
+                "Un panier valide ne peut contenir qu’un seul concert."
             )
         if seat_category.stock_remaining < line.quantity:
             raise ValidationError("Le stock restant est insuffisant.")

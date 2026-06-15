@@ -10,8 +10,8 @@ from concerts.models import Concert, SeatCategory
 
 class CartStatus(models.TextChoices):
     ACTIVE = "active", "Actif"
-    CHECKED_OUT = "checked_out", "Valide"
-    ABANDONED = "abandoned", "Abandonne"
+    CHECKED_OUT = "checked_out", "Validé"
+    ABANDONED = "abandoned", "Abandonné"
 
 
 class Cart(models.Model):
@@ -35,8 +35,8 @@ class Cart(models.Model):
         choices=CartStatus.choices,
         default=CartStatus.ACTIVE,
     )
-    created_at = models.DateTimeField("date de creation", auto_now_add=True)
-    updated_at = models.DateTimeField("date de mise a jour", auto_now=True)
+    created_at = models.DateTimeField("date de création", auto_now_add=True)
+    updated_at = models.DateTimeField("date de mise à jour", auto_now=True)
 
     class Meta:
         ordering = ("-created_at",)
@@ -74,14 +74,14 @@ class CartLine(models.Model):
         SeatCategory,
         on_delete=models.PROTECT,
         related_name="cart_lines",
-        verbose_name="categorie de place",
+        verbose_name="catégorie de place",
     )
     quantity = models.PositiveSmallIntegerField(
-        "quantite",
+        "quantité",
         validators=[MinValueValidator(1), MaxValueValidator(6)],
     )
-    created_at = models.DateTimeField("date de creation", auto_now_add=True)
-    updated_at = models.DateTimeField("date de mise a jour", auto_now=True)
+    created_at = models.DateTimeField("date de création", auto_now_add=True)
+    updated_at = models.DateTimeField("date de mise à jour", auto_now=True)
 
     class Meta:
         ordering = ("id",)

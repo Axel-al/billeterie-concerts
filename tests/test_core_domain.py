@@ -336,7 +336,7 @@ def test_accepted_payment_creates_paid_order_and_decrements_stock(user):
     order_line = order.lines.get()
     assert payment.result == PaymentResult.ACCEPTED
     assert payment.amount == Decimal("80.00")
-    assert str(payment) == f"Paiement #{payment.pk} - Accepte"
+    assert str(payment) == f"Paiement #{payment.pk} - Accepté"
     assert order.status == OrderStatus.PAID
     assert order.is_final
     assert order.user == user

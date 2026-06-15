@@ -10,9 +10,9 @@ from concerts.models import Concert, SeatCategory
 
 class OrderStatus(models.TextChoices):
     PENDING = "pending", "En attente de paiement"
-    PAID = "paid", "Payee"
-    REFUSED = "refused", "Refusee"
-    CANCELLED = "cancelled", "Annulee"
+    PAID = "paid", "Payée"
+    REFUSED = "refused", "Refusée"
+    CANCELLED = "cancelled", "Annulée"
 
 
 class Order(models.Model):
@@ -40,8 +40,8 @@ class Order(models.Model):
         decimal_places=2,
         default=Decimal("0.00"),
     )
-    created_at = models.DateTimeField("date de creation", auto_now_add=True)
-    updated_at = models.DateTimeField("date de mise a jour", auto_now=True)
+    created_at = models.DateTimeField("date de création", auto_now_add=True)
+    updated_at = models.DateTimeField("date de mise à jour", auto_now=True)
 
     class Meta:
         ordering = ("-created_at",)
@@ -69,15 +69,15 @@ class OrderLine(models.Model):
         SeatCategory,
         on_delete=models.PROTECT,
         related_name="order_lines",
-        verbose_name="categorie de place",
+        verbose_name="catégorie de place",
     )
-    category_name_snapshot = models.CharField("categorie achetee", max_length=120)
+    category_name_snapshot = models.CharField("catégorie achetée", max_length=120)
     unit_price = models.DecimalField("prix unitaire", max_digits=8, decimal_places=2)
     quantity = models.PositiveSmallIntegerField(
-        "quantite",
+        "quantité",
         validators=[MinValueValidator(1), MaxValueValidator(6)],
     )
-    created_at = models.DateTimeField("date de creation", auto_now_add=True)
+    created_at = models.DateTimeField("date de création", auto_now_add=True)
 
     class Meta:
         ordering = ("id",)

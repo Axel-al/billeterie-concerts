@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Detail de commande - Billetterie concerts{% endblock %}
+{% block title %}Détail de commande - Billetterie concerts{% endblock %}
 
 {% block content %}
   <header class="mb-4">
@@ -13,7 +13,7 @@
       <dt class="col-sm-3">Date</dt>
       <dd class="col-sm-9">{{ order.created_at|date:"d/m/Y H:i" }}</dd>
       <dt class="col-sm-3">Statut</dt>
-      <dd class="col-sm-9">Payee</dd>
+      <dd class="col-sm-9">Payée</dd>
       <dt class="col-sm-3">Concert</dt>
       <dd class="col-sm-9">{{ order.concert.title }}</dd>
       <dt class="col-sm-3">Total</dt>
@@ -22,34 +22,9 @@
   </section>
 
   <section class="mb-4">
-    <h2 class="h4 mb-3">Billets achetes</h2>
+    <h2 class="h4 mb-3">Billets achetés</h2>
     <div class="table-responsive bg-white border rounded">
-      <table class="table align-middle mb-0">
-        <thead>
-          <tr>
-            <th scope="col">Categorie</th>
-            <th scope="col">Prix paye</th>
-            <th scope="col">Quantite</th>
-            <th scope="col" class="text-end">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for line in order.lines.all %}
-            <tr>
-              <th scope="row">{{ line.category_name_snapshot }}</th>
-              <td>{{ line.unit_price|floatformat:2 }} €</td>
-              <td>{{ line.quantity }}</td>
-              <td class="text-end">{{ line.line_total|floatformat:2 }} €</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-        <tfoot>
-          <tr>
-            <th scope="row" colspan="3" class="text-end">Total paye</th>
-            <td class="text-end fw-semibold">{{ order.total_amount|floatformat:2 }} €</td>
-          </tr>
-        </tfoot>
-      </table>
+      {% include "orders/_order_lines_table.html" %}
     </div>
   </section>
 

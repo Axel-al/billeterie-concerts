@@ -190,10 +190,10 @@ def test_order_detail_displays_consistent_paid_order_data(client, user):
     assert response.status_code == 200
     assert "Commande #" in content
     assert "14/06/2026" in content
-    assert "Payee" in content
+    assert "Payée" in content
     assert "Detail Stable" in content
     assert "Balcon" in content
-    assert "Quantite" in content
+    assert "Quantité" in content
     assert ">2<" in content
     assert "42,50" in content
     assert "85,00" in content
@@ -208,7 +208,7 @@ def test_refused_orders_remain_non_final_and_are_excluded_from_history(
 ):
     refused_order, category = create_order(
         user,
-        title="Paiement Refuse",
+        title="Paiement Refusé",
         price=Decimal("40.00"),
         quantity=2,
         result=PaymentResult.REFUSED,
@@ -226,5 +226,5 @@ def test_refused_orders_remain_non_final_and_are_excluded_from_history(
     assert not refused_order.is_final
     assert category.stock_remaining == 8
     assert history_response.status_code == 200
-    assert "Paiement Refuse" not in history_response.content.decode()
+    assert "Paiement Refusé" not in history_response.content.decode()
     assert detail_response.status_code == 404

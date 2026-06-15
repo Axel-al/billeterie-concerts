@@ -8,17 +8,17 @@ from concerts.models import Concert, ConcertStatus, SeatCategory
 
 
 class Command(BaseCommand):
-    help = "Cree un petit jeu de donnees de demonstration pour la billetterie."
+    help = "Crée un petit jeu de données de démonstration pour la billetterie."
 
     def handle(self, *args, **options):
         now = timezone.now()
         concerts = [
             {
-                "title": "Nuit Electrique",
+                "title": "Nuit Électrique",
                 "artist": "The Validation Keys",
-                "description": "Concert ouvert a la vente pour les demonstrations.",
+                "description": "Concert ouvert à la vente pour les démonstrations.",
                 "starts_at": now + timedelta(days=30),
-                "venue": "Le Grand Dome",
+                "venue": "Le Grand Dôme",
                 "status": ConcertStatus.OPEN,
                 "categories": [
                     ("Fosse", Decimal("35.00"), 120, 120),
@@ -27,9 +27,9 @@ class Command(BaseCommand):
                 ],
             },
             {
-                "title": "Silence Annule",
+                "title": "Silence Annulé",
                 "artist": "Muted Signals",
-                "description": "Concert futur annule pour tester les refus.",
+                "description": "Concert futur annulé pour tester les refus.",
                 "starts_at": now + timedelta(days=45),
                 "venue": "Salle Horizon",
                 "status": ConcertStatus.CANCELLED,
@@ -41,7 +41,7 @@ class Command(BaseCommand):
             {
                 "title": "Hier Encore",
                 "artist": "Legacy Band",
-                "description": "Concert passe ou termine pour tester les refus.",
+                "description": "Concert passé ou terminé pour tester les refus.",
                 "starts_at": now - timedelta(days=7),
                 "venue": "Club Archive",
                 "status": ConcertStatus.FINISHED,
@@ -70,4 +70,6 @@ class Command(BaseCommand):
                     },
                 )
 
-        self.stdout.write(self.style.SUCCESS("Jeu de donnees demo cree ou mis a jour."))
+        self.stdout.write(
+            self.style.SUCCESS("Jeu de données démo créé ou mis à jour.")
+        )
