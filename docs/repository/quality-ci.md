@@ -13,13 +13,14 @@ La chaine qualite couvre les exigences `ENF5`, `ENF6` et `ENF7` avec :
 
 ## Couverture
 
-Les packages applicatifs mesures sont declares dans `pyproject.toml` :
-`accounts`, `concerts`, `cart`, `orders`, `payments` et `config`. Les tests ne
-font pas partie du denominateur.
+Les packages applicatifs mesures sont declares avec `source_pkgs` dans
+`pyproject.toml` : `accounts`, `concerts`, `cart`, `orders`, `payments` et
+`config`. Les tests ne font pas partie du denominateur.
 
 Configuration :
 
 - couverture de branches activee ;
+- chemins relatifs au depot avec le nom du package conserve ;
 - precision a une decimale ;
 - seuil global bloquant de 90 % ;
 - rapport terminal avec lignes manquantes ;
@@ -29,7 +30,13 @@ Commande de reference :
 
 ```bash
 pytest --cov --cov-report=term-missing --cov-report=xml
+python .github/scripts/validate_coverage_xml.py
 ```
+
+Le validateur XML verifie que chaque fichier mesure utilise un chemin relatif
+unique resolvable depuis la racine, par exemple `accounts/admin.py`. Il empeche
+le retour de chemins ambigus tels que `admin.py`, que SonarCloud ne peut pas
+associer a une application Django lorsque plusieurs packages possedent ce nom.
 
 Le seuil est un garde-fou, pas un objectif a maximiser artificiellement. Il ne
 doit pas conduire a exclure du code applicatif ou a ajouter des tests sans valeur
@@ -53,10 +60,11 @@ execute, dans cet ordre :
 4. `python manage.py check` ;
 5. `python manage.py makemigrations --check --dry-run` ;
 6. pytest avec couverture terminale, XML et seuil de 90 % ;
-7. installation Chromium apres les checks rapides ;
-8. scenario Playwright avec trace conservee en cas d'echec ;
-9. publication de `test-results/` si le job echoue ;
-10. analyse SonarCloud si `SONAR_TOKEN` est disponible.
+7. validation des chemins de fichiers de `coverage.xml` ;
+8. installation Chromium apres les checks rapides ;
+9. scenario Playwright avec trace conservee en cas d'echec ;
+10. publication de `test-results/` si le job echoue ;
+11. analyse SonarCloud si `SONAR_TOKEN` est disponible.
 
 Les actions sont epinglees par SHA immuable, avec la version en commentaire :
 

@@ -69,6 +69,7 @@ python manage.py makemigrations --check --dry-run
 ruff check .
 pytest
 pytest --cov --cov-report=term-missing --cov-report=xml
+python .github/scripts/validate_coverage_xml.py
 coverage report
 test -s coverage.xml
 ```
@@ -78,6 +79,11 @@ non vide (11 063 octets), et la couverture applicative avec branches atteint
 99,6 % (813 instructions, 2 non couvertes, 102 branches), au-dessus du seuil
 obligatoire de 90 %. Les tests ne sont pas inclus dans le denominateur. Le
 scenario Playwright nominal passe egalement.
+
+Le rapport XML conserve les chemins complets relatifs aux packages
+(`accounts/admin.py`, `cart/admin.py`, etc.). Le validateur CI refuse les
+chemins absolus ou non resolvables afin d'eviter que SonarCloud ignore des
+mesures de couverture a cause de noms ambigus.
 
 ## Exclusions de couverture
 

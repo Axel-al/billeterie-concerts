@@ -42,11 +42,13 @@ Commande verifiee :
 
 ```bash
 pytest --cov --cov-report=term-missing --cov-report=xml
+python .github/scripts/validate_coverage_xml.py
 ```
 
-Resultat final observe : 106 tests passent, la couverture applicative avec
-branches atteint 99,6 % (813 instructions, 2 non couvertes, 102 branches), le
-seuil de 90 % est respecte et `coverage.xml` est genere avec 11 063 octets.
+Les applications sont declarees avec `source_pkgs` et `relative_files`. Le XML
+conserve ainsi des chemins tels que `accounts/admin.py` au lieu de noms ambigus
+comme `admin.py`. La CI verifie que chaque chemin est relatif et resolvable avant
+de lancer SonarCloud.
 
 Exclusions justifiees :
 

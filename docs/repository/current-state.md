@@ -212,10 +212,12 @@ Le workflow conserve le job requis `Django checks` et execute Ruff, les checks
 Django, le controle des migrations, pytest avec couverture, puis Playwright. Les
 traces Playwright sont publiees en cas d'echec.
 
-Coverage mesure uniquement les packages applicatifs declares dans
-`pyproject.toml`, avec branches, precision a une decimale, rapport terminal,
-`coverage.xml` et seuil global bloquant de 90 %. Le seuil reste un garde-fou et
-ne justifie ni tests artificiels ni exclusion de code applicatif.
+Coverage mesure uniquement les packages applicatifs declares avec
+`source_pkgs` dans `pyproject.toml`, avec branches, chemins relatifs non ambigus,
+precision a une decimale, rapport terminal, `coverage.xml` et seuil global
+bloquant de 90 %. Le workflow valide chaque chemin du XML avant SonarCloud. Le
+seuil reste un garde-fou et ne justifie ni tests artificiels ni exclusion de
+code applicatif.
 
 SonarCloud analyse les packages Python, les templates Django et les workflows
 GitHub Actions. Les tests `tests/` et `e2e/` sont declares comme sources de test.
