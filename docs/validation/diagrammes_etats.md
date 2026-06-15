@@ -32,6 +32,7 @@ stateDiagram-v2
     [*] --> Actif
     Actif --> Valide: paiement accepte
     Actif --> Actif: paiement refuse
+    Actif --> Actif: echec decrement / rollback
     Actif --> Abandonne: abandon futur
     Valide --> [*]
     Abandonne --> [*]
@@ -39,7 +40,8 @@ stateDiagram-v2
 
 Exigences liees : EF5, EF6, EF7, EF8, EF9, EM1, EM2, EM3, RG2, RG3, RG4, RG5.
 
-Statuts implementes : `active`, `checked_out`, `abandoned`. Un paiement refuse laisse le panier `active`.
+Statuts implementes : `active`, `checked_out`, `abandoned`. Un paiement refuse
+ou un echec du decrement conditionnel laisse le panier `active`.
 
 ## Commande
 
@@ -49,6 +51,7 @@ stateDiagram-v2
     Panier --> EnAttentePaiement: validation panier
     EnAttentePaiement --> Payee: paiement accepte
     EnAttentePaiement --> Refusee: paiement refuse
+    EnAttentePaiement --> Panier: echec decrement / rollback
     Panier --> Annulee: abandon
     Refusee --> Panier: nouvelle tentative
     Payee --> [*]
@@ -78,3 +81,9 @@ Exigences : EF11, EM5, EM9, RG7.
 Le quatrieme cas derive verifie la cloture admin : un concert passe en `closed`, reste consultable, ne peut plus recevoir de reservation et conserve son stock restant.
 
 Exigences : EF11, EM9, RG1.
+
+Le cinquieme cas derive verifie le rollback du paiement accepte si le decrement
+conditionnel du stock echoue : aucune commande ni aucun paiement ne persiste, le
+stock reste inchange et le panier reste `active`.
+
+Exigences : EF12, EM1, EM6, ENF4, RG2, RG5.

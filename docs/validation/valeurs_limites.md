@@ -24,6 +24,11 @@ Les valeurs `0`, `1`, `6` et `7` sont aussi verifiees dans le flux d'ajout au pa
 | 6 | 6 | Acceptation | EM1, RG2 |
 | 6 | 7 | Refus | EM1, RG2 |
 
+Cas atomique complementaire : pour un stock initial de 8 et une demande de 2,
+un echec simule de l'update conditionnel final doit laisser le stock a 8, le
+panier actif et aucune commande ou paiement persistant (`EF12`, `EM1`, `EM6`,
+`ENF4`, `RG2`, `RG5`).
+
 ## Date du concert
 
 | Situation | Resultat attendu | Exigences |
