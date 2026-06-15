@@ -66,8 +66,10 @@ La commande e2e utilise `pytest-django` et `live_server`. Les fixtures creent le
 Le test `ENF2` utilise un contexte Chromium froid par page, un viewport desktop
 1366x768, aucune limitation CPU/reseau et des ressources Bootstrap rejouees
 depuis des fixtures locales correspondant aux empreintes SRI du template. Cette
-mesure valide le rendu navigateur sous conditions CI controlees, pas la
-performance de production sur tous les appareils, etats CDN ou reseaux.
+mesure attend l'entree LCP apres la visibilite du contenu principal, dans la
+limite du seuil officiel de 2 000 ms. Elle valide le rendu navigateur sous
+conditions CI controlees, pas la performance de production sur tous les
+appareils, etats CDN ou reseaux.
 
 ## Commandes verifiees localement
 
