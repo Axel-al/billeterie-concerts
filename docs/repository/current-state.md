@@ -221,6 +221,9 @@ code applicatif.
 
 SonarCloud analyse les packages Python, les templates Django et les workflows
 GitHub Actions. Les tests `tests/` et `e2e/` sont declares comme sources de test.
+Les ressources Bootstrap distantes portent leurs empreintes SRI et les messages
+statiques n'utilisent pas de role ARIA live inutile. Ces regles sont verifiees
+dans `tests/test_template_quality.py`.
 Les actions GitHub sont epinglees par SHA immuable, dont
 `SonarSource/sonarqube-scan-action` v8.2.0. `requirements-ci.txt` verrouille les
 versions directes et transitives ainsi que les empreintes SHA-256. La CI impose

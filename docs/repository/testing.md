@@ -14,6 +14,7 @@ Tests automatises versionnes :
 - `tests/test_order_history.py` : historique des commandes payees, detail de commande, redirection des visiteurs, cloisonnement proprietaire, exclusion des commandes refusees et liens post-paiement.
 - `tests/test_admin_concert_management.py` : permissions d'administration, synthese des ventes payees, annulation, cloture, preservation des commandes payees et creation/modification admin de concerts avec categories.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
+- `tests/test_template_quality.py` : empreintes SRI des ressources Bootstrap et absence de roles `status` sur les messages statiques.
 - `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse, prix snapshots et rollback si le decrement conditionnel du stock echoue.
 - `e2e/test_nominal_booking_flow.py` : scenario Playwright nominal avec `live_server`, connexion, ajout de 2 billets, panier, checkout, paiement accepte, confirmation, historique et assertions ORM dans la base de test.
 

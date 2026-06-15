@@ -34,6 +34,14 @@ ruff check .
 
 Resultat observe : OK.
 
+L'analyse Web des templates a conduit a deux corrections verifiees par
+`tests/test_template_quality.py` :
+
+- ajout des empreintes SRI et de `crossorigin="anonymous"` aux ressources
+  Bootstrap 5.3.3 chargees depuis jsDelivr ;
+- retrait de quatre roles `status` sur des messages rendus statiquement, sans
+  changement de texte ni de comportement.
+
 ## Couverture
 
 Coverage est configure dans `pyproject.toml`.

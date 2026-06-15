@@ -99,6 +99,11 @@ Le projet `Axel-al_billeterie-concerts` analyse :
 - les tests `tests/` et `e2e/` comme sources de test separees ;
 - `coverage.xml` comme rapport de couverture Python.
 
+Les constats Web sont traites dans les templates : les ressources Bootstrap
+chargees depuis jsDelivr utilisent SRI et les messages rendus statiquement ne
+declarent pas de zone live `status`. `tests/test_template_quality.py` protege
+ces choix contre une regression.
+
 Le Quality Gate distant conserve notamment le seuil de 80 % sur la couverture
 du nouveau code. `sonar.qualitygate.wait` n'est pas active : les regles du depot
 exigent deja les checks distincts `Django checks` et
