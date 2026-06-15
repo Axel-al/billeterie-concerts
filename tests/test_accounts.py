@@ -28,7 +28,7 @@ def test_user_manager_normalizes_email_domain():
 
 @pytest.mark.django_db
 def test_user_manager_requires_email():
-    with pytest.raises(ValueError, match="adresse email"):
+    with pytest.raises(ValueError, match="adresse e-mail"):
         get_user_model().objects.create_user(email="", password="mot-de-passe-solide")
 
 

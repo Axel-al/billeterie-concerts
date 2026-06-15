@@ -214,7 +214,7 @@ def test_sales_overview_counts_paid_sales_only(
     standard_user,
     manager_user,
 ):
-    concert = create_concert(title="Ventes Payees")
+    concert = create_concert(title="Ventes Payées")
     category = create_category(concert, stock=10)
     create_paid_order(standard_user, concert, category, quantity=2)
     refused_line = add_ticket_to_cart(standard_user, category, 3)
@@ -230,7 +230,7 @@ def test_sales_overview_counts_paid_sales_only(
     assert response.status_code == 200
     assert refused_order.payment.result == PaymentResult.REFUSED
     assert refused_line.cart.status == CartStatus.ACTIVE
-    assert "Ventes Payees" in content
+    assert "Ventes Payées" in content
     assert ">1<" in content
     assert ">2<" in content
     assert "80,00" in content
@@ -315,7 +315,7 @@ def test_django_admin_can_create_and_modify_concert_with_category(client):
 
 @pytest.mark.django_db
 def test_concert_admin_metrics_and_bulk_actions(standard_user):
-    concert = create_concert(title="Synthese Admin")
+    concert = create_concert(title="Synthèse Admin")
     category = create_category(concert, stock=10)
     create_paid_order(standard_user, concert, category, quantity=2)
     refused_line = add_ticket_to_cart(standard_user, category, 1)

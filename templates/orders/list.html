@@ -7,7 +7,7 @@
     <p class="text-uppercase text-secondary small fw-semibold mb-2">Compte client</p>
     <h1 class="display-6 fw-semibold mb-2">Mes commandes</h1>
     <p class="text-secondary mb-0">
-      Retrouvez ici vos commandes payees.
+      Retrouvez ici vos commandes payées.
     </p>
   </header>
 
@@ -24,20 +24,20 @@
             <th scope="col">Concert</th>
             <th scope="col">Billets</th>
             <th scope="col" class="text-end">Total</th>
-            <th scope="col" class="text-end">Detail</th>
+            <th scope="col" class="text-end">Détail</th>
           </tr>
         </thead>
         <tbody>
           {% for order in orders %}
             <tr data-testid="order-history-row">
               <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
-              <td>Payee</td>
+              <td>Payée</td>
               <th scope="row">{{ order.concert.title }}</th>
               <td>{{ order.total_quantity }}</td>
               <td class="text-end">{{ order.total_amount|floatformat:2 }} €</td>
               <td class="text-end">
                 <a class="btn btn-outline-primary btn-sm" href="{% url 'orders:detail' order.pk %}">
-                  Voir le detail
+                  Voir le détail
                 </a>
               </td>
             </tr>
@@ -47,7 +47,7 @@
     </div>
   {% else %}
     <div class="alert alert-info">
-      Aucune commande payee pour le moment.
+      Aucune commande payée pour le moment.
     </div>
     <a class="btn btn-primary" href="{% url 'concerts:list' %}">
       Voir les concerts

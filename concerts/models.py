@@ -8,11 +8,11 @@ from django.utils import timezone
 
 class ConcertStatus(models.TextChoices):
     DRAFT = "draft", "Brouillon"
-    OPEN = "open", "Ouvert a la vente"
-    CLOSED = "closed", "Vente cloturee"
+    OPEN = "open", "Ouvert à la vente"
+    CLOSED = "closed", "Vente clôturée"
     SOLD_OUT = "sold_out", "Complet"
-    CANCELLED = "cancelled", "Annule"
-    FINISHED = "finished", "Termine"
+    CANCELLED = "cancelled", "Annulé"
+    FINISHED = "finished", "Terminé"
 
 
 class Concert(models.Model):
@@ -27,8 +27,8 @@ class Concert(models.Model):
         choices=ConcertStatus.choices,
         default=ConcertStatus.DRAFT,
     )
-    created_at = models.DateTimeField("date de creation", auto_now_add=True)
-    updated_at = models.DateTimeField("date de mise a jour", auto_now=True)
+    created_at = models.DateTimeField("date de création", auto_now_add=True)
+    updated_at = models.DateTimeField("date de mise à jour", auto_now=True)
 
     class Meta:
         ordering = ("starts_at", "title")
@@ -69,8 +69,8 @@ class SeatCategory(models.Model):
     )
     stock_initial = models.PositiveIntegerField("stock initial")
     stock_remaining = models.PositiveIntegerField("stock restant")
-    created_at = models.DateTimeField("date de creation", auto_now_add=True)
-    updated_at = models.DateTimeField("date de mise a jour", auto_now=True)
+    created_at = models.DateTimeField("date de création", auto_now_add=True)
+    updated_at = models.DateTimeField("date de mise à jour", auto_now=True)
 
     class Meta:
         ordering = ("concert", "name")

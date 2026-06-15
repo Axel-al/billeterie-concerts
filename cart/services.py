@@ -19,22 +19,22 @@ class CartValidationResult:
 
 def validate_ticket_quantity(quantity: int) -> None:
     if not isinstance(quantity, int):
-        raise ValidationError("La quantite doit etre un entier.")
+        raise ValidationError("La quantité doit être un entier.")
     if quantity < MIN_TICKETS_PER_CONCERT:
-        raise ValidationError("La quantite doit etre au moins egale a 1.")
+        raise ValidationError("La quantité doit être au moins égale à 1.")
     if quantity > MAX_TICKETS_PER_CONCERT:
-        raise ValidationError("La quantite ne peut pas depasser 6 billets.")
+        raise ValidationError("La quantité ne peut pas dépasser 6 billets.")
 
 
 def validate_concert_bookable(concert: Concert) -> None:
     if concert.status == ConcertStatus.CANCELLED:
-        raise ValidationError("Le concert annule ne peut pas etre reserve.")
+        raise ValidationError("Le concert annulé ne peut pas être réservé.")
     if concert.status == ConcertStatus.CLOSED:
-        raise ValidationError("Les ventes de ce concert sont cloturees.")
+        raise ValidationError("Les ventes de ce concert sont clôturées.")
     if concert.is_past():
-        raise ValidationError("Le concert passe ne peut pas etre reserve.")
+        raise ValidationError("Le concert passé ne peut pas être réservé.")
     if concert.status != ConcertStatus.OPEN:
-        raise ValidationError("Le concert n'est pas ouvert a la vente.")
+        raise ValidationError("Le concert n’est pas ouvert à la vente.")
     if not concert.has_available_stock():
         raise ValidationError("Le concert ne dispose plus de places disponibles.")
 
@@ -70,7 +70,7 @@ def add_ticket_to_cart(user, seat_category: SeatCategory, quantity: int) -> Cart
         cart.concert = seat_category.concert
         cart.save(update_fields=("concert", "updated_at"))
     elif cart.concert_id != seat_category.concert_id:
-        raise ValidationError("Un panier actif ne peut contenir qu'un seul concert.")
+        raise ValidationError("Un panier actif ne peut contenir qu’un seul concert.")
 
     line = CartLine.objects.filter(cart=cart, seat_category=seat_category).first()
     current_line_quantity = line.quantity if line else 0
@@ -99,7 +99,7 @@ def add_ticket_to_cart(user, seat_category: SeatCategory, quantity: int) -> Cart
 
 def validate_cart_for_checkout(cart: Cart) -> CartValidationResult:
     if cart.status != CartStatus.ACTIVE:
-        raise ValidationError("Seul un panier actif peut etre valide.")
+        raise ValidationError("Seul un panier actif peut être validé.")
 
     lines = tuple(cart.lines.select_related("seat_category__concert").order_by("id"))
     if not lines:
@@ -107,7 +107,7 @@ def validate_cart_for_checkout(cart: Cart) -> CartValidationResult:
 
     concert_ids = {line.seat_category.concert_id for line in lines}
     if len(concert_ids) != 1 or cart.concert_id not in concert_ids:
-        raise ValidationError("Un panier valide ne peut contenir qu'un seul concert.")
+        raise ValidationError("Un panier valide ne peut contenir qu’un seul concert.")
 
     concert = lines[0].seat_category.concert
     validate_concert_bookable(concert)

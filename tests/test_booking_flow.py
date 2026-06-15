@@ -147,7 +147,7 @@ def test_past_concert_is_rejected_through_add_to_cart_flow(client, user):
     response = post_add_to_cart(client, concert, category, 1)
 
     assert CartLine.objects.count() == 0
-    assert "Le concert passe ne peut pas etre reserve." in response.content.decode()
+    assert "Le concert passé ne peut pas être réservé." in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -159,7 +159,7 @@ def test_cancelled_concert_is_rejected_through_add_to_cart_flow(client, user):
     response = post_add_to_cart(client, concert, category, 1)
 
     assert CartLine.objects.count() == 0
-    assert "Le concert annule ne peut pas etre reserve." in response.content.decode()
+    assert "Le concert annulé ne peut pas être réservé." in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -171,7 +171,7 @@ def test_closed_concert_is_rejected_through_add_to_cart_flow(client, user):
     response = post_add_to_cart(client, concert, category, 1)
 
     assert CartLine.objects.count() == 0
-    assert "Les ventes de ce concert sont cloturees." in response.content.decode()
+    assert "Les ventes de ce concert sont clôturées." in response.content.decode()
 
 
 @pytest.mark.django_db

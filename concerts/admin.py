@@ -41,7 +41,7 @@ class ConcertAdmin(admin.ModelAdmin):
     def total_stock_remaining(self, obj):
         return sales_summary_for_concert(obj).stock_remaining
 
-    @admin.display(description="commandes payees")
+    @admin.display(description="commandes payées")
     def paid_orders_count(self, obj):
         return sales_summary_for_concert(obj).paid_orders_count
 
@@ -49,11 +49,11 @@ class ConcertAdmin(admin.ModelAdmin):
     def paid_tickets_sold(self, obj):
         return sales_summary_for_concert(obj).tickets_sold
 
-    @admin.display(description="revenu paye")
+    @admin.display(description="revenu payé")
     def paid_revenue(self, obj):
         return sales_summary_for_concert(obj).revenue
 
-    @admin.action(description="Annuler les concerts selectionnes")
+    @admin.action(description="Annuler les concerts sélectionnés")
     def cancel_selected_concerts(self, request, queryset):
         updated_count = 0
         for concert in queryset:
@@ -61,11 +61,11 @@ class ConcertAdmin(admin.ModelAdmin):
             updated_count += 1
         self.message_user(
             request,
-            f"{updated_count} concert(s) annule(s).",
+            f"{updated_count} concert(s) annulé(s).",
             level=messages.SUCCESS,
         )
 
-    @admin.action(description="Cloturer les ventes des concerts selectionnes")
+    @admin.action(description="Clôturer les ventes des concerts sélectionnés")
     def close_selected_concerts(self, request, queryset):
         updated_count = 0
         for concert in queryset:
@@ -73,7 +73,7 @@ class ConcertAdmin(admin.ModelAdmin):
             updated_count += 1
         self.message_user(
             request,
-            f"Ventes cloturees pour {updated_count} concert(s).",
+            f"Ventes clôturées pour {updated_count} concert(s).",
             level=messages.SUCCESS,
         )
 

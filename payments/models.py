@@ -4,8 +4,8 @@ from orders.models import Order
 
 
 class PaymentResult(models.TextChoices):
-    ACCEPTED = "accepted", "Accepte"
-    REFUSED = "refused", "Refuse"
+    ACCEPTED = "accepted", "Accepté"
+    REFUSED = "refused", "Refusé"
 
 
 class Payment(models.Model):
@@ -17,7 +17,7 @@ class Payment(models.Model):
     )
     amount = models.DecimalField("montant", max_digits=10, decimal_places=2)
     result = models.CharField(
-        "resultat",
+        "résultat",
         max_length=20,
         choices=PaymentResult.choices,
     )
