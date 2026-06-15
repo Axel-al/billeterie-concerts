@@ -1,42 +1,82 @@
 # Applications Django
 
-## État actuel
+## `accounts`
 
-Le dépôt contient cinq applications Django métier :
+Responsabilités :
 
-| Application | État actuel | Exigences liées |
-| --- | --- | --- |
-| `accounts` | Modèle `User` personnalisé avec e-mail unique, manager, admin Django, inscription, connexion, déconnexion POST et espace personnel protégé. | EF3, EF4, EM8, ENF3, ENF4 |
-| `concerts` | Modèles `Concert` et `SeatCategory`, catalogue public, fiches détaillées, services et vues d'administration, admin avec catégories inline, commande `seed_demo_data`. | EF1, EF2, EF5 partiel, EF11, EF12, EM1, EM4, EM5, EM9, RG1, RG2, RG7 |
-| `cart` | Modèles `Cart` et `CartLine`, services d'ajout/validation de panier, vues panier et checkout. | EF5, EF6, EM1, EM2, EM3, RG2, RG3, RG6 |
-| `orders` | Modèles `Order` et `OrderLine`, statuts, prix snapshots, historique payé et détail de commande filtrés par utilisateur. | EF8, EF9, EF10, EM6, EM7, EM10, RG4, RG5, RG8 |
-| `payments` | Modèle `Payment`, règle de carte simulée, service de paiement et vues paiement/confirmation/refus. | EF7, EF8, EF9, EF12, EM6, RG4, RG5, RG6 |
+- modèle `User` personnalisé avec e-mail unique ;
+- manager de création des utilisateurs et superutilisateurs ;
+- inscription, connexion, déconnexion POST et espace personnel ;
+- administration des utilisateurs.
 
-Le module `config` porte les réglages, les URLs racines, le rendu de la page d'accueil et les redirections d'authentification. Le catalogue est disponible sur `/concerts/`, les fiches sur `/concerts/<id>/`, le suivi admin des ventes sur `/concerts/administration/ventes/`, le panier sur `/panier/`, le checkout sur `/panier/validation/`, le paiement simulé sur `/paiement/` et les commandes payées sur `/commandes/`.
+Exigences principales : `EF3`, `EF4`, `EM8`, `ENF3`, `ENF4`.
 
-## Découpage retenu
+## `concerts`
 
-| Application | Responsabilité |
-| --- | --- |
-| `accounts` | Identité utilisateur, inscription, authentification et espace personnel de base. |
-| `concerts` | Données de concerts, catégories de places, stock, statut de réservation, consultation publique et gestion admin des concerts/ventes. |
-| `cart` | Panier actif utilisateur, lignes de panier, quantités et total courant. |
-| `orders` | Commandes issues d'une tentative de paiement, lignes figeant prix et catégorie, consultation des commandes payées. |
-| `payments` | Résultat du paiement simulé et orchestration transactionnelle du paiement. |
+Responsabilités :
 
-## Décisions appliquées
+- modèles `Concert` et `SeatCategory` ;
+- catalogue public et fiches détaillées ;
+- calcul de réservabilité selon date, statut et stock ;
+- synthèse administrateur des ventes ;
+- annulation et clôture ;
+- commande `seed_demo_data`.
 
-- `cart` et `payments` sont des applications séparées pour correspondre à l'architecture cible.
-- Un panier actif et une commande ne portent qu'un seul concert. Cette limite simplifie la couverture de `EM10` et permet d'appliquer clairement le plafond de 6 billets par concert/commande.
-- `EF5`, `EF6`, `EF7`, `EF8` et `EF9` sont couverts par les services et par les vues panier, checkout, paiement, confirmation et refus.
-- `EF1` et `EF2` sont couvertes par les vues publiques et leurs tests d'intégration.
-- `EF11`, `EM9` et `RG7` sont couverts par les permissions Django, la synthèse admin des ventes et les actions d'annulation/clôture.
-- Les pages de confirmation et refus de paiement filtrent les commandes par utilisateur.
-- L'historique `Mes commandes` et le détail de commande filtrent les commandes payées par utilisateur. `EF10` et `RG8` sont couverts par ce périmètre.
-- Les commandes refusées restent tracées comme non finales, mais elles sont exclues de l'historique des achats payés.
-- Les fiches brouillon ne sont pas publiées. Les concerts annulés, clôturés, passés, terminés ou complets restent consultables avec une explication française et sans action de réservation.
-- Les vues d'administration utilisent explicitement les permissions Django : `concerts.view_concert` et `orders.view_order` pour le suivi des ventes, `concerts.change_concert` pour annuler ou clôturer.
+Exigences principales : `EF1`, `EF2`, `EF11`, `EF12`, `EM1`, `EM4`,
+`EM5`, `EM9`, `RG1`, `RG2`, `RG7`.
 
-## Non fait dans cette étape
+## `cart`
 
-- Pas d'historique des tentatives refusées dans `Mes commandes` : elles restent consultables uniquement via la page de refus filtrée par propriétaire.
+Responsabilités :
+
+- modèles `Cart` et `CartLine` ;
+- panier actif unique par utilisateur ;
+- limite mono-concert ;
+- quantité agrégée de 1 à 6 ;
+- ajout, total et validation du checkout.
+
+Exigences principales : `EF5`, `EF6`, `EM1`, `EM2`, `EM3`, `RG2`,
+`RG3`, `RG6`.
+
+## `orders`
+
+Responsabilités :
+
+- modèles `Order` et `OrderLine` ;
+- prix et nom de catégorie figés au paiement ;
+- historique des commandes payées ;
+- détail filtré par propriétaire ;
+- surfaces administrateur en lecture seule pour les données métier.
+
+Exigences principales : `EF8`, `EF9`, `EF10`, `EM6`, `EM7`, `EM10`,
+`RG4`, `RG5`, `RG8`.
+
+## `payments`
+
+Responsabilités :
+
+- modèle `Payment` ;
+- formulaire de carte simulée ;
+- acceptation de `4242424242424242` et refus des autres valeurs ;
+- transaction de création de commande et décrément du stock ;
+- pages de confirmation et refus filtrées par utilisateur.
+
+Exigences principales : `EF7`, `EF8`, `EF9`, `EF12`, `EM6`, `RG4`,
+`RG5`, `RG6`.
+
+## `config`
+
+Responsabilités :
+
+- configuration par variables d'environnement ;
+- déclaration des applications ;
+- routes racines ;
+- langue `fr-fr` et fuseau `Europe/Paris` ;
+- titres français de l'administration Django ;
+- points d'entrée ASGI et WSGI.
+
+## Découpage
+
+Le découpage maintient les règles sensibles dans des services proches du
+domaine. Il évite un contrôleur unique pour le panier, le paiement et les
+commandes, tout en conservant un déploiement monolithique simple.

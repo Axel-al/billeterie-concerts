@@ -1,61 +1,86 @@
-# Règles domaine
+# Règles métier
 
-## Réservation
+## Réservabilité
 
-Un concert est réservable seulement si :
+Un concert est réservable si toutes les conditions suivantes sont vraies :
 
 - sa date est strictement future ;
 - son statut est `open` ;
-- au moins une catégorie possède du stock restant.
+- au moins une catégorie possède du stock.
 
-Une catégorie est réservable pour une quantité donnée seulement si son stock restant couvre cette quantité.
+Les brouillons ne sont pas publiés. Les concerts passés, annulés, clôturés,
+terminés ou complets peuvent conserver une fiche publique explicative, sans
+action de réservation.
 
-Les statuts `cancelled` et `closed` bloquent toute nouvelle réservation. `cancelled` représente une annulation du concert ; `closed` représente une clôture manuelle des ventes.
+Exigences : `EF1`, `EF2`, `EM4`, `EM5`, `RG1`, `RG7`.
 
-## Consultation publique
+## Quantité
 
-Le catalogue public affiche uniquement les concerts ouverts, strictement futurs et avec au moins une catégorie en stock.
+- La quantité doit être un entier.
+- Le minimum est 1.
+- Le maximum est 6 pour le total du concert dans le panier.
+- Une catégorie doit posséder au moins la quantité demandée.
+- Un panier actif est limité à un concert.
 
-Une fiche détaillée publique peut rester consultable lorsqu'un concert est annulé, clôturé, passé, terminé ou complet afin d'expliquer son indisponibilité. Les brouillons ne sont pas publiés et renvoient une réponse `404`.
+Ces règles sont appliquées par le formulaire Django, les validateurs de modèle
+et les services métier. Les attributs HTML restent une aide à la saisie, pas
+une frontière de sécurité.
 
-La fiche affiche toutes les catégories, y compris celles dont le stock est nul. Un visiteur voit un lien de connexion avec retour vers la fiche seulement si le concert est réservable. Un utilisateur connecté voit un formulaire catégorie/quantité permettant d'ajouter des billets au panier.
+Exigences : `EF5`, `EM1`, `EM2`, `EM3`, `ENF4`, `RG2`, `RG3`.
 
-## Quantités
+## Paiement
 
-La quantité doit être un entier entre 1 et 6. Le plafond de 6 s'applique au total des lignes du panier ou de la commande pour un même concert, pas seulement à chaque ligne.
+- La carte `4242424242424242`, espaces retirés, est acceptée.
+- Toute autre valeur non vide et d'au plus 32 caractères est refusée.
+- Le numéro de carte n'est jamais stocké.
+- Une saisie vide ou trop longue est refusée par le formulaire en français.
 
-Le modèle courant limite volontairement un panier actif et une commande à un seul concert. Les paniers multi-concerts sont rejetés par les services.
+Paiement accepté :
 
-## Paiement simulé
+- création d'une commande `paid` ;
+- création d'un paiement `accepted` ;
+- prix figés ;
+- décrément conditionnel du stock ;
+- panier `checked_out`.
 
-Le service `process_simulated_payment` valide le panier dans une transaction.
+Paiement refusé :
 
-- La carte simulée `4242424242424242` est acceptée.
-- Toute autre valeur de carte est refusée.
-- Le numéro de carte n'est pas stocké.
-- Paiement accepté : une commande `paid` et un paiement `accepted` sont créés, les prix sont figés et le stock est décrémenté.
-- Paiement refusé : une commande `refused` et un paiement `refused` sont créés, aucun stock n'est décrémenté et le panier reste actif pour permettre une nouvelle tentative future.
-- Si une règle de quantité, stock, date, statut ou concert unique échoue, aucune commande validée n'est créée.
+- création d'une commande `refused` non finale ;
+- création d'un paiement `refused` ;
+- stock inchangé ;
+- panier toujours `active`.
 
-## Consultation des commandes
+Si le panier ou le stock devient invalide, la transaction est annulée.
 
-Les pages `Mes commandes` et détail de commande sont réservées aux utilisateurs connectés.
+Exigences : `EF7`, `EF8`, `EF9`, `EF12`, `EM1`, `EM6`, `EM7`, `EM10`,
+`RG4`, `RG5`, `RG6`.
 
-- L'historique affiche uniquement les commandes `paid` du client courant.
-- Le détail de commande est filtré par propriétaire et par statut `paid`.
-- Un utilisateur ne peut pas consulter la commande payée d'un autre utilisateur.
-- Une commande `refused` reste non finale et exclue de l'historique des achats payés.
+## Commandes
+
+- L'historique exige une authentification.
+- Il affiche uniquement les commandes `paid` du client courant.
+- Le détail est filtré par propriétaire et statut `paid`.
+- Une commande d'un autre client ou une commande refusée renvoie `404`.
+- Les prix affichés proviennent des lignes figées.
+
+Exigences : `EF10`, `RG8`.
 
 ## Administration
 
-- Le suivi admin des ventes exige `concerts.view_concert` et `orders.view_order`.
-- Les actions d'annulation et de clôture exigent `concerts.change_concert`.
-- Les visiteurs anonymes sont redirigés vers la connexion ; les utilisateurs authentifiés sans permission reçoivent `403`.
-- L'annulation met le concert en `cancelled` et empêche toute nouvelle réservation.
-- La clôture met le concert en `closed` et empêche toute nouvelle réservation.
-- Ces changements de statut ne modifient pas le stock restant et ne masquent pas les commandes payées déjà accessibles à leur propriétaire.
-- La synthèse admin compte seulement les commandes `paid`; les commandes `refused` ne contribuent pas aux ventes.
+- La synthèse des ventes exige `concerts.view_concert` et
+  `orders.view_order`.
+- Annuler ou clôturer exige `concerts.change_concert`.
+- Un client standard reçoit `403`.
+- L'annulation passe le statut à `cancelled`.
+- La clôture passe le statut à `closed`.
+- Les commandes payées existantes et le stock restant sont conservés.
+- Seules les commandes payées contribuent aux ventes.
 
-## Portée actuelle
+Exigences : `EF11`, `EM9`, `RG7`.
 
-Les règles de date, statut et stock sont aussi appliquées par le catalogue, les fiches publiques, l'ajout au panier et la validation du paiement. Les vues de confirmation/refus filtrent les commandes par utilisateur connecté. `EF10` et `RG8` sont couverts par l'historique payé et le détail de commande filtré par propriétaire. Le suivi admin des ventes est une fonctionnalité privilégiée distincte et ne modifie pas la portée de `RG8`.
+## Transitions non automatiques
+
+L'application ne passe pas automatiquement un concert à `sold_out` lorsque le
+stock atteint zéro, ni à `finished` lorsque sa date est passée. Les contrôles
+de réservation utilisent directement le stock et la date, ce qui préserve les
+règles même si le statut n'a pas été actualisé.

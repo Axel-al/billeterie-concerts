@@ -29,6 +29,7 @@
 
 - Étant donné un utilisateur connecté et une catégorie avec assez de stock, quand il ajoute une quantité entre 1 et 6, alors la ligne est ajoutée au panier.
 - Étant donné une quantité hors limites ou un stock insuffisant, quand l'utilisateur ajoute au panier, alors l'ajout est refusé.
+- Les attributs HTML `required`, `min="1"`, `max="6"` et `type="number"` restent présents pour la sémantique et l'aide à la saisie. Le formulaire utilise `novalidate` afin que la validation de référence soit exécutée côté Django et que le message soit affiché en français.
 - Exigences : EF5, EF6, EM1, EM2, EM3, RG2, RG3.
 
 ## CA5 - Paiement accepté
@@ -39,6 +40,7 @@
 ## CA6 - Paiement refusé
 
 - Étant donné un panier valide, quand le paiement simulé est refusé, alors aucune commande payée n'est créée, un message explicite est affiché et le stock ne change pas.
+- Étant donné un numéro de carte vide ou trop long, quand le formulaire est soumis, alors Django refuse la saisie avec un message français. Les attributs HTML `required`, `maxlength`, `type` et `inputmode` restent présents.
 - Exigences : EF7, EF9, EM6, RG4.
 
 ## CA7 - Accès au paiement

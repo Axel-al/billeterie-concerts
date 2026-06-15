@@ -127,6 +127,27 @@ def test_add_to_cart_quantity_boundaries(client, user, quantity, expected_accept
 
 
 @pytest.mark.django_db
+def test_booking_form_keeps_html_constraints_with_server_side_validation(
+    client,
+    user,
+):
+    concert = create_concert()
+    create_category(concert)
+    client.force_login(user)
+
+    response = client.get(reverse("concerts:detail", args=[concert.pk]))
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert 'data-testid="booking-form"' in content
+    assert "novalidate" in content
+    assert 'type="number"' in content
+    assert 'required' in content
+    assert 'min="1"' in content
+    assert 'max="6"' in content
+
+
+@pytest.mark.django_db
 def test_insufficient_stock_is_rejected_through_add_to_cart_flow(client, user):
     concert = create_concert()
     category = create_category(concert, stock=1)
@@ -240,6 +261,36 @@ def test_payment_page_with_valid_active_cart_displays_form_and_total(client, use
     assert concert.title in content
     assert "Total à payer" in content
     assert "50,00" in content
+
+
+@pytest.mark.django_db
+def test_payment_form_keeps_html_constraints_and_displays_french_errors(
+    client,
+    user,
+):
+    concert = create_concert()
+    category = create_category(concert)
+    add_ticket_to_cart(user, category, 1)
+    client.force_login(user)
+
+    get_response = client.get(reverse("payments:simulate"))
+    get_content = get_response.content.decode()
+
+    assert get_response.status_code == 200
+    assert 'data-testid="payment-form"' in get_content
+    assert "novalidate" in get_content
+    assert 'type="text"' in get_content
+    assert 'required' in get_content
+    assert 'maxlength="32"' in get_content
+    assert 'inputmode="numeric"' in get_content
+
+    post_response = client.post(
+        reverse("payments:simulate"),
+        data={"card_number": ""},
+    )
+
+    assert post_response.status_code == 200
+    assert "Indiquez un numéro de carte." in post_response.content.decode()
 
 
 @pytest.mark.django_db

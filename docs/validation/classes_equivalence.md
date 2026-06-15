@@ -35,6 +35,7 @@ panier ne subsistent après rollback.
 | Brouillon | Non ouvert à la vente | Absent du catalogue, fiche publique `404` | RG1 |
 | Complet | Aucun stock disponible | Absent du catalogue, fiche avec motif et sans CTA | RG1 |
 | Annulé | Statut annulé | Absent du catalogue, fiche avec motif et sans CTA | EM5, RG7 |
+| Ventes clôturées | Statut `closed` | Absent du catalogue, fiche avec motif et sans CTA | EF11, RG1 |
 | Terminé ou passé | Date passée | Absent du catalogue, fiche avec motif et sans CTA | EM4, RG1 |
 
 Dans l'implémentation courante, une date égale à l'instant courant est considérée comme non réservable ; le concert doit être strictement futur.
@@ -45,6 +46,8 @@ Dans l'implémentation courante, une date égale à l'instant courant est consid
 | --- | --- | --- | --- |
 | Paiement accepté | Carte `4242424242424242` | Commande payée, confirmation affichée, stock décrémenté | EF7, EF8, EF12, EM6, RG5 |
 | Paiement refusé | Toute autre carte | Pas de commande validée, message explicite, stock inchangé | EF7, EF9, EM6, RG4 |
+| Numéro absent | Valeur vide | Refus du formulaire avec message français | ENF4 |
+| Numéro trop long | Plus de 32 caractères | Refus du formulaire avec message français | ENF4 |
 | Panier invalide | Panier vide, inactif ou devenu non réservable | Paiement bloqué proprement | ENF4, RG1, RG2, RG3, RG6 |
 
 Le numéro de carte n'est pas stocké ; seule la décision acceptée/refusée est conservée dans `Payment`.

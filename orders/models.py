@@ -45,6 +45,8 @@ class Order(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+        verbose_name = "commande"
+        verbose_name_plural = "commandes"
 
     def __str__(self) -> str:
         return f"Commande #{self.pk} - {self.user}"
@@ -81,6 +83,8 @@ class OrderLine(models.Model):
 
     class Meta:
         ordering = ("id",)
+        verbose_name = "ligne de commande"
+        verbose_name_plural = "lignes de commande"
         constraints = [
             models.CheckConstraint(
                 condition=Q(quantity__gte=1) & Q(quantity__lte=6),

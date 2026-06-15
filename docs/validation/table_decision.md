@@ -37,12 +37,15 @@ Exigences : EF5, EM1, EM2, EM3, EM4, EM5, RG1, RG2, RG3.
 | P3 | Non | Oui | Non applicable | Non exécuté | Accès bloqué | Inchangé |
 | P4 | Oui | Non | Non applicable | Non exécuté | Validation refusée | Inchangé |
 | P5 | Oui | Oui | Oui, carte acceptée | Échec | Transaction annulée, aucune commande ni paiement persistant | Inchangé |
+| P6 | Oui | Oui | Saisie vide ou supérieure à 32 caractères | Non exécuté | Formulaire refusé avec message français | Inchangé |
 
 Exigences : EF7, EF8, EF9, EF12, EM1, EM6, EM7, ENF4, RG2, RG4, RG5, RG6.
 
 `P1` et `P2` sont couverts par le service de paiement et les vues. `P3` est
 couvert par les vues `LoginRequiredMixin`. `P5` est couvert par
 `tests/test_core_domain.py::test_failed_conditional_stock_update_rolls_back_payment`.
+`P6` est couvert par
+`tests/test_booking_flow.py::test_payment_form_keeps_html_constraints_and_displays_french_errors`.
 
 ## Consultation des commandes
 

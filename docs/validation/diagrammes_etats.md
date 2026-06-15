@@ -1,96 +1,89 @@
 # Diagrammes d'états
 
-Les diagrammes sont des modèles de validation cibles. Ils devront être ajustés si l'implémentation choisit des noms de statuts différents.
+Ces diagrammes décrivent les cycles de vie effectivement utilisés par
+l'application. Les noms techniques correspondent aux valeurs stockées.
 
 ## Concert
 
 ```mermaid
 stateDiagram-v2
-    state "Clôturé" as Cloture
-    state "Annulé" as Annule
-    state "Terminé" as Termine
-    [*] --> Brouillon
-    Brouillon --> Ouvert: publication
-    Ouvert --> Cloture: clôture admin
-    Ouvert --> Complet: stock épuisé
-    Ouvert --> Annule: annulation admin
-    Ouvert --> Termine: date passée
-    Complet --> Ouvert: stock ajouté
-    Complet --> Cloture: clôture admin
-    Complet --> Annule: annulation admin
-    Cloture --> Annule: annulation admin
-    Annule --> [*]
-    Cloture --> [*]
-    Termine --> [*]
+    state "Brouillon (draft)" as Brouillon
+    state "Ouvert (open)" as Ouvert
+    state "Vente clôturée (closed)" as Cloture
+    state "Complet (sold_out)" as Complet
+    state "Annulé (cancelled)" as Annule
+    state "Terminé (finished)" as Termine
+
+    [*] --> Brouillon: valeur par défaut
+    Brouillon --> Ouvert: publication administrateur
+    Ouvert --> Cloture: clôture administrateur
+    Ouvert --> Annule: annulation administrateur
+    Ouvert --> Complet: statut défini administrativement
+    Ouvert --> Termine: statut défini administrativement
 ```
 
-Exigences liées : EF1, EF2, EF11, EM4, EM5, EM9, RG1, RG7.
+Exigences liées : `EF1`, `EF2`, `EF11`, `EM4`, `EM5`, `EM9`, `RG1`,
+`RG7`.
 
-Statuts implémentés : `draft`, `open`, `closed`, `sold_out`, `cancelled`, `finished`.
+L'administration Django permet de choisir explicitement un statut. Les actions
+de la synthèse des ventes imposent seulement les transitions vers `closed` et
+`cancelled`. L'application ne transforme pas automatiquement un concert en
+`sold_out` lorsque le stock atteint zéro, ni en `finished` lorsque sa date est
+passée. La date et le stock sont néanmoins contrôlés directement pour empêcher
+la réservation.
 
 ## Panier
 
 ```mermaid
 stateDiagram-v2
-    state "Validé" as Valide
-    state "Abandonné" as Abandonne
+    state "Actif (active)" as Actif
+    state "Validé (checked_out)" as Valide
+    state "Abandonné (abandoned)" as Abandonne
+
     [*] --> Actif
     Actif --> Valide: paiement accepté
     Actif --> Actif: paiement refusé
-    Actif --> Actif: échec décrément / rollback
-    Actif --> Abandonne: abandon futur
-    Valide --> [*]
-    Abandonne --> [*]
+    Actif --> Actif: erreur métier ou rollback
+    Actif --> Abandonne: transition prévue au modèle
 ```
 
-Exigences liées : EF5, EF6, EF7, EF8, EF9, EM1, EM2, EM3, RG2, RG3, RG4, RG5.
+Exigences liées : `EF5`, `EF6`, `EF7`, `EF8`, `EF9`, `EM1`, `EM2`,
+`EM3`, `RG2`, `RG3`, `RG4`, `RG5`.
 
-Statuts implémentés : `active`, `checked_out`, `abandoned`. Un paiement refusé
-ou un échec du décrément conditionnel laisse le panier `active`.
+Le statut `abandoned` existe dans le modèle, mais aucune action utilisateur ne
+l'emploie actuellement. Un paiement refusé et un échec transactionnel laissent
+le panier actif.
 
-## Commande
+## Commande et paiement
 
 ```mermaid
 stateDiagram-v2
-    state "Refusée" as Refusee
-    state "Annulée" as Annulee
+    state "Panier actif" as Panier
+    state "Commande payée (paid)" as Payee
+    state "Commande refusée (refused)" as Refusee
+
     [*] --> Panier
-    Panier --> EnAttentePaiement: validation panier
-    EnAttentePaiement --> Payée: paiement accepté
-    EnAttentePaiement --> Refusee: paiement refusé
-    EnAttentePaiement --> Panier: échec décrément / rollback
-    Panier --> Annulee: abandon
-    Refusee --> Panier: nouvelle tentative
-    Payée --> [*]
-    Annulee --> [*]
+    Panier --> Payee: paiement accepté
+    Panier --> Refusee: paiement refusé
+    Refusee --> Panier: nouvelle tentative sur le panier conservé
+    Panier --> Panier: échec du décrément et rollback
 ```
 
-Exigences liées : EF7, EF8, EF9, EF10, EF12, EM6, EM10, RG4, RG5.
+Exigences liées : `EF7`, `EF8`, `EF9`, `EF10`, `EF12`, `EM6`, `EM10`,
+`RG4`, `RG5`.
 
-Statuts implémentés : `pending`, `paid`, `refused`, `cancelled`.
-
-Dans le parcours simulé, la carte `4242424242424242` provoque la transition vers `paid`; toute autre carte provoque la transition vers `refused`.
+Le service ne persiste pas de commande `pending` pendant le parcours simulé :
+il crée directement une commande `paid` ou `refused`. Après un refus, une
+nouvelle tentative crée une nouvelle commande ; elle ne transforme pas la
+commande refusée précédente. Le statut `cancelled` existe dans le modèle mais
+n'est pas exposé par le parcours actuel.
 
 ## Cas de test dérivés
 
-Le premier cas dérivé du cycle de vie de commande vérifie la transition vers `refused` : un paiement refusé ne crée pas de commande payée et ne modifie pas le stock.
-
-Exigences : EF9, EM6, RG4.
-
-Le second cas dérivé vérifie la transition vers `paid` : un paiement accepté crée une commande payée, fige les prix et décrémente le stock.
-
-Exigences : EF8, EF12, EM6, EM7, RG5.
-
-Le troisième cas dérivé du cycle de vie de concert vérifie l'annulation admin : un concert passe en `cancelled`, ne peut plus recevoir de réservation et conserve les commandes payées existantes.
-
-Exigences : EF11, EM5, EM9, RG7.
-
-Le quatrième cas dérivé vérifie la clôture admin : un concert passe en `closed`, reste consultable, ne peut plus recevoir de réservation et conserve son stock restant.
-
-Exigences : EF11, EM9, RG1.
-
-Le cinquième cas dérivé vérifie le rollback du paiement accepté si le décrément
-conditionnel du stock échoue : aucune commande ni aucun paiement ne persiste, le
-stock reste inchangé et le panier reste `active`.
-
-Exigences : EF12, EM1, EM6, ENF4, RG2, RG5.
+| Cas | Transition vérifiée | Preuve principale | Exigences |
+| --- | --- | --- | --- |
+| Paiement accepté | Panier actif vers commande payée et panier validé | `test_accepted_payment_creates_paid_order_and_decrements_stock` | EF8, EF12, EM6, EM7, RG5 |
+| Paiement refusé | Panier actif conservé et commande refusée créée | `test_refused_payment_does_not_create_validated_order_or_decrement_stock` | EF9, EM6, RG4 |
+| Échec du décrément | Retour transactionnel à l'état initial | `test_failed_conditional_stock_update_rolls_back_payment` | EF12, EM1, EM6, ENF4, RG2, RG5 |
+| Annulation | Concert ouvert vers annulé | `test_cancelled_concert_rejects_new_reservations_and_preserves_paid_order` | EF11, EM5, EM9, RG7 |
+| Clôture | Concert ouvert vers vente clôturée | `test_closed_concert_rejects_new_reservations_and_keeps_stock` | EF11, EM9, RG1 |

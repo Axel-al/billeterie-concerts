@@ -40,6 +40,8 @@ class Cart(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+        verbose_name = "panier"
+        verbose_name_plural = "paniers"
         constraints = [
             models.UniqueConstraint(
                 fields=("user",),
@@ -85,6 +87,8 @@ class CartLine(models.Model):
 
     class Meta:
         ordering = ("id",)
+        verbose_name = "ligne de panier"
+        verbose_name_plural = "lignes de panier"
         constraints = [
             models.UniqueConstraint(
                 fields=("cart", "seat_category"),

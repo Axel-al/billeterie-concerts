@@ -2,155 +2,175 @@
 
 Dernière mise à jour : 2026-06-15
 
-## État actuel
+## Synthèse
 
-Le dépôt contient une application Django exécutable avec tests automatisés,
-scénario Playwright nominal, mesure Playwright `ENF2`, Ruff, couverture de
-branches, seuil local de 90 %, GitHub Actions et configuration SonarCloud sans
-secret versionné.
+L'application Django est exécutable et accompagnée de preuves automatisées :
 
-## Outillage déclaré
+- 111 tests Django unitaires et d'intégration ;
+- 6 tests Playwright Chromium ;
+- couverture applicative avec branches à 99,6 % ;
+- seuil local bloquant fixé à 90 % ;
+- Ruff, checks Django et contrôle de migrations ;
+- GitHub Actions ;
+- Quality Gate SonarQube Cloud ;
+- matrice de traçabilité reliant exigences, code et tests.
 
-| Outil | Déclaration | Statut |
+Les exigences `EF1` à `EF12`, `EM1` à `EM10`, `ENF1` à `ENF7` et `RG1` à
+`RG8` disposent d'une preuve documentée dans `matrice_tracabilite.md`.
+
+## Outillage
+
+| Outil | Usage | Déclaration |
 | --- | --- | --- |
-| Django | `requirements.txt` | Dépendance runtime déclarée |
-| python-dotenv | `requirements.txt` | Dépendance runtime déclarée |
-| pytest | `requirements-dev.txt` | Tests exécutés localement et en CI |
-| pytest-django | `requirements-dev.txt` | Intégration Django exécutée |
-| pytest-cov / coverage | `requirements-dev.txt`, `pyproject.toml` | Branches, XML et seuil global 90 % |
-| Ruff | `requirements-dev.txt`, `pyproject.toml` | Analyse statique bloquante |
-| freezegun | `requirements-dev.txt` | Dates stabilisées dans les tests concernés |
-| factory-boy | `requirements-dev.txt` | Disponible ; non requis par les fixtures actuelles |
-| pytest-playwright | `requirements-dev.txt`, `e2e/` | Scénario e2e nominal et mesure `ENF2` versionnés |
+| Django | Application, ORM, authentification et administration | `requirements.txt` |
+| pytest / pytest-django | Tests unitaires et d'intégration | `requirements-dev.txt` |
+| pytest-playwright | Parcours fonctionnels et performance | `requirements-dev.txt`, `e2e/` |
+| coverage.py / pytest-cov | Couverture de branches et XML | `pyproject.toml` |
+| Ruff | Analyse statique Python | `pyproject.toml` |
+| freezegun | Stabilisation des dates de test | `requirements-dev.txt` |
+| GitHub Actions | Pipeline automatique | `.github/workflows/ci.yml` |
+| SonarQube Cloud | Quality Gate externe | `sonar-project.properties` |
 
-## Analyse statique
+`factory-boy` est déclaré pour permettre une évolution des fixtures, mais les
+helpers actuels restent plus lisibles pour ce volume de données.
 
-Ruff est configuré dans `pyproject.toml` et exécuté en local ainsi qu'en CI.
+## Résultats locaux
 
-Commande vérifiée :
+Commandes exécutées :
 
 ```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
 ruff check .
+pytest --cov --cov-report=term-missing --cov-report=xml
+python .github/scripts/validate_coverage_xml.py
+pytest e2e --browser chromium \
+  --tracing=retain-on-failure \
+  --output=test-results/playwright \
+  -rP
 ```
 
-Résultat observé : OK.
+Résultats observés :
 
-L'analyse Web des templates a conduit à deux corrections vérifiées par
-`tests/test_template_quality.py` :
+- 111 tests Django réussis ;
+- 6 tests Playwright réussis ;
+- 838 instructions applicatives mesurées ;
+- 2 instructions non couvertes ;
+- 102 branches mesurées ;
+- couverture totale : 99,6 % ;
+- aucune migration manquante ;
+- aucune erreur Ruff.
 
-- ajout des empreintes SRI et de `crossorigin="anonymous"` aux ressources
-  Bootstrap 5.3.3 chargées depuis jsDelivr ;
-- retrait de quatre rôles `status` sur des messages rendus statiquement, sans
-  changement de texte ni de comportement.
+Les deux lignes non couvertes dans `payments/services.py` défendent des
+incohérences entre un panier déjà validé et les catégories verrouillées au
+moment du paiement. Des données artificiellement incohérentes ne sont pas
+créées uniquement pour atteindre 100 %.
+
+## Validation des formulaires
+
+Les formulaires de réservation et de paiement utilisent `novalidate` afin que
+les erreurs de référence proviennent de Django et soient affichées en français.
+Les attributs HTML utiles restent présents :
+
+- réservation : `required`, `type="number"`, `min="1"` et `max="6"` ;
+- paiement : `required`, `type="text"`, `maxlength="32"` et
+  `inputmode="numeric"`.
+
+Les mêmes contraintes sont appliquées côté Django :
+
+- champs et messages des formulaires ;
+- validateurs des modèles ;
+- services métier de quantité, stock et paiement.
+
+Le test Playwright
+`test_invalid_quantity_displays_french_server_validation` vérifie la borne
+haute et le message français dans un navigateur réel.
 
 ## Couverture
 
-Coverage est configuré dans `pyproject.toml`.
+Coverage mesure les packages `accounts`, `concerts`, `cart`, `orders`,
+`payments` et `config`. Les migrations, `manage.py`, `config/asgi.py` et
+`config/wsgi.py` sont exclus car ils ne portent pas de logique applicative
+écrite pour le projet.
 
-Commande vérifiée :
-
-```bash
-pytest --cov --cov-report=term-missing --cov-report=xml
-python .github/scripts/validate_coverage_xml.py
-```
-
-Les applications sont déclarées avec `source_pkgs` et `relative_files`. Le XML
-conserve ainsi des chemins tels que `accounts/admin.py` au lieu de noms ambigus
-comme `admin.py`. La CI vérifie que chaque chemin est relatif et résolvable avant
-de lancer SonarCloud.
-
-Résultat local observé : 108 tests passent, la couverture applicative avec
-branches atteint 99,6 % (813 instructions, 2 non couvertes, 102 branches), le
-seuil de 90 % est respecté et les 35 chemins du XML sont valides. Le fichier
-`coverage.xml` généré contient 37 553 octets.
-
-Exclusions justifiées :
-
-- `config/asgi.py`
-- `config/wsgi.py`
-
-Ces deux fichiers sont des entrypoints Django générés, sans logique applicative propre.
+Le rapport `coverage.xml` utilise des chemins relatifs non ambigus, par exemple
+`accounts/admin.py`. Le script
+`.github/scripts/validate_coverage_xml.py` refuse les chemins absolus,
+introuvables ou ambigus avant l'analyse SonarQube Cloud.
 
 ## Tests fonctionnels
 
-Commande vérifiée :
+Le scénario nominal couvre le catalogue, la fiche, la connexion, le panier, le
+checkout, le paiement accepté, la confirmation, le stock et l'historique.
 
-```bash
-pytest e2e --browser chromium --tracing=retain-on-failure --output=test-results/playwright -rP
-```
+Un second scénario vérifie une quantité supérieure à six, la conservation des
+attributs HTML et l'affichage du message français produit par Django.
 
-Résultat observé : OK, le scénario nominal et les 4 mesures `ENF2` passent. Les scénarios créent leurs données via `pytest-django` et `live_server` dans la base de test, sans dépendance à `db.sqlite3`.
+Les paiements refusés, permissions, stocks insuffisants, accès d'un autre
+utilisateur et autres valeurs limites sont couverts par les tests
+d'intégration.
 
-Mesure `ENF2` locale observée sous Chromium, viewport 1366x768, contexte froid
-par page, sans throttling CPU/réseau, Bootstrap 5.3.3 rejoué depuis fixtures
-locales conformes SRI :
+## Performance ENF2
 
-| Page | LCP observé | Durée load observée |
+Le test `e2e/test_page_performance.py` utilise Chromium, `live_server`, un
+viewport 1366 × 768, un contexte froid par page, aucune limitation CPU/réseau
+et les fichiers Bootstrap 5.3.3 locaux correspondant aux empreintes SRI du
+template.
+
+Résultats observés lors de la vérification finale locale :
+
+| Page | LCP | Durée de chargement |
 | --- | ---: | ---: |
-| Accueil `/` | 72 ms | 67,6 ms |
-| Catalogue `/concerts/` | 60 ms | 57,4 ms |
-| Fiche concert `/concerts/<id>/` | 48 ms | 45,6 ms |
-| Historique authentifié `/commandes/` | 44 ms | 40,1 ms |
+| Accueil | 40 ms | 35,0 ms |
+| Catalogue | 36 ms | 32,9 ms |
+| Fiche concert | 48 ms | 25,8 ms |
+| Historique authentifié | 36 ms | 31,0 ms |
 
-Le seuil `ENF2` reste 2 000 ms. Cette mesure valide le rendu navigateur sous
-conditions CI contrôlées ; elle ne prouve pas la performance production sur tous
-les appareils, états CDN ou réseaux.
+Le seuil est de 2 000 ms. Cette mesure valide un environnement de laboratoire
+CI contrôlé et ne garantit pas la performance de tous les appareils, réseaux
+ou états du CDN en production.
 
-## CI
+## Intégration continue
 
-Le workflow `.github/workflows/ci.yml` est versionné. Il exécute Ruff, les
-checks Django, le contrôle de migrations, pytest avec couverture, puis installé
-Chromium et lance Playwright en ciblant explicitement Chromium avec les
-diagnostics des tests passés. Les traces sont publiées si le job échoue. La
-couverture terminale rend les logs directement exploitables.
+Le job `Django checks` exécute :
 
-L'analyse Sonar du workflow a détecté des références d'actions non immuables et
-une installation Python non verrouillée. Les actions sont maintenant épinglées
-par SHA, `requirements-ci.txt` fixe les versions directes et transitives avec
-leurs empreintes SHA-256, `--require-hashes` vérifie les artefacts téléchargés et
-`--only-binary=:all:` interdit les distributions source en CI.
+1. installation Python 3.12 depuis `requirements-ci.txt` avec empreintes ;
+2. Ruff ;
+3. checks Django ;
+4. contrôle de dérive des migrations ;
+5. pytest avec couverture et XML ;
+6. validation du XML ;
+7. installation de Chromium ;
+8. tests Playwright ;
+9. publication des traces en cas d'échec ;
+10. analyse SonarQube Cloud lorsque `SONAR_TOKEN` est disponible.
 
-Le lock a été validé dans un environnement Python 3.12 vierge avec :
+Les actions GitHub sont épinglées par SHA immuable. Le lock CI impose
+`--require-hashes` et `--only-binary=:all:`.
 
-```bash
-python -m pip install --only-binary=:all: --require-hashes -r requirements-ci.txt
-python -m pip check
-```
+## SonarQube Cloud
 
-Résultat : installation réussie et aucune dépendance incompatible.
+Le check `SonarCloud Code Analysis` de référence sur `main`, commit
+`946ad8c`, a réussi le 15 juin 2026 avec :
 
-## SonarQube
+- Quality Gate réussi ;
+- 0 nouvelle anomalie ;
+- 0 hotspot de sécurité ;
+- 99,5 % de couverture du nouveau code ;
+- 0,0 % de duplication sur le nouveau code.
 
-SonarCloud est configuré par `sonar-project.properties`. Les sources incluent les
-packages applicatifs, les templates Django et les workflows GitHub Actions. Les
-tests `tests/` et `e2e/` restent déclarés séparément. L'analyse CI utilise la
-version 8.2.0 de `SonarSource/sonarqube-scan-action`, épinglée par SHA, seulement
-si `SONAR_TOKEN` est disponible.
+La branche de finalisation doit obtenir à son tour les checks `Django checks`
+et `SonarCloud Code Analysis` avant toute fusion.
 
-Le commit fusionne `9bc8e69` a passé le job GitHub Actions `Django checks`, mais
-le check externe SonarCloud `81334931351` a échoue avec 3,3 % de couverture du
-nouveau code. Le log du scanner contenait :
+## Limites et risques résiduels
 
-```text
-Cannot resolve the file path 'admin.py' of the coverage report, ambiguity,
-the file exists in several 'source'.
-Cannot resolve 7 file paths, ignoring coverage measures for those files
-```
-
-La pull request de correction est
-`https://github.com/Axel-al/billeterie-concerts/pull/15`. Elle conserve la
-définition distante `previous_version` et n'ajoute pas de
-`sonar.projectVersion`; son objectif est uniquement de rendre le rapport de
-couverture importable sans ambiguïté et de corriger les constats Web observés.
-
-`sonar.qualitygate.wait` n'est pas activé. Les règles du dépôt imposent déjà
-`Django checks` et le check externe `SonarCloud Code Analysis`; ce dernier porte
-le résultat du Quality Gate. Une PR de fork peut ne pas recevoir le secret et
-rester bloquée jusqu'à une analyse depuis un contexte de confiance.
-
-## Risques actuels
-
-- Les tests de consultation de commandes couvrent l'historique payé et le détail filtré par propriétaire ; les tentatives refusées restent exclues de l'historique des achats.
-- Le rollback en cas d'échec du décrément conditionnel est testé, mais les tests de concurrence multi-processus restent à approfondir.
-- Le premier scénario Playwright couvre le parcours nominal seulement ; les parcours d'erreur e2e restent optionnels et sont couverts par les tests d'intégration Django.
-- `ENF2` est mesurée en laboratoire CI contrôlé : la preuve ne couvre pas toutes les conditions de production, appareils, états CDN ou réseaux.
+- Le paiement est simulé ; aucun prestataire réel n'est intégré.
+- Le panier est volontairement limité à un seul concert.
+- SQLite ne fournit pas une preuve de concurrence multi-processus équivalente à
+  une base de production.
+- Les transitions automatiques vers `sold_out` et `finished` ne sont pas
+  implémentées ; la réservabilité contrôle directement stock, date et statut.
+- Les commandes refusées sont conservées comme traces non finales, mais ne sont
+  pas affichées dans l'historique des achats payés.
+- Bootstrap dépend de jsDelivr en usage normal.
+- Aucun déploiement ni durcissement de production n'est fourni.

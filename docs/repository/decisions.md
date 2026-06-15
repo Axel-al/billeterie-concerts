@@ -2,6 +2,23 @@
 
 Ce journal consigne les décisions structurantes déjà prises. Les nouvelles décisions devront être ajoutées en tête de liste.
 
+## 2026-06-15 - Validation française côté serveur
+
+Décision : utiliser `novalidate` sur les formulaires de réservation et de
+paiement afin que Django produise les messages d'erreur de référence en
+français. Conserver les attributs HTML utiles, notamment `required`, `min`,
+`max`, les types de champs, `maxlength` et `inputmode`.
+
+Motif : les messages de validation natifs varient selon la langue du
+navigateur et peuvent apparaître en anglais pendant la soutenance. Les
+attributs HTML restent néanmoins utiles à la sémantique, à l'accessibilité et
+aux claviers adaptés.
+
+Impact : les mêmes contraintes sont vérifiées dans les formulaires Django, les
+validateurs de modèles et les services métier. Des tests Django contrôlent le
+HTML et les erreurs, et un test Playwright vérifie la borne supérieure avec un
+message français.
+
 ## 2026-06-15 - Mesure ENF2 en navigateur contrôlé
 
 Décision : valider `ENF2` avec un test Playwright Chromium dédié qui mesure le
@@ -80,7 +97,7 @@ utilisées sous Python 3.12. La CI impose `--require-hashes` et installe uniquem
 des distributions binaires. `requirements.txt` et `requirements-dev.txt` restent
 les manifests de plages supportées pour le développement.
 
-`sonar.qualitygate.wait` n'est pas active : les règles du dépôt exigent déjà les
+`sonar.qualitygate.wait` n'est pas activé : les règles du dépôt exigent déjà les
 checks distincts `Django checks` et `SonarCloud Code Analysis`. Attendre le
 Quality Gate dans le job Django dupliquerait ce mécanisme et allongerait la CI.
 L'analyse reste conditionnelle à `SONAR_TOKEN`; une pull request issue d'un fork
@@ -153,17 +170,17 @@ Impact : `AUTH_USER_MODEL = "accounts.User"` est configuré. Les mots de passe r
 
 ## 2026-04-25 - SonarCloud conditionnel
 
-Décision : enrichir `sonar-project.properties` avec les chemins existants et declencher l'analyse CI seulement si `SONAR_TOKEN` est disponible.
+Décision : enrichir `sonar-project.properties` avec les chemins existants et déclencher l'analyse CI seulement si `SONAR_TOKEN` est disponible.
 
 Motif : la configuration SonarCloud doit être versionnée sans exposer de secret et ne doit pas référencer de chemins absents comme `e2e/`.
 
-Impact : la CI ne doit pas echouer uniquement parce que le secret SonarCloud est absent.
+Impact : la CI ne doit pas échouer uniquement parce que le secret SonarCloud est absent.
 
 ## 2026-04-25 - Baseline documentaire avant initialisation Django
 
 Décision : créer la documentation de dépôt et de validation avant d'initialiser le projet Django.
 
-Motif : le prompt demande explicitement de compléter la structure documentaire sans initialiser Django sauf s'il est déjà present. Le dépôt ne contient actuellement aucun projet Django.
+Motif : l'étape initiale prévoie de compléter la structure documentaire sans initialiser Django sauf s'il est déjà présent. Le dépôt ne contient actuellement aucun projet Django.
 
 Impact : les documents de validation indiquent les exigences officielles et les tests prévus, mais ne revendiquent aucune couverture fonctionnelle déjà implémentée.
 
@@ -171,11 +188,11 @@ Impact : les documents de validation indiquent les exigences officielles et les 
 
 Décision : utiliser Python, Django, SQLite en développement, templates Django et Bootstrap via CDN.
 
-Motif : ce choix est cohérent avec le besoin, limité la complexité frontend et permet de concentrer l'effort sur les exigences, les tests et la qualité.
+Motif : ce choix est cohérent avec le besoin, limite la complexité frontend et permet de concentrer l'effort sur les exigences, les tests et la qualité.
 
 Impact : React, Vite, TypeScript, Node.js et une application frontend séparée ne sont pas prévus.
 
-## 2026-04-25 - Strategie de validation
+## 2026-04-25 - Stratégie de validation
 
 Décision : préparer une validation multi-couches avec tests unitaires, tests d'intégration, couverture, Ruff et scénarios fonctionnels Playwright.
 
@@ -183,10 +200,10 @@ Motif : le cahier des charges demande des preuves de qualité, une traçabilité
 
 Impact : les dépendances de développement incluent déjà `pytest`, `pytest-django`, `pytest-cov`, `coverage`, `ruff`, `freezegun`, `factory-boy` et `pytest-playwright`.
 
-## 2026-04-25 - CI et SonarQube planifies
+## 2026-04-25 - CI et SonarQube planifiés
 
-Décision : documenter CI et SonarQube comme objectifs planifies, pas comme fonctionnalités déjà livrées.
+Décision : documenter CI et SonarQube comme objectifs planifiés, pas comme fonctionnalités déjà livrées.
 
 Motif : aucun workflow GitHub Actions ni fichier SonarQube n'est versionné pour l'instant.
 
-Impact : `quality-ci.md` decrit les commandes et seuils cibles sans pretendre qu'ils sont actifs.
+Impact : `quality-ci.md` décrit les commandes et seuils cibles sans prétendre qu'ils sont actifs.

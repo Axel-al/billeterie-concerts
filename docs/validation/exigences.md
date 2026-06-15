@@ -10,7 +10,7 @@ Ce document reformule les exigences sous une forme exploitable pour la validatio
 | --- | --- |
 | EF1 | Afficher la liste des concerts ouverts à la vente. |
 | EF2 | Afficher la fiche détaillée d'un concert avec titre, artiste, date, lieu, catégories, prix et stock restant. |
-| EF3 | Permettre la création d'un compte avec e-mail unique et mot de passe. |
+| EF3 | Permettre la création d'un compte avec une adresse e-mail unique et un mot de passe. |
 | EF4 | Permettre la connexion d'un utilisateur enregistré. |
 | EF5 | Permettre à un utilisateur connecté d'ajouter des billets au panier dans la limite du stock. |
 | EF6 | Calculer automatiquement le total du panier selon les billets sélectionnés. |
@@ -32,7 +32,7 @@ Ce document reformule les exigences sous une forme exploitable pour la validatio
 | EM5 | Interdire la réservation d'un concert annulé. |
 | EM6 | Une commande devient définitive seulement si le paiement est accepté. |
 | EM7 | Le prix payé correspond au prix de la catégorie au moment de la validation. |
-| EM8 | Deux comptes ne peuvent pas partager le même e-mail. |
+| EM8 | Deux comptes ne peuvent pas partager la même adresse e-mail. |
 | EM9 | Seul un administrateur peut créer ou modifier un concert. |
 | EM10 | Toute commande est associée à un utilisateur, un concert, une date et un statut. |
 

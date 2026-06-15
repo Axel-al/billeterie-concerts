@@ -32,6 +32,8 @@ class Concert(models.Model):
 
     class Meta:
         ordering = ("starts_at", "title")
+        verbose_name = "concert"
+        verbose_name_plural = "concerts"
 
     def __str__(self) -> str:
         return f"{self.title} - {self.artist}"
@@ -74,6 +76,8 @@ class SeatCategory(models.Model):
 
     class Meta:
         ordering = ("concert", "name")
+        verbose_name = "catégorie de place"
+        verbose_name_plural = "catégories de places"
         constraints = [
             models.UniqueConstraint(
                 fields=("concert", "name"),
