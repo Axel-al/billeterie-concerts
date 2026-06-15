@@ -34,6 +34,14 @@ ruff check .
 
 Resultat observe : OK.
 
+L'analyse Web des templates a conduit a deux corrections verifiees par
+`tests/test_template_quality.py` :
+
+- ajout des empreintes SRI et de `crossorigin="anonymous"` aux ressources
+  Bootstrap 5.3.3 chargees depuis jsDelivr ;
+- retrait de quatre roles `status` sur des messages rendus statiquement, sans
+  changement de texte ni de comportement.
+
 ## Couverture
 
 Coverage est configure dans `pyproject.toml`.
@@ -42,11 +50,18 @@ Commande verifiee :
 
 ```bash
 pytest --cov --cov-report=term-missing --cov-report=xml
+python .github/scripts/validate_coverage_xml.py
 ```
 
-Resultat final observe : 106 tests passent, la couverture applicative avec
+Les applications sont declarees avec `source_pkgs` et `relative_files`. Le XML
+conserve ainsi des chemins tels que `accounts/admin.py` au lieu de noms ambigus
+comme `admin.py`. La CI verifie que chaque chemin est relatif et resolvable avant
+de lancer SonarCloud.
+
+Resultat local observe : 108 tests passent, la couverture applicative avec
 branches atteint 99,6 % (813 instructions, 2 non couvertes, 102 branches), le
-seuil de 90 % est respecte et `coverage.xml` est genere avec 11 063 octets.
+seuil de 90 % est respecte et les 35 chemins du XML sont valides. Le fichier
+`coverage.xml` genere contient 37 553 octets.
 
 Exclusions justifiees :
 
@@ -95,33 +110,21 @@ tests `tests/` et `e2e/` restent declares separement. L'analyse CI utilise la
 version 8.2.0 de `SonarSource/sonarqube-scan-action`, epinglee par SHA, seulement
 si `SONAR_TOKEN` est disponible.
 
-Le commit de configuration `086e7fa` a passe les deux runs GitHub Actions :
+Le commit fusionne `9bc8e69` a passe le job GitHub Actions `Django checks`, mais
+le check externe SonarCloud `81334931351` a echoue avec 3,3 % de couverture du
+nouveau code. Le log du scanner contenait :
 
-- push `27519339493`, job `Django checks` `81334046774` ;
-- pull request `27519340500`, job `Django checks` `81334049790`.
-
-Le check externe SonarCloud `81334229776` a passe avec 0 nouvelle issue et
-0 Security Hotspot. Il affiche 0,0 % de couverture du nouveau code, ce qui est
-coherent avec l'absence de nouvelle ligne executable dans les packages
-applicatifs ; la branche ajoute un test et de la configuration. La couverture
-applicative locale globale mesuree reste 99,6 %.
-
-Commandes de diagnostic executees :
-
-```bash
-gh pr checks 14 --watch --interval 10
-gh checks 086e7fa966d083658ab655fbf9c6d213da0c22f3
-gh check-detail 81334229776
-gh run view 27519340500 --log-failed
+```text
+Cannot resolve the file path 'admin.py' of the coverage report, ambiguity,
+the file exists in several 'source'.
+Cannot resolve 7 file paths, ignoring coverage measures for those files
 ```
 
-Les trois checks sont passes. La derniere commande n'a produit aucun log
-d'echec, le run etant reussi.
-
-Les appels sans authentification aux API publiques de mesures et de Quality
-Gate SonarCloud ont retourne HTTP 403. Le detail disponible via
-`gh check-detail 81334229776` et le tableau de bord lie constituent donc la
-preuve distante retenue.
+La pull request de correction est
+`https://github.com/Axel-al/billeterie-concerts/pull/15`. Elle conserve la
+definition distante `previous_version` et n'ajoute pas de
+`sonar.projectVersion`; son objectif est uniquement de rendre le rapport de
+couverture importable sans ambiguite et de corriger les constats Web observes.
 
 `sonar.qualitygate.wait` n'est pas active. Les regles du depot imposent deja
 `Django checks` et le check externe `SonarCloud Code Analysis`; ce dernier porte

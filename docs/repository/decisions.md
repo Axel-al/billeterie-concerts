@@ -2,6 +2,36 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-06-15 - Integrite CDN et messages HTML statiques
+
+Decision : conserver Bootstrap 5.3.3 via jsDelivr avec les empreintes SRI
+officielles et `crossorigin="anonymous"`. Retirer `role="status"` des messages
+statiques rendus par Django.
+
+Motif : SonarCloud signale les ressources distantes sans controle d'integrite.
+Les quatre messages concernes ne sont pas injectes dynamiquement et n'ont donc
+pas besoin d'une zone live ARIA ; leur texte et leur presentation Bootstrap
+restent inchanges.
+
+Impact : un test statique parse les templates pour verifier les metadonnees des
+deux ressources Bootstrap et l'absence de nouveau `role="status"`. Toute mise a
+jour de Bootstrap devra mettre a jour simultanement les URL et empreintes.
+
+## 2026-06-15 - Chemins de couverture relatifs et non ambigus
+
+Decision : declarer les applications Django avec `coverage.py source_pkgs`,
+activer `relative_files` et valider le rapport XML avant l'analyse SonarCloud.
+
+Motif : une liste de repertoires dans `source` produisait des noms raccourcis
+comme `admin.py`, presents dans plusieurs applications. SonarCloud ne pouvait
+pas choisir le fichier correspondant et ignorait les mesures de sept familles
+de chemins, puis attribuait 0 % de couverture aux fichiers concernes.
+
+Impact : `coverage.xml` utilise des chemins tels que `accounts/admin.py` sans
+inclure les tests dans le denominateur. La CI execute
+`.github/scripts/validate_coverage_xml.py` apres pytest. La definition SonarCloud
+du nouveau code reste inchangee.
+
 ## 2026-06-15 - Seuil de couverture local et gates SonarCloud externes
 
 Decision : mesurer uniquement les packages applicatifs declares dans

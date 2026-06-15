@@ -14,6 +14,7 @@ Tests automatises versionnes :
 - `tests/test_order_history.py` : historique des commandes payees, detail de commande, redirection des visiteurs, cloisonnement proprietaire, exclusion des commandes refusees et liens post-paiement.
 - `tests/test_admin_concert_management.py` : permissions d'administration, synthese des ventes payees, annulation, cloture, preservation des commandes payees et creation/modification admin de concerts avec categories.
 - `tests/test_settings.py` : helpers de configuration d'environnement pour booleens et listes.
+- `tests/test_template_quality.py` : empreintes SRI des ressources Bootstrap et absence de roles `status` sur les messages statiques.
 - `tests/test_core_domain.py` : regles de quantite, stock, concert reservable, panier mono-concert, panier vide/inactif, paiement simule accepte/refuse, prix snapshots et rollback si le decrement conditionnel du stock echoue.
 - `e2e/test_nominal_booking_flow.py` : scenario Playwright nominal avec `live_server`, connexion, ajout de 2 billets, panier, checkout, paiement accepte, confirmation, historique et assertions ORM dans la base de test.
 
@@ -69,15 +70,22 @@ python manage.py makemigrations --check --dry-run
 ruff check .
 pytest
 pytest --cov --cov-report=term-missing --cov-report=xml
+python .github/scripts/validate_coverage_xml.py
 coverage report
 test -s coverage.xml
 ```
 
-Resultat final observe : 106 tests Django passent, `coverage.xml` est genere,
-non vide (11 063 octets), et la couverture applicative avec branches atteint
+Resultat final observe : 108 tests Django passent, `coverage.xml` est genere,
+non vide (37 553 octets), et la couverture applicative avec branches atteint
 99,6 % (813 instructions, 2 non couvertes, 102 branches), au-dessus du seuil
-obligatoire de 90 %. Les tests ne sont pas inclus dans le denominateur. Le
-scenario Playwright nominal passe egalement.
+obligatoire de 90 %. Les 35 chemins mesures sont relatifs et resolvables. Les
+tests ne sont pas inclus dans le denominateur. Le scenario Playwright nominal
+passe egalement.
+
+Le rapport XML conserve les chemins complets relatifs aux packages
+(`accounts/admin.py`, `cart/admin.py`, etc.). Le validateur CI refuse les
+chemins absolus ou non resolvables afin d'eviter que SonarCloud ignore des
+mesures de couverture a cause de noms ambigus.
 
 ## Exclusions de couverture
 

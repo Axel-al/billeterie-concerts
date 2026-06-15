@@ -53,6 +53,9 @@ jobs:
       - name: Tests with coverage
         run: pytest --cov --cov-report=term-missing --cov-report=xml
 
+      - name: Validate coverage paths
+        run: python .github/scripts/validate_coverage_xml.py
+
       - name: Install Playwright Chromium
         run: python -m playwright install --with-deps chromium
 
