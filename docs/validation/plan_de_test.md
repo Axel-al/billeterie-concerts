@@ -63,8 +63,13 @@ ruff check .
 pytest
 python manage.py check
 python manage.py makemigrations --check --dry-run
-pytest --cov=. --cov-report=xml
+pytest --cov --cov-report=term-missing --cov-report=xml
 pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 ```
 
-Resultat observe lors de la derniere verification complete : voir `docs/repository/current-state.md`.
+La couverture mesure uniquement les packages applicatifs declares dans
+`pyproject.toml`, avec branches et seuil global bloquant de 90 %. Ce seuil reste
+un garde-fou et ne remplace pas la priorisation des regles metier critiques.
+
+Resultat observe lors de la derniere verification complete : voir
+`docs/repository/current-state.md`.

@@ -2,6 +2,33 @@
 
 Ce journal consigne les decisions structurantes deja prises. Les nouvelles decisions devront etre ajoutees en tete de liste.
 
+## 2026-06-15 - Seuil de couverture local et gates SonarCloud externes
+
+Decision : mesurer uniquement les packages applicatifs declares dans
+`pyproject.toml`, avec couverture de branches, precision a une decimale et seuil
+global bloquant de 90 %. Le Quality Gate SonarCloud conserve son seuil de
+couverture du nouveau code a 80 %.
+
+Motif : un seuil local rend la verification reproductible meme lorsque
+SonarCloud n'est pas disponible. La marge entre les 90 % locaux et la couverture
+actuelle evite qu'une petite evolution non critique bloque artificiellement le
+projet. Ce seuil reste un garde-fou : il ne justifie ni tests artificiels ni
+exclusion de code applicatif reel, et les regles metier critiques restent
+prioritaires.
+
+Impact : la commande de reference devient
+`pytest --cov --cov-report=term-missing --cov-report=xml`. Le workflow conserve
+le nom requis `Django checks`, verifie aussi l'absence de migration manquante et
+affiche les lignes non couvertes. SonarCloud analyse egalement les templates
+Django et les workflows GitHub Actions.
+
+`sonar.qualitygate.wait` n'est pas active : les regles du depot exigent deja les
+checks distincts `Django checks` et `SonarCloud Code Analysis`. Attendre le
+Quality Gate dans le job Django dupliquerait ce mecanisme et allongerait la CI.
+L'analyse reste conditionnelle a `SONAR_TOKEN`; une pull request issue d'un fork
+peut donc ne pas lancer le scanner et rester bloquee par le check Sonar requis
+jusqu'a une execution dans un contexte de confiance.
+
 ## 2026-06-15 - Administration concerts et ventes par permissions Django
 
 Decision : ajouter une synthese admin des ventes et des actions d'annulation/cloture avec des vues Django protegees par permissions, tout en enrichissant l'admin Django existant.

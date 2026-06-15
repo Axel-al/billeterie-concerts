@@ -54,6 +54,10 @@ Elements livres dans cette etape :
 - navigation differenciee entre visiteurs et utilisateurs connectes ;
 - page protegee `Mon espace` ;
 - tests d'integration Django pour labels francais, inscription, connexion, echec de connexion, deconnexion POST, protection d'acces et role utilisateur standard ;
+- test de rollback transactionnel si le decrement conditionnel du stock echoue ;
+- couverture applicative de branches avec seuil global de 90 % et rapport XML ;
+- CI avec Ruff, checks Django, controle de migrations, tests, Playwright et SonarCloud ;
+- analyse SonarCloud etendue aux templates Django et workflows GitHub Actions ;
 - mise a jour des documents `docs/repository/` et `docs/validation/`.
 
 Le cahier des charges officiel reste conserve dans `docs/brief/projet-validation-logiciel-e4a-2026.md`.
@@ -93,7 +97,8 @@ Couverture existante conservee :
 - `EM1` a `EM7` et `EM10` : regles couvertes au niveau domaine/service et parcours UI ;
 - `RG1` a `RG6` : regles couvertes au niveau domaine/service et parcours UI ;
 - `EF10` et `RG8` : historique des commandes payees et detail de commande filtres par proprietaire ;
-- `ENF5`, `ENF6` et `ENF7` : Ruff, tests automatises, coverage et GitHub Actions versionnes.
+- `EF12`, `EM1`, `EM6`, `ENF4`, `RG2` et `RG5` : rollback complet si le decrement conditionnel du stock echoue ;
+- `ENF5`, `ENF6` et `ENF7` : Ruff, tests automatises, couverture avec seuil, GitHub Actions et Quality Gate SonarCloud.
 
 Couverture e2e ajoutee :
 
@@ -202,85 +207,64 @@ La commande `python manage.py seed_demo_data` cree ou met a jour :
 
 ## Qualite et CI
 
-Le workflow CI existant reste configure pour :
+Le workflow conserve le job requis `Django checks` et execute Ruff, les checks
+Django, le controle des migrations, pytest avec couverture, puis Playwright. Les
+traces Playwright sont publiees en cas d'echec.
 
-- installer les dependances de developpement ;
-- installer Chromium pour Playwright ;
-- executer Ruff ;
-- executer `python manage.py check` ;
-- executer pytest avec generation `coverage.xml` ;
-- executer `pytest e2e --tracing=retain-on-failure --output=test-results/playwright` ;
-- publier `test-results/` comme artefact GitHub Actions en cas d'echec ;
-- lancer SonarCloud seulement si le secret `SONAR_TOKEN` est disponible.
+Coverage mesure uniquement les packages applicatifs declares dans
+`pyproject.toml`, avec branches, precision a une decimale, rapport terminal,
+`coverage.xml` et seuil global bloquant de 90 %. Le seuil reste un garde-fou et
+ne justifie ni tests artificiels ni exclusion de code applicatif.
 
-La configuration SonarCloud analyse tous les modules applicatifs existants :
-`config`, `accounts`, `concerts`, `cart`, `orders` et `payments`. Les tests restent
-declares separement dans `tests`.
+SonarCloud analyse les packages Python, les templates Django et les workflows
+GitHub Actions. Les tests `tests/` et `e2e/` sont declares comme sources de test.
+L'action utilise `SonarSource/sonarqube-scan-action@v8.2.0`.
 
-Etat distant de la branche courante :
+`sonar.qualitygate.wait` n'est pas active : les regles du depot exigent deja les
+checks distincts `Django checks` et `SonarCloud Code Analysis`. L'analyse reste
+conditionnelle a `SONAR_TOKEN`; les pull requests de forks peuvent donc ne pas
+executer le scanner et rester bloquees par le check Sonar requis.
 
-- le compte GitHub actif dispose de droits d'ecriture sur `Axel-al/billeterie-concerts` ;
-- la branche locale courante est `feature/e2e-nominal-booking-flow` ;
-- la branche `feature/e2e-nominal-booking-flow` est poussee directement sur le depot amont ;
-- la pull request #13 `Add nominal booking e2e scenario` est ouverte vers `main` ;
-- les deux executions `Django checks` declenchees par push et pull request sont en succes ;
-- `gh pr checks 13` signale aussi `SonarCloud Code Analysis` en succes.
+Le detail de la strategie et des limites est maintenu dans
+`docs/repository/quality-ci.md`, `docs/repository/testing.md` et
+`docs/validation/rapport_qualite.md`.
 
 ## Verification locale
 
-Commandes lancees avec succes :
+Verification intermediaire apres configuration :
 
 ```bash
-pytest e2e --tracing=retain-on-failure --output=test-results/playwright
 ruff check .
-pytest
 python manage.py check
 python manage.py makemigrations --check --dry-run
-pytest --cov=. --cov-report=xml
-coverage report
-git check-ignore -v test-results/ playwright-report/
+pytest --cov --cov-report=term-missing --cov-report=xml
 ```
 
-Resultats observes pour la derniere implementation complete :
-
-- `pytest e2e --tracing=retain-on-failure --output=test-results/playwright` : OK, 1 scenario Playwright passe.
 - `ruff check .` : OK.
-- `pytest` : OK, 105 tests passent.
 - `python manage.py check` : OK.
 - `python manage.py makemigrations --check --dry-run` : OK, aucune migration manquante.
-- `pytest --cov=. --cov-report=xml` : OK, 105 tests passent et `coverage.xml` est genere puis ignore par Git.
-- `coverage report` : couverture totale 99 %, avec `cart/services.py`, `cart/views.py`, `concerts/admin.py`, `concerts/services.py`, `concerts/views.py`, `orders/admin.py`, `orders/views.py`, `payments/admin.py`, `payments/views.py`, `tests/test_admin_concert_management.py`, `tests/test_booking_flow.py` et `tests/test_order_history.py` a 100 %.
-- `git diff --check` : OK.
-- `git check-ignore -v test-results/ playwright-report/` : OK, les deux chemins sont ignores par `.gitignore`.
+- pytest avec couverture : OK, 106 tests passent, couverture applicative 99,6 % et `coverage.xml` genere.
 
-Decision couverture : les lignes restantes non couvertes concernent uniquement des incoherences defensives dans `payments/services.py` : categorie de panier incoherente apres validation, stock devenu insuffisant entre validation et snapshot, ou echec concurrent de l'update conditionnel. Les couvrir demanderait des donnees volontairement incoherentes ou du monkeypatch interne, donc elles ne sont pas ajoutees a cette passe. Les regles critiques demandees et les branches significatives des vues panier/paiement/commandes/administration sont couvertes par `tests/test_core_domain.py`, `tests/test_booking_flow.py`, `tests/test_order_history.py` et `tests/test_admin_concert_management.py`.
+La verification complete et les resultats distants seront consignes apres le
+push final de la branche.
 
 ## Verification navigateur
 
-Aucun nouveau controle navigateur manuel n'a ete execute pour l'administration concerts/ventes dans cette passe ; la verification repose sur les tests d'integration Django.
-
-Controle Playwright automatise ajoute :
-
-- le scenario nominal ouvre la liste des concerts, consulte une fiche ouverte, se connecte, ajoute 2 places au panier, valide le panier, paie avec la carte acceptee, verifie la confirmation et retrouve la commande dans `Mes commandes` ;
-- les donnees du scenario sont creees par fixtures dans la base de test `pytest-django` exposee par `live_server`, sans lire `db.sqlite3`.
-
-Controle manuel execute avec `agent-browser` et les donnees de `seed_demo_data` :
-
-- l'accueil expose `Concerts` et `Voir les concerts` ;
-- le catalogue n'affiche que `Nuit Electrique`, seul concert demo reservable ;
-- la fiche reservable affiche date, lieu, trois categories, prix, stocks et le lien de connexion avec `next=/concerts/1/` ;
-- les fiches `Silence Annule` et `Hier Encore` affichent leur motif francais et aucun CTA de reservation ;
-- une fiche de controle future avec stock nul affiche `Ce concert est complet. Il ne reste aucune place disponible.` et aucun CTA.
+Aucune interface utilisateur n'est modifiee par cet audit. Aucun controle manuel
+navigateur supplementaire n'est requis ; le scenario Playwright nominal reste
+la preuve fonctionnelle automatisee.
 
 ## Statut Git observe
 
-- Branche de travail : `feature/e2e-nominal-booking-flow`.
+- Branche de travail : `quality/ci-traceability-audit`.
 - Remote de suivi et de push : `https://github.com/Axel-al/billeterie-concerts.git`.
-- Pull request : a creer apres push de la branche e2e.
+- Le compte GitHub actif dispose du droit `WRITE` sur le depot.
+- Pull request : a creer apres validation locale.
 - `AGENTS.md` est present localement et ignore via `.git/info/exclude`.
 - `docs/prompts/` n'a pas ete lu.
 - `db.sqlite3`, `coverage.xml`, caches Python/Ruff/pytest, `test-results/`, `playwright-report/` et environnements virtuels restent non versionnes.
 
 ## Prochaine etape recommandee
 
-Relire puis fusionner la pull request #13 si son perimetre convient.
+Executer la verification complete, pousser la branche et controler les checks
+`Django checks` et `SonarCloud Code Analysis`.

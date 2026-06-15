@@ -65,9 +65,9 @@ Le depot contient une fondation Django, un catalogue public de concerts, des fic
 | ENF2 | Aucune mesure performance applicative | Aucun | Non couvert | A mesurer avec vues |
 | ENF3 | Mot de passe gere par Django auth et formulaire d'inscription Django | `tests/test_accounts.py::test_user_password_is_hashed`, `tests/test_authentication_views.py::test_registered_password_is_not_stored_in_plain_text` | Couvert | Aucun stockage en clair attendu |
 | ENF4 | Services et formulaires rejettent les saisies invalides proprement ; une incoherence de stock tardive provoque un rollback explicite | Tests quantite/stock/statut domaine, `tests/test_core_domain.py::test_failed_conditional_stock_update_rolls_back_payment`, tests authentification, `tests/test_booking_flow.py` | Couvert pour le perimetre implemente |  |
-| ENF5 | Ruff configure dans `pyproject.toml` et CI | `ruff check .` local et CI | Couvert fondation | Suivi Sonar futur |
-| ENF6 | Regles metier isolees en services testables, dont `concerts.services` pour administration et ventes | `tests/test_core_domain.py`, `tests/test_admin_concert_management.py`, `pytest` | Couvert | A maintenir avec les vues |
-| ENF7 | Workflow GitHub Actions versionne | `.github/workflows/ci.yml` | Couvert fondation | CI distante a verifier apres push |
+| ENF5 | Ruff, couverture applicative de branches avec seuil global de 90 % et analyse SonarCloud des sources, templates et workflows | `ruff check .`, `pytest --cov --cov-report=term-missing --cov-report=xml`, Quality Gate Sonar externe | Couvert | Le seuil local ne doit pas encourager les tests artificiels |
+| ENF6 | Regles metier isolees en services testables, dont le rollback transactionnel stock/paiement | `tests/test_core_domain.py`, `tests/test_admin_concert_management.py`, `pytest` | Couvert | Les tests multi-processus restent hors SQLite local |
+| ENF7 | Workflow GitHub Actions versionne avec Ruff, checks Django, controle migrations, tests, couverture, Playwright et Sonar conditionnel | `.github/workflows/ci.yml`, checks requis `Django checks` et `SonarCloud Code Analysis` | Couvert | Une PR de fork peut ne pas recevoir `SONAR_TOKEN` et rester bloquee par le check requis |
 
 ## Regles de gestion
 
