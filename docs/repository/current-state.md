@@ -283,3 +283,9 @@ git diff --check
 Aucun contrôle manuel navigateur supplémentaire n'a été réalisé. Les textes du
 parcours nominal ayant changé, le scénario Playwright Chromium complet a été
 relancé.
+
+Le Quality Gate SonarCloud a initialement signalé une duplication entre le
+détail de commande et la confirmation de paiement. Le tableau commun des lignes
+de commande est maintenant rendu par le partial
+`templates/orders/_order_lines_table.html`, sans modifier les titres, actions
+ou attributs `data-testid` propres à chaque page.
